@@ -26,6 +26,7 @@ state = {
     'winner': None,
     'started': False,   # False=等待大厅，True=游戏进行中
     'hostId': -1,       # 房主（第一个加入的玩家）
+    'boardVersion': 50, # 本局棋盘版本（50/100/150）
 }
 state_lock = threading.Lock()
 sse_clients = []       # 已连接的 SSE 响应对象
@@ -189,6 +190,9 @@ class Handler(BaseHTTPRequestHandler):
             state['phase'] = 'idle'
             state['turn'] = 0
             state['winner'] = None
+            bv = body.get('boardVersion')
+            if bv in (50, 100, 150):
+                state['boardVersion'] = bv
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
             # 在锁内做深拷贝，锁外再广播（snapshot() 会再次获取同一把锁，不能在此调用）
@@ -245,6 +249,7 @@ class Handler(BaseHTTPRequestHandler):
     def _leave(self, body):
         with state_lock:
             pid = body.get('id')
+            was_started = state['started']
             state['players'] = [p for p in state['players'] if p['id'] != pid]
             if state['hostId'] == pid:
                 state['hostId'] = state['players'][0]['id'] if state['players'] else -1
@@ -253,8 +258,13 @@ class Handler(BaseHTTPRequestHandler):
             state['phase'] = 'idle'
             if len(state['players']) < 2:
                 state['started'] = False   # 人数不足时回到等待状态
-            broadcast('players', state['players'])
-            broadcast('turn', state['turn'])
+            snap = json.loads(json.dumps(state))
+            players_snap = json.loads(json.dumps(state['players']))
+        # 游戏进行中有人退出 → 结束本局，全员回到主页面
+        if was_started:
+            broadcast('ended', {'reason': '有玩家退出了游戏，本局已结束'})
+        broadcast('players', players_snap)
+        broadcast('turn', snap['turn'])
         self._json(200, {})
 
     def _reset(self):
