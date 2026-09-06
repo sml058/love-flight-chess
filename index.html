@@ -454,6 +454,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .online-input:focus{outline:none;border-color:var(--boost)}
 .btn-join{width:100%;margin-top:16px;font-size:16px;padding:12px}
 .online-hint{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:10px;line-height:1.6}
+.online-gender{display:flex;gap:8px;margin-top:4px}
+.online-gender .g-btn{flex:1;text-align:center;justify-content:center}
+.online-count{font-size:13px;font-weight:600;color:var(--boost);text-align:center;margin-top:10px;background:rgba(155,123,255,.08);border-radius:999px;padding:6px 10px}
 .online-status{font-size:12px;text-align:center;margin-top:8px;min-height:16px;font-weight:500}
 .online-status.ok{color:var(--safe)}
 .online-status.err{color:var(--setback)}
@@ -1197,11 +1200,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <div class="online-panel" id="online-panel" style="display:none">
           <div class="online-title">加入联机房间</div>
           <label class="online-label">服务器地址</label>
-          <input class="online-input" id="online-server" type="text" value="http://localhost:8765" placeholder="如 http://192.168.1.5:8765">
+          <input class="online-input" id="online-server" type="text" value="https://sml058.onrender.com" placeholder="如 https://xxx.onrender.com">
           <label class="online-label">你的昵称</label>
           <input class="online-input" id="online-name" type="text" maxlength="12" placeholder="宝贝①">
+          <label class="online-label">你的性别</label>
+          <div class="online-gender" id="online-gender">
+            <button class="g-btn active" type="button" data-g="male">👦 男生</button>
+            <button class="g-btn" type="button" data-g="female">👧 女生</button>
+          </div>
+          <div class="online-count">当前在线：<span id="online-count">--</span> 人</div>
           <button class="btn-primary btn-join" id="btn-join" type="button">加入房间</button>
-          <div class="online-hint">先在一台电脑运行 server.py，所有人连同一个 WiFi 后打开同一地址</div>
+          <div class="online-hint">默认使用云端服务器，全国都能联机；也可改成局域网地址如 http://192.168.1.5:8765</div>
           <div class="online-status" id="online-status"></div>
         </div>
       </div>
@@ -2182,6 +2191,8 @@ function applyServerState(data){
   switchView('view-game');
   var st = $('online-status');
   if(st){ st.textContent='已加入房间，当前 '+state.players.length+' 人'; st.className='online-status ok'; }
+  var oc = $('online-count');
+  if(oc){ oc.textContent = state.players.length; }
 }
 function setupSSE(){
   if(evtSource){ try{evtSource.close();}catch(e){} }
@@ -2192,6 +2203,8 @@ function setupSSE(){
   evtSource.addEventListener('players', function(e){
     try{
       var players = JSON.parse(e.data);
+      var oc = $('online-count');
+      if(oc){ oc.textContent = players.length; }
       if(state){
         players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
         state.players = players;
@@ -2216,11 +2229,13 @@ function setupSSE(){
 function joinOnline(){
   var url = ($('online-server').value||'').trim().replace(/\/+$/,'');
   var name = ($('online-name').value||'').trim() || ('宝贝'+(myId+1));
+  var g = document.querySelector('#online-gender .g-btn.active');
+  var gender = (g && g.getAttribute('data-g')) || 'male';
   if(!url){ showToast('请输入服务器地址'); return; }
   serverUrl = url;
   var st = $('online-status');
   st.textContent='正在连接...'; st.className='online-status';
-  fetch(url+'/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,gender:'male'})})
+  fetch(url+'/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,gender:gender})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d && d.error){ st.textContent=d.error; st.className='online-status err'; return; }
@@ -3074,11 +3089,43 @@ $('btn-online').addEventListener('click', function(){
   SFX.resume(); SFX.click();
   var panel = $('online-panel');
   panel.style.display = (panel.style.display==='none') ? 'block' : 'none';
+  if(panel.style.display === 'block'){
+    refreshOnlineCount();
+    if(!_countTimer){ _countTimer = setInterval(refreshOnlineCount, 3000); }
+  }
 });
 $('btn-join').addEventListener('click', function(){
   SFX.resume(); SFX.click();
   joinOnline();
 });
+// 联机性别选择
+var onlineGenderBtns = document.querySelectorAll('#online-gender .g-btn');
+for(var og = 0; og < onlineGenderBtns.length; og++){
+  onlineGenderBtns[og].addEventListener('click', function(){
+    SFX.click();
+    for(var i = 0; i < onlineGenderBtns.length; i++){
+      onlineGenderBtns[i].classList.toggle('active', onlineGenderBtns[i] === this);
+    }
+  });
+}
+// 查询房间在线人数
+var _countTimer = null;
+function refreshOnlineCount(){
+  var el = $('online-count');
+  if(!el) return;
+  var url = ($('online-server').value||'').trim().replace(/\/+$/,'');
+  if(!url){ el.textContent = '--'; return; }
+  fetch(url + '/health')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && typeof d.players === 'number'){
+        el.textContent = d.players;
+      }else{
+        el.textContent = '--';
+      }
+    })
+    .catch(function(){ el.textContent = '--'; });
+}
 $('btn-restart').addEventListener('click', function(){
   if(onlineMode){ leaveOnline(); }
   passMode = false;
