@@ -995,6 +995,36 @@ button:disabled{opacity:.45;cursor:not-allowed}
   padding:10px 0;
   min-height:44px;
 }
+/* 联机等待大厅 */
+.lobby-card{
+  max-width:420px;margin:40px auto;padding:28px 22px;
+  background:var(--card);border-radius:24px;
+  border:1.5px solid rgba(255,110,156,.18);
+  box-shadow:0 12px 36px rgba(74,52,71,.12);
+  text-align:center;
+}
+.lobby-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:2px}
+.lobby-sub{font-size:14px;color:var(--ink-soft);margin:10px 0 16px}
+.lobby-players{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.lobby-player{
+  display:flex;align-items:center;gap:12px;
+  background:#FFF9FC;border:1.5px solid #FFE0EC;border-radius:14px;
+  padding:10px 14px;text-align:left;
+}
+.lobby-avatar{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;font-weight:700;
+  box-shadow:0 3px 8px rgba(74,52,71,.15);
+}
+.lobby-pname{font-size:15px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lobby-ptag{font-size:11px;font-weight:600;color:#9B7BFF;background:#F3EEFF;border-radius:999px;padding:3px 10px;flex-shrink:0}
+.lobby-pgender{font-size:12px;color:var(--ink-soft);flex-shrink:0}
+.lobby-hint{font-size:13px;color:var(--ink-soft);margin-bottom:14px;min-height:18px}
+.lobby-empty{font-size:13px;color:var(--ink-soft);padding:14px}
+.lobby-card .btn-ghost{margin-top:10px}
+.lobby-pulse{animation:lobbyPulse 1.2s ease-in-out infinite}
+@keyframes lobbyPulse{0%,100%{opacity:1}50%{opacity:.45}}
 /* 结算爱心对比 */
 .vs-row{display:flex;align-items:flex-end;justify-content:center;gap:18px;margin:6px 0 18px}
 .vs-col{flex:1;max-width:130px}
@@ -1214,6 +1244,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <div class="online-status" id="online-status"></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：联机等待大厅 ========== -->
+  <section id="view-lobby" class="view">
+    <div class="lobby-card">
+      <div class="lobby-title">💘 等待玩家加入</div>
+      <div class="lobby-sub">房间在线 <span id="lobby-count">0</span> / 4 人</div>
+      <div class="lobby-players" id="lobby-players"></div>
+      <div class="lobby-hint" id="lobby-hint">等待更多玩家加入...</div>
+      <button class="btn-primary btn-lobby-start" id="btn-lobby-start" type="button" style="display:none">🚀 开始游戏</button>
+      <button class="btn-ghost" id="btn-lobby-back" type="button">离开房间</button>
     </div>
   </section>
 
@@ -2164,10 +2206,29 @@ function handleOnlineDice(pid, val){
   setTimeout(function(){ movePawn(p, val); }, 350);
 }
 function applyServerState(data){
+  // 处理等待大厅状态
+  if(data && data.started === false && onlineMode){
+    state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:false, hostId:data.hostId};
+    renderLobby();
+    var oc = $('online-count');
+    if(oc){ oc.textContent = state.players.length; }
+    return;
+  }
   if(onlineMode && state && state.players && state.players.length){
     data.players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
     state.players = data.players;
     state.turn = data.turn;
+    state.started = data.started;
+    state.hostId = data.hostId;
+    // 游戏已开始但还在等待大厅时，切换到对局
+    if(data.started && $('view-lobby').classList.contains('active')){
+      rebuildCardPools();
+      renderScorePills();
+      buildBoard();
+      ensurePawns();
+      applyBoardBg();
+      switchView('view-game');
+    }
     render();
     setRollEnabled(state.phase==='idle' && state.turn===myId);
     return;
@@ -2182,17 +2243,91 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId};
   onlineMode = true;
+  // 若房间未开始，进入等待大厅
+  if(data.started === false){
+    renderLobby();
+    var oc2 = $('online-count');
+    if(oc2){ oc2.textContent = state.players.length; }
+    return;
+  }
   rebuildCardPools();
+  renderScorePills();
   buildBoard();
+  ensurePawns();
+  applyBoardBg();
   render();
   setRollEnabled(state.phase==='idle' && state.turn===myId);
   switchView('view-game');
   var st = $('online-status');
   if(st){ st.textContent='已加入房间，当前 '+state.players.length+' 人'; st.className='online-status ok'; }
-  var oc = $('online-count');
-  if(oc){ oc.textContent = state.players.length; }
+  var oc3 = $('online-count');
+  if(oc3){ oc3.textContent = state.players.length; }
+}
+function renderLobby(){
+  if(!state || !state.players){ return; }
+  var list = $('lobby-players');
+  var hint = $('lobby-hint');
+  var count = $('lobby-count');
+  var startBtn = $('btn-lobby-start');
+  if(count){ count.textContent = state.players.length; }
+  list.innerHTML = '';
+  if(!state.players.length){
+    list.innerHTML = '<div class="lobby-empty">暂无玩家，等待加入...</div>';
+  }
+  state.players.forEach(function(p){
+    var isHost = (state.hostId === p.id);
+    var isMe = (myId === p.id);
+    var el = document.createElement('div');
+    el.className = 'lobby-player';
+    var av = document.createElement('div');
+    av.className = 'lobby-avatar';
+    av.style.background = (p.color || '#FF6E9C');
+    av.textContent = (p.gender==='female'?'👧':'👦');
+    var nm = document.createElement('div');
+    nm.className = 'lobby-pname';
+    nm.textContent = (p.name || ('宝贝'+(p.id+1))) + (isMe ? ' (我)' : '');
+    var gd = document.createElement('div');
+    gd.className = 'lobby-pgender';
+    gd.textContent = (p.gender==='female'?'女生':'男生');
+    el.appendChild(av);
+    el.appendChild(nm);
+    el.appendChild(gd);
+    if(isHost){
+      var tag = document.createElement('div');
+      tag.className = 'lobby-ptag';
+      tag.textContent = '👑 房主';
+      el.appendChild(tag);
+    }
+    list.appendChild(el);
+  });
+  if(state.hostId === myId){
+    startBtn.style.display = 'block';
+    hint.textContent = state.players.length >= 2 ? '玩家已就位，可以开始游戏啦！' : '至少 2 人才能开始，等待其他玩家...';
+    hint.className = 'lobby-hint' + (state.players.length >= 2 ? ' lobby-pulse' : '');
+  }else{
+    startBtn.style.display = 'none';
+    hint.textContent = '等待房主开始游戏...';
+    hint.className = 'lobby-hint lobby-pulse';
+  }
+  switchView('view-lobby');
+}
+function startOnlineGame(){
+  if(!onlineMode) return;
+  SFX.click();
+  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.state){ applyServerState(d.state); }
+    })
+    .catch(function(err){ showToast('连接失败：' + ((err && err.message) ? err.message : '网络错误')); });
+}
+function leaveLobby(){
+  SFX.click();
+  leaveOnline();
+  switchView('view-home');
 }
 function setupSSE(){
   if(evtSource){ try{evtSource.close();}catch(e){} }
@@ -2205,11 +2340,24 @@ function setupSSE(){
       var players = JSON.parse(e.data);
       var oc = $('online-count');
       if(oc){ oc.textContent = players.length; }
+      if(state && state.started === false){
+        // 等待大厅：更新玩家列表
+        state.players = players;
+        state.players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
+        renderLobby();
+        return;
+      }
       if(state){
         players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
         state.players = players;
         render();
       }
+    }catch(err){}
+  });
+  evtSource.addEventListener('start', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(d && d.state){ applyServerState(d.state); }
     }catch(err){}
   });
   evtSource.addEventListener('dice', function(e){
@@ -3098,6 +3246,9 @@ $('btn-join').addEventListener('click', function(){
   SFX.resume(); SFX.click();
   joinOnline();
 });
+// 等待大厅：开始游戏 / 离开房间
+$('btn-lobby-start').addEventListener('click', function(){ startOnlineGame(); });
+$('btn-lobby-back').addEventListener('click', function(){ leaveLobby(); });
 // 联机性别选择
 var onlineGenderBtns = document.querySelectorAll('#online-gender .g-btn');
 for(var og = 0; og < onlineGenderBtns.length; og++){
