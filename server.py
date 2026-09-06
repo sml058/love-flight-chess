@@ -24,6 +24,8 @@ state = {
     'turn': 0,
     'phase': 'idle',
     'winner': None,
+    'started': False,   # False=等待大厅，True=游戏进行中
+    'hostId': -1,       # 房主（第一个加入的玩家）
 }
 state_lock = threading.Lock()
 sse_clients = []       # 已连接的 SSE 响应对象
@@ -126,6 +128,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == '/join':
             self._join(body)
+        elif path == '/start':
+            self._start(body)
         elif path == '/roll':
             self._roll(body)
         elif path == '/nextturn':
@@ -152,7 +156,12 @@ class Handler(BaseHTTPRequestHandler):
             if len(state['players']) >= 4:
                 self._json(400, {'error': '房间已满（最多4人）'})
                 return
+            if state['started']:
+                self._json(400, {'error': '游戏已开始，请等待下一局'})
+                return
             pid = len(state['players'])
+            if pid == 0:
+                state['hostId'] = pid  # 第一个加入的是房主
             player = {
                 'id': pid,
                 'name': (body.get('name') or f'宝贝{pid+1}').strip()[:12],
@@ -164,8 +173,30 @@ class Handler(BaseHTTPRequestHandler):
             state['turn'] = 0
             state['phase'] = 'idle'
             state['winner'] = None
+            state['started'] = False   # 新玩家加入时回到等待状态
             broadcast('players', state['players'])
         self._json(200, {'id': pid, 'state': snapshot()})
+
+    def _start(self, body):
+        with state_lock:
+            if not state['players']:
+                self._json(400, {'error': '房间为空'})
+                return
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以开始游戏'})
+                return
+            state['started'] = True
+            state['phase'] = 'idle'
+            state['turn'] = 0
+            state['winner'] = None
+            for p in state['players']:
+                p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
+            # 在锁内做深拷贝，锁外再广播（snapshot() 会再次获取同一把锁，不能在此调用）
+            snap = json.loads(json.dumps(state))
+            players_snap = json.loads(json.dumps(state['players']))
+        broadcast('start', {'state': snap})
+        broadcast('players', players_snap)
+        self._json(200, {'state': snap})
 
     def _roll(self, body):
         with state_lock:
@@ -215,9 +246,13 @@ class Handler(BaseHTTPRequestHandler):
         with state_lock:
             pid = body.get('id')
             state['players'] = [p for p in state['players'] if p['id'] != pid]
+            if state['hostId'] == pid:
+                state['hostId'] = state['players'][0]['id'] if state['players'] else -1
             if state['turn'] >= len(state['players']):
                 state['turn'] = 0
             state['phase'] = 'idle'
+            if len(state['players']) < 2:
+                state['started'] = False   # 人数不足时回到等待状态
             broadcast('players', state['players'])
             broadcast('turn', state['turn'])
         self._json(200, {})
@@ -229,6 +264,7 @@ class Handler(BaseHTTPRequestHandler):
             state['turn'] = 0
             state['phase'] = 'idle'
             state['winner'] = None
+            state['started'] = False
             broadcast('players', state['players'])
             broadcast('turn', 0)
         self._json(200, {})
