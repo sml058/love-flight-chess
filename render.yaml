@@ -1,0 +1,14 @@
+# Render 部署配置
+# 将此文件放在项目根目录，Render 会自动识别
+services:
+  - type: web
+    name: love-flight-chess-server
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server.py"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

@@ -1,0 +1,2535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>恋爱飞行棋 · 从初见飞到永远</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* ============================================================
+   恋爱飞行棋 —— 从初见，飞到永远
+   设计方向：糖果色恋爱航线 · 奶油粉基底 · 珊瑚粉/晴空蓝双人配色
+   签名元素：长着小翅膀的爱心小人棋子，掷骰后爱心飘起
+   ============================================================ */
+:root{
+  --bg-1:#FFF6F1;
+  --bg-2:#FDEFF7;
+  --card:#FFFDFB;
+  --ink:#4A3447;
+  --ink-soft:#9B7B8F;
+  --p1:#FF6E9C;
+  --p1-soft:#FFE9F1;
+  --p2:#5E9BFF;
+  --p2-soft:#EAF2FF;
+  --p3:#9B7BFF;
+  --p3-soft:#F1EAFF;
+  --p4:#4FC9A7;
+  --p4-soft:#E2F8F1;
+  --fwd:#FFC94D;
+  --fwd-soft:#FFF6E0;
+  --bwd:#FF8FA3;
+  --bwd-soft:#FFEDF1;
+  --love:#FF6E9C;
+  --boost:#9B7BFF;
+  --boost-soft:#F1EAFF;
+  --setback:#FFA45B;
+  --setback-soft:#FFF0E2;
+  --rest:#7FB8FF;
+  --rest-soft:#EAF2FF;
+  --safe:#4FC9A7;
+  --safe-soft:#E4F8F1;
+  --shadow:0 10px 30px rgba(255,110,156,.16);
+  --radius:20px;
+  --display:"ZCOOL KuaiLe","PingFang SC","Microsoft YaHei",sans-serif;
+  --body:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--body);
+  color:var(--ink);
+  background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 60%,#F6F0FF 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+}
+.game-root{
+  max-width:560px;
+  margin:0 auto;
+  padding:18px 16px calc(28px + env(safe-area-inset-bottom));
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+button{
+  font-family:var(--display);
+  border:none;
+  cursor:pointer;
+  color:var(--ink);
+}
+button:focus-visible{outline:3px solid var(--boost);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+/* ============ 通用图标 ============ */
+.icon{display:inline-block;flex:none}
+.heart-fill{fill:var(--love)}
+.heart-soft{fill:var(--p1-soft)}
+
+/* ============ 视图切换 ============ */
+
+/* ============ 激活界面 ============ */
+.view-activate{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.activate-card{background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:40px 36px;width:100%;max-width:380px;text-align:center;position:relative;overflow:hidden}
+.activate-card::before{content:'';position:absolute;top:-60px;left:-60px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,110,156,.18),transparent 70%);border-radius:50%}
+.activate-card::after{content:'';position:absolute;bottom:-50px;right:-50px;width:140px;height:140px;background:radial-gradient(circle,rgba(155,123,255,.16),transparent 70%);border-radius:50%}
+.activate-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,#FF6E9C,#9B7BFF);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(255,110,156,.35);position:relative;z-index:1}
+.activate-icon svg{width:36px;height:36px}
+.activate-title{font-size:26px;font-weight:800;background:linear-gradient(120deg,#FF6E9C,#9B7BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;position:relative;z-index:1}
+.activate-sub{font-size:14px;color:#9A8FA8;margin-bottom:24px;position:relative;z-index:1}
+.activate-input{width:100%;padding:14px 18px;font-size:16px;border:2px solid #F0E8F5;border-radius:14px;background:#FAF7FD;color:#4A3447;outline:none;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;text-align:center;letter-spacing:1px;position:relative;z-index:1}
+.activate-input:focus{border-color:#FF6E9C;box-shadow:0 0 0 4px rgba(255,110,156,.12)}
+.activate-input::placeholder{color:#C8BFD4}
+.activate-btn{width:100%;margin-top:14px;padding:14px;font-size:17px;font-weight:700;color:#fff;background:linear-gradient(120deg,#FF6E9C,#FF8FB0);border:none;border-radius:14px;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 6px 18px rgba(255,110,156,.32);letter-spacing:2px;position:relative;z-index:1}
+.activate-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,110,156,.4)}
+.activate-btn:active{transform:scale(.97)}
+.activate-hint{margin-top:18px;font-size:12px;color:#B5A9C4;line-height:1.6;position:relative;z-index:1}
+.activate-error{color:#FF4D6D;font-size:13px;margin-top:10px;min-height:18px;position:relative;z-index:1;transition:opacity .2s}
+
+.view{display:none}
+.view.active{display:block}
+
+/* ============ 开始界面 ============ */
+.start-wrap{
+  min-height:calc(100vh - 60px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:24px 0;
+}
+.hero-illustration{width:150px;height:150px;margin-bottom:6px;animation:heroFloat 3.6s ease-in-out infinite}
+@keyframes heroFloat{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-10px) rotate(2deg)}
+}
+.start-title{
+  font-family:var(--display);
+  font-size:clamp(40px,9vw,52px);
+  letter-spacing:2px;
+  background:linear-gradient(120deg,#FF6E9C 10%,#9B7BFF 55%,#5E9BFF 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  line-height:1.15;
+}
+.start-sub{
+  margin-top:10px;
+  font-size:15px;
+  color:var(--ink-soft);
+  letter-spacing:1px;
+}
+.start-sub b{color:var(--love);font-weight:500}
+.player-count{
+  display:flex;
+  gap:10px;
+  margin-top:24px;
+}
+.count-btn{
+  font-family:var(--body);
+  font-size:15px;
+  font-weight:500;
+  color:var(--ink);
+  background:var(--card);
+  border:2px solid rgba(255,110,156,.18);
+  border-radius:999px;
+  padding:9px 22px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.count-btn.active{
+  color:#fff;
+  background:linear-gradient(120deg,#FF6E9C,#FF8FB0);
+  border-color:transparent;
+  box-shadow:0 6px 16px rgba(255,110,156,.3);
+}
+.input-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.gender-switch{
+  display:flex;
+  gap:4px;
+  flex-shrink:0;
+}
+.g-btn{
+  font-family:var(--body);
+  font-size:12px;
+  padding:5px 9px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink-soft);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.g-btn.active{
+  color:#fff;
+  border-color:transparent;
+}
+.g-btn.active[data-g="male"]{background:linear-gradient(120deg,#5E9BFF,#7FB3FF)}
+.g-btn.active[data-g="female"]{background:linear-gradient(120deg,#FF6E9C,#FF9CBB)}
+.player-inputs{
+  width:100%;
+  max-width:340px;
+  margin:20px auto 0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.custom-cards{
+  width:100%;
+  max-width:360px;
+  margin:20px auto 0;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  text-align:left;
+  overflow:hidden;
+}
+.custom-cards summary{
+  font-family:var(--display);
+  font-size:16px;
+  color:var(--ink);
+  padding:14px 18px;
+  cursor:pointer;
+  list-style:none;
+  user-select:none;
+  -webkit-user-select:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.custom-cards summary::-webkit-details-marker{display:none}
+.custom-cards summary small{font-family:var(--body);font-size:12px;color:var(--ink-soft);font-weight:400}
+.custom-cards summary::after{
+  content:'';margin-left:auto;width:8px;height:8px;
+  border-right:2px solid var(--ink-soft);border-bottom:2px solid var(--ink-soft);
+  transform:rotate(45deg);transition:transform .2s;flex:none;
+}
+.custom-cards[open] summary::after{transform:rotate(225deg);margin-top:4px}
+.cc-group{padding:6px 18px 14px}
+.cc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cc-title{font-family:var(--display);font-size:14px;color:var(--ink)}
+.cc-count{font-size:12px;color:var(--ink-soft)}
+.cc-list{display:flex;flex-direction:column;gap:7px}
+.cc-row{display:flex;gap:6px;align-items:center}
+.cc-act{
+  flex:none;width:96px;
+  font-family:var(--body);font-size:12.5px;color:var(--ink);
+  background:#FFF7FA;
+  border:1.5px solid rgba(255,110,156,.22);
+  border-radius:10px;
+  padding:8px 6px;
+  outline:none;
+}
+.cc-task-tag{font-size:11px;color:#fff;background:linear-gradient(120deg,#FF6E9C,#FF9CBB);border-radius:8px;padding:4px 8px;flex:none;white-space:nowrap}
+.cc-text{
+  flex:1;min-width:0;
+  font-family:var(--body);font-size:13px;color:var(--ink);
+  background:#FFFDFB;
+  border:1.5px solid rgba(74,52,71,.14);
+  border-radius:10px;
+  padding:8px 10px;
+  outline:none;
+}
+.cc-text:focus{border-color:var(--p1)}
+.cc-del{
+  flex:none;width:30px;height:30px;border-radius:50%;
+  border:1.5px solid rgba(74,52,71,.14);
+  background:#FFF7FA;color:var(--ink-soft);
+  font-size:15px;line-height:1;cursor:pointer;
+}
+.cc-add{
+  width:100%;margin-top:9px;
+  font-family:var(--body);font-size:13px;color:var(--boost);
+  background:#F7F4FF;
+  border:1.5px dashed rgba(155,123,255,.5);
+  border-radius:12px;
+  padding:9px;
+  cursor:pointer;
+}
+.cc-note{font-size:11.5px;color:var(--ink-soft);padding:0 18px 16px;text-align:left;line-height:1.6}
+.input-row{display:flex;align-items:center;gap:10px}
+.input-row .icon{width:26px;height:26px}
+.player-input{
+  flex:1;
+  font-family:var(--body);
+  font-size:16px;
+  color:var(--ink);
+  background:var(--card);
+  border:2px solid rgba(255,110,156,.18);
+  border-radius:16px;
+  padding:13px 16px;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.player-input:focus{border-color:var(--p1);box-shadow:0 0 0 4px rgba(255,110,156,.12)}
+.how-to-play{
+  width:100%;
+  max-width:360px;
+  margin:26px auto 0;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px 20px;
+  text-align:left;
+}
+.how-to-play h3{
+  font-family:var(--display);
+  font-size:18px;
+  margin-bottom:10px;
+  color:var(--ink);
+}
+.how-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px}
+.how-row:last-child{margin-bottom:0}
+.how-dot{
+  flex:none;width:22px;height:22px;margin-top:2px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.how-dot svg{width:13px;height:13px}
+.how-row p{font-size:13.5px;line-height:1.55;color:#6B5563}
+.btn-primary{
+  margin-top:24px;
+  font-size:21px;
+  letter-spacing:3px;
+  color:#fff;
+  background:linear-gradient(120deg,#FF6E9C,#FF8FB0);
+  border-radius:999px;
+  padding:15px 52px;
+  box-shadow:0 12px 28px rgba(255,110,156,.35);
+  transition:transform .15s,box-shadow .15s;
+}
+.btn-primary:active{transform:scale(.96)}
+
+.restart-row{display:flex;justify-content:center;margin-top:14px;padding-bottom:8px}
+.restart-btn{
+  font-size:13px;font-weight:500;letter-spacing:2px;color:var(--love);
+  background:rgba(255,110,156,.08);border:1px solid rgba(255,110,156,.28);
+  border-radius:999px;padding:9px 28px;
+  transition:transform .15s,background .2s,box-shadow .2s;
+}
+.restart-btn:hover{background:rgba(255,110,156,.14);box-shadow:0 6px 16px rgba(255,110,156,.18)}
+.restart-btn:active{transform:scale(.96)}
+
+.btn-pass{font-size:14px;font-weight:500;letter-spacing:1px;color:var(--love);background:rgba(255,110,156,.1);border:1px solid rgba(255,110,156,.35);border-radius:999px;padding:10px 24px;margin-top:10px;transition:transform .15s,background .2s}
+.btn-pass:hover{background:rgba(255,110,156,.18)}
+.btn-pass:active{transform:scale(.96)}
+.pass-mask{position:fixed;inset:0;background:rgba(74,52,71,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center}
+.pass-card{background:#fff;border-radius:24px;padding:36px 32px;text-align:center;box-shadow:0 20px 60px rgba(74,52,71,.3);max-width:320px;width:82%}
+.pass-title{font-size:13px;color:var(--ink-soft);letter-spacing:3px;margin-bottom:12px}
+.pass-name{font-size:34px;font-weight:700;margin-bottom:28px;line-height:1.2;word-break:break-all}
+.pass-btn{width:100%;font-size:16px;font-weight:600;color:#fff;background:linear-gradient(120deg,#FF6E9C,#FF9E6E);border:none;border-radius:999px;padding:14px;transition:transform .15s;box-shadow:0 6px 18px rgba(255,110,156,.35)}
+.pass-btn:active{transform:scale(.96)}
+
+.online-entry{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.btn-online{font-size:14px;font-weight:500;letter-spacing:1px;color:var(--boost);background:rgba(155,123,255,.1);border:1px solid rgba(155,123,255,.35);border-radius:999px;padding:10px 28px;transition:transform .15s,background .2s}
+.btn-online:hover{background:rgba(155,123,255,.2)}
+.btn-online:active{transform:scale(.96)}
+.online-panel{width:100%;max-width:340px;background:#fff;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(74,52,71,.1);margin-top:6px;box-sizing:border-box}
+.online-title{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px;text-align:center}
+.online-label{display:block;font-size:12px;color:var(--ink-soft);margin:10px 0 4px}
+.online-input{width:100%;box-sizing:border-box;padding:10px 14px;border:1px solid rgba(74,52,71,.15);border-radius:10px;font-size:14px;font-family:var(--body);background:#FFFBF8}
+.online-input:focus{outline:none;border-color:var(--boost)}
+.btn-join{width:100%;margin-top:16px;font-size:16px;padding:12px}
+.online-hint{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:10px;line-height:1.6}
+.online-status{font-size:12px;text-align:center;margin-top:8px;min-height:16px;font-weight:500}
+.online-status.ok{color:var(--safe)}
+.online-status.err{color:var(--setback)}
+.online-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1px;color:#fff;background:linear-gradient(120deg,#9B7BFF,#7B9BFF);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+
+/* ============ 对局界面 ============ */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+.brand{
+  font-family:var(--display);
+  font-size:19px;
+  letter-spacing:1px;
+}
+.brand small{display:block;font-size:10.5px;color:var(--ink-soft);font-family:var(--body);letter-spacing:1.5px;margin-top:1px}
+.scorebox{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.sound-btn{
+  width:44px;height:44px;border-radius:50%;flex:none;
+  background:var(--card);
+  border:2px solid rgba(74,52,71,.08);
+  box-shadow:0 4px 12px rgba(74,52,71,.08);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);
+  transition:transform .15s,box-shadow .15s;
+}
+.sound-btn:active{transform:scale(.9)}
+.sound-btn svg{width:20px;height:20px;display:block}
+.score-pill{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  background:var(--card);
+  border:2px solid transparent;
+  border-radius:999px;
+  padding:5px 10px;
+  font-size:13px;
+  font-weight:500;
+  box-shadow:0 4px 12px rgba(74,52,71,.06);
+  transition:border-color .25s,transform .25s;
+}
+.score-pill svg{width:15px;height:15px}
+.score-pill .hearts-num{font-family:var(--display);font-size:14px}
+.score-pill.turn-on{transform:translateY(-2px)}
+.score-pill.turn-on.p1{border-color:var(--p1);background:var(--p1-soft)}
+.score-pill.turn-on.p2{border-color:var(--p2);background:var(--p2-soft)}
+.score-pill.turn-on.p3{border-color:var(--p3);background:var(--p3-soft)}
+.score-pill.turn-on.p4{border-color:var(--p4);background:var(--p4-soft)}
+.score-pill.turn-on.male{border-color:#5E9BFF;background:#EAF2FF}
+.score-pill.turn-on.female{border-color:#FF6E9C;background:#FFE9F1}
+.score-pill span.name{max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 棋盘 */
+.board-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:12px;
+}
+.board-grid{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:4px;
+  background:
+    radial-gradient(rgba(255,110,156,.08) 1.4px, transparent 1.4px),
+    linear-gradient(135deg,#FFF6F8,#FFFDFB);
+  background-size:22px 22px, 100% 100%;
+  border-radius:14px;
+  padding:6px;
+}
+.zone{
+  width:100%;box-sizing:border-box;border-radius:16px;padding:9px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.zone-start{
+  background:linear-gradient(135deg,#FFD9E8,#FFF0F6);
+  border:2px dashed rgba(255,110,156,.45);
+  margin-bottom:8px;
+}
+.zone-finish{
+  background:linear-gradient(135deg,#EDE0FF,#F7F1FF);
+  border:2px dashed rgba(155,123,255,.45);
+  margin-top:8px;
+}
+.zone-title{
+  font-family:var(--display);font-size:clamp(13px,3.4vw,16px);font-weight:800;
+  color:var(--ink);white-space:nowrap;display:flex;flex-direction:column;line-height:1.15;
+}
+.zone-sub{font-family:var(--body);font-size:clamp(9px,2.3vw,11px);color:var(--ink-soft);font-weight:500}
+.start-pawns{
+  display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-left:auto;
+  min-height:clamp(24px,6.5vw,32px);
+}
+.start-pawns .pawn{
+  position:static;transform:none;flex:none;
+  width:clamp(18px,5vw,26px);height:clamp(18px,5vw,26px);
+  animation:pawnPop .45s cubic-bezier(.34,1.56,.64,1);
+}
+.zone-heart{margin-left:auto;line-height:0;filter:drop-shadow(0 3px 6px rgba(155,123,255,.45))}
+@keyframes homeGlow{
+  0%,100%{ box-shadow:0 0 0 4px rgba(255,110,156,.22),0 0 18px rgba(200,160,255,.5); }
+  50%{ box-shadow:0 0 0 7px rgba(255,110,156,.38),0 0 30px rgba(200,160,255,.9); }
+}
+.cell{
+  position:relative;
+  aspect-ratio:1/1;
+  border-radius:9px;
+  border:1px solid rgba(74,52,71,.07);
+  background:rgba(255,253,251,.8);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+  min-height:24px;
+  animation:cellPop .38s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+@keyframes cellPop{
+  0%{transform:scale(0);opacity:0}
+  70%{transform:scale(1.1)}
+  100%{transform:scale(1);opacity:1}
+}
+.cell-num{
+  position:absolute;
+  top:2px;
+  left:3px;
+  font-size:6.5px;
+  color:rgba(74,52,71,.34);
+  font-weight:500;
+  line-height:1;
+}
+.cell-dir{
+  position:absolute;
+  top:2px;
+  right:3px;
+  width:8px;height:8px;
+  color:rgba(74,52,71,.4);
+  line-height:0;
+}
+.cell-icon{width:15px;height:15px;margin-bottom:0}
+.cell-tag{
+  font-size:6.5px;
+  font-weight:500;
+  color:rgba(74,52,71,.55);
+  letter-spacing:.3px;
+  line-height:1;
+}
+/* 类型配色 */
+.cell-love{background:var(--p1-soft);border-color:rgba(255,110,156,.28)}
+.cell-love .cell-icon{color:var(--love);fill:var(--love);stroke:var(--love)}
+.cell-love .cell-tag{color:var(--love)}
+.cell-reward{background:var(--boost-soft);border-color:rgba(155,123,255,.28)}
+.cell-reward .cell-icon{color:var(--boost);fill:var(--boost);stroke:var(--boost)}
+.cell-reward .cell-tag{color:var(--boost)}
+.cell-penalty{background:var(--setback-soft);border-color:rgba(255,164,91,.32)}
+.cell-penalty .cell-icon{color:var(--setback);fill:var(--setback);stroke:var(--setback)}
+.cell-penalty .cell-tag{color:#E08A3E}
+.cell-rest{background:var(--rest-soft);border-color:rgba(127,184,255,.32)}
+.cell-rest .cell-icon{color:var(--rest);fill:var(--rest);stroke:var(--rest)}
+.cell-rest .cell-tag{color:var(--rest)}
+.cell-safe{background:var(--safe-soft);border-color:rgba(79,201,167,.32)}
+.cell-safe .cell-icon{color:var(--safe);fill:var(--safe);stroke:var(--safe)}
+.cell-safe .cell-tag{color:#2FA98A}
+.cell-forward{background:var(--fwd-soft);border-color:rgba(255,201,77,.4)}
+.cell-forward .cell-icon{color:var(--fwd);fill:var(--fwd);stroke:var(--fwd)}
+.cell-forward .cell-tag{color:#D99A12}
+.cell-backward{background:var(--bwd-soft);border-color:rgba(255,143,163,.4)}
+.cell-backward .cell-icon{color:var(--bwd);fill:var(--bwd);stroke:var(--bwd)}
+.cell-backward .cell-tag{color:#E86A85}
+.cell-start{
+  background:linear-gradient(135deg,#FFE9F1,#FFF3F8);
+  border-color:rgba(255,110,156,.35);
+  animation:cellPop .38s cubic-bezier(.34,1.56,.64,1) backwards, cellGlowPink 2.6s ease-in-out infinite;
+}
+.cell-start .cell-tag{color:var(--love);font-size:8px}
+.cell-finish{
+  background:linear-gradient(135deg,#F1EAFF,#FFE9F1);
+  border-color:rgba(155,123,255,.4);
+  animation:cellPop .38s cubic-bezier(.34,1.56,.64,1) backwards, cellGlowPurple 2.6s ease-in-out infinite;
+}
+.cell-finish .cell-tag{color:var(--boost);font-size:8px}
+@keyframes cellGlowPink{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,110,156,.22)}
+  50%{box-shadow:0 0 0 4px rgba(255,110,156,.16)}
+}
+@keyframes cellGlowPurple{
+  0%,100%{box-shadow:0 0 0 0 rgba(155,123,255,.25)}
+  50%{box-shadow:0 0 0 4px rgba(155,123,255,.18)}
+}
+
+/* 棋子 */
+.pawn{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:clamp(20px,5.8vw,30px);
+  height:clamp(20px,5.8vw,30px);
+  z-index:5;
+  filter:drop-shadow(0 4px 6px rgba(74,52,71,.25));
+  animation:pawnPop .45s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
+}
+/* 两个棋子同格时斜对角错开，避免互相遮挡 */
+.pawn.slot-a{left:18%;top:16%;z-index:6}
+.pawn.slot-b{left:82%;top:84%}
+.pawn.slot-c{left:82%;top:16%;z-index:6}
+.pawn.slot-d{left:18%;top:84%}
+/* 落格涟漪 */
+.cell.landed::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;
+  background:radial-gradient(circle,rgba(255,110,156,.38) 0%,transparent 62%);
+  animation:cellRipple .75s ease-out forwards;
+}
+@keyframes cellRipple{
+  0%{opacity:0;transform:scale(.35)}
+  30%{opacity:1}
+  100%{opacity:0;transform:scale(1.2)}
+}
+.pawn svg{width:100%;height:100%;display:block}
+@keyframes pawnPop{
+  0%{transform:translate(-50%,-50%) scale(.2);opacity:0}
+  70%{transform:translate(-50%,-50%) scale(1.18)}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:1}
+}
+.pawn.p2{filter:drop-shadow(0 4px 6px rgba(94,155,255,.35))}
+.pawn.tight{width:clamp(15px,4.4vw,22px);height:clamp(15px,4.4vw,22px)}
+.pawn.p3{filter:drop-shadow(0 4px 6px rgba(155,123,255,.35))}
+.pawn.p4{filter:drop-shadow(0 4px 6px rgba(79,201,167,.35))}
+
+/* 操作区 */
+.control-panel{
+  margin-top:14px;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px 18px 16px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.turn-box{flex:1;min-width:0}
+.turn-label{
+  font-size:11px;
+  color:var(--ink-soft);
+  letter-spacing:2px;
+  margin-bottom:3px;
+}
+.turn-name{
+  font-family:var(--display);
+  font-size:22px;
+  line-height:1.2;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.turn-name.p1{color:var(--p1)}
+.turn-name.p2{color:var(--p2)}
+.turn-name.p3{color:var(--p3)}
+.turn-name.p4{color:var(--p4)}
+.turn-name.male{color:#5E9BFF}
+.turn-name.female{color:#FF6E9C}
+.turn-hint{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.dice-zone{display:flex;flex-direction:column;align-items:center;gap:8px}
+.dice{
+  position:relative;
+  width:62px;height:62px;
+  background:linear-gradient(145deg,#FFFFFF,#FFF0F6);
+  border-radius:15px;
+  box-shadow:0 8px 20px rgba(255,110,156,.28), inset 0 -3px 0 rgba(255,110,156,.15);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  padding:9px;
+  transition:box-shadow .2s;
+}
+.dice.rolling{animation:diceShake .9s ease-in-out;box-shadow:0 0 0 8px rgba(255,110,156,.22),0 8px 20px rgba(255,110,156,.42)}
+@keyframes diceShake{
+  0%{transform:rotate(0) scale(1)}
+  20%{transform:rotate(14deg) scale(1.14)}
+  40%{transform:rotate(-14deg) scale(.94)}
+  60%{transform:rotate(9deg) scale(1.1)}
+  80%{transform:rotate(-6deg) scale(.98)}
+  100%{transform:rotate(0) scale(1)}
+}
+.dice .dot{
+  align-self:center;justify-self:center;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--p1);
+  opacity:0;
+  transform:scale(0);
+  transition:opacity .08s,transform .08s;
+}
+.dice .dot.on{opacity:1;transform:scale(1)}
+.roll-btn{
+  font-size:17px;
+  letter-spacing:2px;
+  color:#fff;
+  background:linear-gradient(120deg,#FF6E9C,#FF8FB0);
+  border-radius:999px;
+  padding:12px 30px;
+  box-shadow:0 8px 20px rgba(255,110,156,.32);
+  min-height:46px;
+  transition:transform .15s;
+}
+.roll-btn:active:not(:disabled){transform:scale(.95)}
+.roll-btn.guest{
+  background:linear-gradient(120deg,#5E9BFF,#7FB8FF);
+  box-shadow:0 8px 20px rgba(94,155,255,.32);
+}
+.center-dice{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  z-index:10;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:rgba(255,255,255,.66);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:2px dashed rgba(255,110,156,.42);
+  border-radius:22px;
+  padding:12px 16px;
+  cursor:pointer;
+  box-shadow:0 12px 30px rgba(255,110,156,.28);
+  transition:transform .15s,opacity .2s;
+}
+.center-dice:active{transform:translate(-50%,-50%) scale(.95)}
+.center-dice.off{opacity:.35;pointer-events:none}
+.dice-big{width:64px;height:64px;border-radius:16px}
+.cd-hint{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:1px;white-space:nowrap}
+.board-bg-opt{
+  width:100%;max-width:360px;margin:18px auto 0;
+  background:var(--card);
+  border:1.5px solid rgba(255,110,156,.16);
+  border-radius:14px;
+  padding:12px 16px;
+}
+.bg-opt-head{font-family:var(--display);font-size:14px;color:var(--ink);margin-bottom:8px}
+.bg-opt-row{display:flex;gap:8px}
+.bg-opt-note{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.5}
+
+/* 爱心飘起 */
+.hearts-burst{position:relative}
+.burst-heart{
+  position:absolute;
+  bottom:-6px;
+  width:14px;height:14px;
+  pointer-events:none;
+  animation:heartFloatUp 1s ease-out forwards;
+  opacity:0;
+}
+@keyframes heartFloatUp{
+  0%{transform:translateY(0) scale(.6);opacity:0}
+  25%{opacity:1}
+  100%{transform:translateY(-58px) scale(1.1);opacity:0}
+}
+
+/* toast 提示 */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:calc(24px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(14px);
+  background:var(--ink);
+  color:#FFF8F5;
+  font-size:14px;
+  border-radius:999px;
+  padding:11px 22px;
+  max-width:86vw;
+  text-align:center;
+  box-shadow:0 10px 26px rgba(74,52,71,.3);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s,transform .25s;
+  z-index:60;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============ 弹窗 ============ */
+.modal-mask{
+  position:fixed;
+  inset:0;
+  background:rgba(74,52,71,.42);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:26px;
+  z-index:50;
+}
+.modal-mask.show{display:flex}
+.modal-card{
+  position:relative;
+  width:100%;
+  max-width:380px;
+  background:var(--card);
+  border-radius:24px;
+  box-shadow:0 20px 60px rgba(74,52,71,.3);
+  padding:28px 24px 24px;
+  text-align:center;
+  animation:modalIn .32s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes modalIn{
+  0%{transform:scale(.82) translateY(16px);opacity:0}
+  100%{transform:scale(1) translateY(0);opacity:1}
+}
+.modal-card.shake{animation:modalShake .45s ease}
+@keyframes modalShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+.sparkle{
+  position:absolute;width:12px;height:12px;pointer-events:none;z-index:3;
+  opacity:0;animation:sparkleFly .95s ease-out forwards;
+}
+@keyframes sparkleFly{
+  0%{transform:scale(0) rotate(0);opacity:1}
+  100%{transform:scale(1.2) translateY(-48px) rotate(200deg);opacity:0}
+}
+.rain-heart{
+  position:fixed;top:-44px;width:20px;height:20px;z-index:90;
+  pointer-events:none;opacity:0;
+  animation:rainFall linear forwards;
+}
+@keyframes rainFall{
+  0%{transform:translateY(0) rotate(0);opacity:0}
+  12%{opacity:.95}
+  100%{transform:translateY(108vh) rotate(340deg);opacity:.12}
+}
+.modal-icon{width:56px;height:56px;margin:0 auto 12px}
+.modal-icon svg{width:100%;height:100%}
+.modal-kicker{
+  font-size:12px;
+  color:var(--ink-soft);
+  letter-spacing:3px;
+  margin-bottom:6px;
+}
+.modal-title{
+  font-family:var(--display);
+  font-size:23px;
+  margin-bottom:12px;
+  line-height:1.3;
+}
+.modal-body{
+  font-size:15px;
+  line-height:1.75;
+  color:#6B5563;
+  background:#FFF6F4;
+  border-radius:14px;
+  padding:16px 14px;
+  margin-bottom:18px;
+}
+.modal-note{font-size:11.5px;color:var(--ink-soft);margin-bottom:14px}
+.btn-modal{
+  width:100%;
+  font-size:18px;
+  letter-spacing:2px;
+  color:#fff;
+  background:linear-gradient(120deg,#FF6E9C,#FF8FB0);
+  border-radius:999px;
+  padding:14px 0;
+  box-shadow:0 8px 20px rgba(255,110,156,.3);
+  min-height:48px;
+}
+.btn-modal.violet{background:linear-gradient(120deg,#9B7BFF,#B79BFF);box-shadow:0 8px 20px rgba(155,123,255,.32)}
+.btn-ghost{
+  margin-top:10px;
+  width:100%;
+  font-size:14px;
+  letter-spacing:1px;
+  color:var(--ink-soft);
+  background:transparent;
+  padding:10px 0;
+  min-height:44px;
+}
+/* 结算爱心对比 */
+.vs-row{display:flex;align-items:flex-end;justify-content:center;gap:18px;margin:6px 0 18px}
+.vs-col{flex:1;max-width:130px}
+.vs-col .name{font-size:14px;font-weight:500;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-col .name.p1{color:var(--p1)}
+.vs-col .name.p2{color:var(--p2)}
+.vs-col .name.p3{color:var(--p3)}
+.vs-col .name.p4{color:var(--p4)}
+.vs-col .name.male{color:#5E9BFF}
+.vs-col .name.female{color:#FF6E9C}
+.vs-bar{height:14px;border-radius:999px;background:#F3E8EE;overflow:hidden}
+.vs-bar i{display:block;height:100%;border-radius:999px;transition:width .8s ease}
+.vs-bar.p1 i{background:linear-gradient(90deg,#FF6E9C,#FF9CBB)}
+.vs-bar.p2 i{background:linear-gradient(90deg,#5E9BFF,#8FBEFF)}
+.vs-bar.p3 i{background:linear-gradient(90deg,#9B7BFF,#B9A3FF)}
+.vs-bar.p4 i{background:linear-gradient(90deg,#4FC9A7,#7BDDBF)}
+.vs-bar.male i{background:linear-gradient(90deg,#5E9BFF,#8FBEFF)}
+.vs-bar.female i{background:linear-gradient(90deg,#FF6E9C,#FF9CBB)}
+.vs-num{font-family:var(--display);font-size:17px;margin-top:6px}
+.vs-num small{font-size:11px;font-family:var(--body);color:var(--ink-soft);margin-left:2px}
+.winner-crown{font-family:var(--display);font-size:15px;color:var(--boost);margin-bottom:14px;letter-spacing:1px}
+
+@media (max-width:380px){
+  .cc-act{width:88px;font-size:12px}
+  .cc-text{font-size:12.5px}
+  .board-card{padding:8px}
+  .board-grid{gap:3px}
+  .cell{border-radius:7px}
+  .cell-icon{width:13px;height:13px}
+  .pawn{width:18px;height:18px}
+  .roll-btn{padding:12px 22px}
+  .turn-name{font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="game-root">
+
+  <!-- ========== 视图：开始界面 ========== -->
+    <section id="view-activate" class="view active">
+    <div class="activate-card">
+      <div class="activate-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L14.5 8.5L21 9.5L16 14.5L17.5 21L12 17.5L6.5 21L8 14.5L3 9.5L9.5 8.5L12 2Z" fill="#fff"/>
+          <path d="M12 6L13.5 10L17.5 10.7L14.5 13.5L15.3 17.5L12 15.5L8.7 17.5L9.5 13.5L6.5 10.7L10.5 10L12 6Z" fill="#FFE3EC" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="activate-title">恋爱飞行棋</div>
+      <div class="activate-sub">请输入激活码解锁完整游戏</div>
+      <input type="text" id="activate-key" class="activate-input" placeholder="请输入激活码" maxlength="30" autocomplete="off">
+      <div class="activate-error" id="activate-error"></div>
+      <button class="activate-btn" id="btn-activate" type="button">激 活</button>
+      <div class="activate-hint">激活码区分大小写<br>激活后本设备永久有效，无需重复输入</div>
+    </div>
+  </section>
+
+<section id="view-start" class="view">
+    <div class="start-wrap">
+      <div class="hero-illustration" id="hero-illustration"></div>
+      <h1 class="start-title">恋爱飞行棋</h1>
+      <p class="start-sub">从 <b>初见</b>，一路飞到 <b>永远</b></p>
+
+      <div class="player-count">
+        <button class="count-btn active" type="button" data-n="2">2 人</button>
+        <button class="count-btn" type="button" data-n="3">3 人</button>
+        <button class="count-btn" type="button" data-n="4">4 人</button>
+      </div>
+
+      <div class="player-inputs" id="player-inputs">
+        <div class="input-row" data-row="0">
+          <span class="icon" id="input-icon-0"></span>
+          <input class="player-input" id="name-0" type="text" maxlength="8" value="宝贝①" aria-label="第一位玩家昵称">
+          <div class="gender-switch" id="gender-0">
+            <button type="button" class="g-btn active" data-g="male">男</button>
+            <button type="button" class="g-btn" data-g="female">女</button>
+          </div>
+        </div>
+        <div class="input-row" data-row="1">
+          <span class="icon" id="input-icon-1"></span>
+          <input class="player-input" id="name-1" type="text" maxlength="8" value="宝贝②" aria-label="第二位玩家昵称">
+          <div class="gender-switch" id="gender-1">
+            <button type="button" class="g-btn" data-g="male">男</button>
+            <button type="button" class="g-btn active" data-g="female">女</button>
+          </div>
+        </div>
+        <div class="input-row" data-row="2" style="display:none">
+          <span class="icon" id="input-icon-2"></span>
+          <input class="player-input" id="name-2" type="text" maxlength="8" value="宝贝③" aria-label="第三位玩家昵称">
+          <div class="gender-switch" id="gender-2">
+            <button type="button" class="g-btn active" data-g="male">男</button>
+            <button type="button" class="g-btn" data-g="female">女</button>
+          </div>
+        </div>
+        <div class="input-row" data-row="3" style="display:none">
+          <span class="icon" id="input-icon-3"></span>
+          <input class="player-input" id="name-3" type="text" maxlength="8" value="宝贝④" aria-label="第四位玩家昵称">
+          <div class="gender-switch" id="gender-3">
+            <button type="button" class="g-btn" data-g="male">男</button>
+            <button type="button" class="g-btn active" data-g="female">女</button>
+          </div>
+        </div>
+      </div>
+
+      <details class="custom-cards">
+        <summary>自定义奖励 / 惩罚卡 <small>按性别区分，可选</small></summary>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">他 · 奖励卡</span><span class="cc-count" id="cc-reward-male-count">4 张</span></div>
+          <div class="cc-list" id="cc-reward-male-list"></div>
+          <button class="cc-add" type="button" data-kind="reward-male">+ 加一张（他抽到的奖励卡）</button>
+        </div>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">她 · 奖励卡</span><span class="cc-count" id="cc-reward-female-count">4 张</span></div>
+          <div class="cc-list" id="cc-reward-female-list"></div>
+          <button class="cc-add" type="button" data-kind="reward-female">+ 加一张（她抽到的奖励卡）</button>
+        </div>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">他 · 惩罚卡</span><span class="cc-count" id="cc-penalty-male-count">2 张</span></div>
+          <div class="cc-list" id="cc-penalty-male-list"></div>
+          <button class="cc-add" type="button" data-kind="penalty-male">+ 加一张（他抽到的惩罚卡）</button>
+        </div>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">她 · 惩罚卡</span><span class="cc-count" id="cc-penalty-female-count">2 张</span></div>
+          <div class="cc-list" id="cc-penalty-female-list"></div>
+          <button class="cc-add" type="button" data-kind="penalty-female">+ 加一张（她抽到的惩罚卡）</button>
+        </div>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">他 · 甜蜜任务卡</span><span class="cc-count" id="cc-task-male-count">4 张</span></div>
+          <div class="cc-list" id="cc-task-male-list"></div>
+          <button class="cc-add" type="button" data-kind="task-male">+ 加一张（他抽到的甜蜜任务）</button>
+        </div>
+        <div class="cc-group">
+          <div class="cc-head"><span class="cc-title">她 · 甜蜜任务卡</span><span class="cc-count" id="cc-task-female-count">4 张</span></div>
+          <div class="cc-list" id="cc-task-female-list"></div>
+          <button class="cc-add" type="button" data-kind="task-female">+ 加一张（她抽到的甜蜜任务）</button>
+        </div>
+        <p class="cc-note">前进、后退、停一轮已经固定在棋盘格里；卡片只管爱心加减、护身符和再掷，甜蜜任务完成 +2 爱心。每条可改文案、换效果，清空文案即删除；全部清空则恢复内置内容。所有改动都会自动保存，下次打开直接沿用。</p>
+      </details>
+
+      <div class="board-bg-opt">
+        <div class="bg-opt-head">棋盘背景</div>
+        <div class="bg-opt-row">
+          <button class="g-btn" id="btn-bg" type="button">选择图片</button>
+          <button class="g-btn" id="btn-bg-reset" type="button">恢复默认</button>
+        </div>
+        <p class="bg-opt-note">选一张你们喜欢的照片或图片当棋盘背景，选完自动保存，下次打开还在</p>
+        <input type="file" id="bg-file" accept="image/*" style="display:none">
+      </div>
+
+      <div class="how-to-play">
+        <h3>怎么玩</h3>
+        <div class="how-row">
+          <span class="how-dot" style="background:var(--p2-soft)"><span class="icon" data-icon="twinHeart" data-size="13"></span></span>
+          <p>2-4 人都从起点区「初见」出发，绕航线一整圈，率先飞入终点区「永远」的玩家获胜</p>
+        </div>
+        <div class="how-row">
+          <span class="how-dot" style="background:var(--fwd-soft)"><span class="icon" data-icon="plane" data-size="13"></span></span>
+          <p>前进、后退、停一轮固定在棋盘格里，踩中直接生效</p>
+        </div>
+        <div class="how-row">
+          <span class="how-dot" style="background:var(--boost-soft)"><span class="icon" data-icon="star" data-size="13"></span></span>
+          <p>奖励卡、惩罚卡按性别区分内容；甜蜜格完成甜蜜任务</p>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btn-start" type="button">开始飞行</button>
+      <button class="btn-pass" id="btn-pass" type="button">传递模式（2-4人轮流一部手机）</button>
+      <div class="online-entry">
+        <button class="btn-online" id="btn-online" type="button">联机加入（同 WiFi 多人）</button>
+        <div class="online-panel" id="online-panel" style="display:none">
+          <div class="online-title">加入联机房间</div>
+          <label class="online-label">服务器地址</label>
+          <input class="online-input" id="online-server" type="text" value="http://localhost:8765" placeholder="如 http://192.168.1.5:8765">
+          <label class="online-label">你的昵称</label>
+          <input class="online-input" id="online-name" type="text" maxlength="12" placeholder="宝贝①">
+          <button class="btn-primary btn-join" id="btn-join" type="button">加入房间</button>
+          <div class="online-hint">先在一台电脑运行 server.py，所有人连同一个 WiFi 后打开同一地址</div>
+          <div class="online-status" id="online-status"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：对局界面 ========== -->
+  <section id="view-game" class="view">
+    <div class="topbar">
+      <div class="brand">恋爱飞行棋<small>COUPLE FLIGHT</small></div>
+      <div class="scorebox">
+        <button class="sound-btn" id="btn-sound" type="button" aria-label="音效与背景音乐开关"></button>
+        <div class="pills" id="pills"></div>
+      </div>
+    </div>
+
+    <div class="board-card">
+      <div class="zone zone-start">
+        <div class="zone-title">初见<span class="zone-sub">起点区 · 全员在此待命</span></div>
+        <div class="start-pawns" id="start-pawns"></div>
+      </div>
+      <div class="board-grid" id="board-grid">
+        <div class="center-dice" id="center-dice" role="button" aria-label="掷骰子" onclick="SFX.resume();SFX.click();roll()">
+          <div class="dice dice-big" id="dice-big"></div>
+          <div class="cd-hint">轻触掷骰</div>
+        </div>
+      </div>
+      <div class="zone zone-finish">
+        <div class="zone-title">永远<span class="zone-sub">终点区 · 率先抵达者获胜</span></div>
+        <div class="zone-heart"><span class="icon" data-icon="twinHeart" data-size="24"></span></div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="turn-box">
+        <div class="turn-label">轮到</div>
+        <div class="turn-name" id="turn-name"></div>
+        <div class="turn-hint" id="turn-hint"></div>
+      </div>
+      <div class="dice-zone hearts-burst" id="dice-zone">
+        <div class="dice" id="dice" aria-hidden="true"></div>
+        <button class="roll-btn" id="btn-roll" type="button" >掷骰子</button>
+      </div>
+    </div>
+    <div class="restart-row">
+      <button class="restart-btn" id="btn-restart" type="button">重新开始</button>
+    </div>
+  </section>
+
+  <!-- ============ 视图：结算界面 ========== -->
+  <section id="view-end" class="view">
+    <div class="start-wrap">
+      <div class="hero-illustration" id="end-illustration" style="width:120px;height:120px"></div>
+      <h1 class="start-title" style="font-size:clamp(30px,7vw,40px)" id="end-title"></h1>
+      <p class="winner-crown" id="end-sub"></p>
+
+      <div class="vs-row" id="vs-row"></div>
+
+      <p class="start-sub" id="best-score"></p>
+
+      <button class="btn-primary" id="btn-again" type="button">再来一局</button>
+      <button class="btn-ghost" id="btn-restart-end" type="button">换人重来</button>
+    </div>
+  </section>
+
+  <!-- ========== 弹窗 ========== -->
+  <div class="modal-mask" id="modal">
+    <div class="modal-card">
+      <div class="modal-icon" id="modal-icon"></div>
+      <div class="modal-kicker" id="modal-kicker"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-note" id="modal-note"></div>
+      <button class="btn-modal" id="modal-action" type="button"></button>
+      <button class="btn-ghost" id="modal-secondary" type="button"></button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+  <!-- 传递模式遮罩 -->
+  <div class="pass-mask" id="pass-mask" style="display:none">
+    <div class="pass-card">
+      <div class="pass-title">请把手机传给</div>
+      <div class="pass-name" id="pass-name">宝贝②</div>
+      <button class="pass-btn" id="pass-btn" type="button">我是 XX，开始掷骰</button>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   恋爱飞行棋 · 游戏逻辑
+   ============================================================ */
+(function(){
+"use strict";
+
+/* ---------- 图标库（手写内联 SVG，不用 emoji） ---------- */
+var ICONS = {
+  heart:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M12 20.6C7.4 16.7 3.4 13.2 2.3 9.6 1.4 6.6 3.2 3.6 6.4 3.4c1.8-.1 3.5.8 4.6 2.3l1 1.4 1-1.4c1.1-1.5 2.8-2.4 4.6-2.3 3.2.2 5 3.2 4.1 6.2-.9 3.6-5.1 7.1-9.7 11z"/></svg>',
+  heartFill:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="#FF6E9C"><path d="M12 20.6C7.4 16.7 3.4 13.2 2.3 9.6 1.4 6.6 3.2 3.6 6.4 3.4c1.8-.1 3.5.8 4.6 2.3l1 1.4 1-1.4c1.1-1.5 2.8-2.4 4.6-2.3 3.2.2 5 3.2 4.1 6.2-.9 3.6-5.1 7.1-9.7 11z"/></svg>',
+  star:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M12 2.8l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.7l-5.6 3.2 1.4-6.3L3 9.3l6.4-.6z"/></svg>',
+  wave:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M3 9.5c1.7 0 2.6-1.3 4-1.3s2.3 1.3 4 1.3 2.6-1.3 4-1.3 2.3 1.3 4 1.3M3 14.5c1.7 0 2.6-1.3 4-1.3s2.3 1.3 4 1.3 2.6-1.3 4-1.3 2.3 1.3 4 1.3M3 19.5c1.7 0 2.6-1.3 4-1.3s2.3 1.3 4 1.3 2.6-1.3 4-1.3 2.3 1.3 4 1.3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8.2 8.2 0 1 0 10.1 10.1z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M12 2.5l7.5 2.8v5.6c0 4.6-3.1 8.1-7.5 10.1-4.4-2-7.5-5.5-7.5-10.1V5.3z"/><path d="M8.8 11.9l2.2 2.2 4.2-4.4" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  plane:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M20.8 3.7c.5 1.3-3 5.6-5.7 8l-4 4.2c-.4.4-.9.6-1.4.4l-2.2-3.1-3.4-1c-.6-.2-.7-1-.2-1.4L12 6.6c2.6-2.7 7-6 8.8-2.9zM10.5 19.6c.4-.4 1-.5 1.4-.2l1.6 2.3c.2.4 0 1-.5 1.2l-2.3.7z" transform="rotate(45 12 12)"/></svg>',
+  twinHeart:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none"><path d="M8.2 18.2C4.8 15.1 1.9 12.3 1.1 9.5.5 7.3 1.9 5 4.5 4.8c1.3-.1 2.5.6 3.3 1.7l.4.6.4-.6c.8-1.1 2-1.8 3.3-1.7 2.6.2 4 2.5 3.4 4.7-.8 2.8-3.7 5.6-7.1 8.7z" fill="#9B7BFF"/><path d="M15.8 18.2C12.4 15.1 9.5 12.3 8.7 9.5c-.6-2.2.8-4.5 3.4-4.7 1.3-.1 2.5.6 3.3 1.7l.4.6.4-.6c.8-1.1 2-1.8 3.3-1.7 2.6.2 4 2.5 3.4 4.7-.8 2.8-3.7 5.6-7.1 8.7z" fill="#FF6E9C"/></svg>',
+  backArrow:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h10a4 4 0 0 1 0 8h-5"/><path d="M8 5 4 9l4 4"/></svg>'
+};
+
+/* ---------- 音效与背景音乐（Web Audio 合成） ---------- */
+var SOUND_ICON = '<svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M15.5 8.5c1.6 1.6 1.6 4.2 0 5.8M18 6c3 3 3 8 0 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>';
+var MUTE_ICON = '<svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 9l5 5M21 9l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+var SFX = {
+  ctx: null,
+  master: null,
+  muted: false,
+  bgmTimer: null,
+  bgmStep: 0,
+  bgmNotes: [523,659,784,659,880,784,659,587,523,659,784,880,784,659,587,523],
+  init: function(){
+    if(this.ctx) return;
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.5;
+      this.master.connect(this.ctx.destination);
+      try{ this.muted = localStorage.getItem('love-flight-muted') === '1'; }catch(e){}
+    }catch(e){ this.ctx = null; }
+  },
+  resume: function(){
+    if(this.ctx && this.ctx.state === 'suspended'){ this.ctx.resume(); }
+  },
+  tone: function(freq, dur, opts){
+    if(!this.ctx || this.muted) return;
+    opts = opts || {};
+    var t0 = this.ctx.currentTime + (opts.delay || 0);
+    var o = this.ctx.createOscillator();
+    var g = this.ctx.createGain();
+    o.type = opts.type || 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    if(opts.glide){ o.frequency.exponentialRampToValueAtTime(opts.glide, t0 + dur); }
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(opts.vol || 0.15, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t0);
+    o.stop(t0 + dur + 0.05);
+  },
+  click: function(){ this.tone(720, 0.07, {type:'triangle', vol:0.12}); },
+  dice: function(){
+    var self = this;
+    for(var i = 0; i < 8; i++){
+      (function(i){
+        setTimeout(function(){ self.tone(280 + Math.random()*720, 0.05, {type:'square', vol:0.07}); }, i*90);
+      })(i);
+    }
+  },
+  move: function(){
+    this.tone(520, 0.09, {type:'triangle', vol:0.13});
+    this.tone(660, 0.1, {type:'triangle', vol:0.13, delay:0.09});
+  },
+  step: function(){
+    this.tone(430 + Math.random()*70, 0.05, {type:'sine', vol:0.07});
+  },
+  task: function(){
+    this.tone(523, 0.4, {type:'triangle', vol:0.14});
+    this.tone(659, 0.4, {type:'triangle', vol:0.11, delay:0.03});
+    this.tone(784, 0.45, {type:'triangle', vol:0.1, delay:0.06});
+  },
+  reward: function(){
+    var f = [523,659,784,1047];
+    for(var i = 0; i < f.length; i++){ this.tone(f[i], 0.16, {type:'triangle', vol:0.16, delay:i*0.08}); }
+  },
+  penalty: function(){
+    this.tone(392, 0.22, {type:'sawtooth', vol:0.07});
+    this.tone(330, 0.22, {type:'sawtooth', vol:0.07, delay:0.12});
+    this.tone(262, 0.3, {type:'sawtooth', vol:0.07, delay:0.24});
+  },
+  win: function(){
+    var f = [523,659,784,1047,784,1047];
+    for(var i = 0; i < f.length; i++){ this.tone(f[i], 0.24, {type:'triangle', vol:0.18, delay:i*0.12}); }
+  },
+  bgmStart: function(){
+    if(!this.ctx || this.bgmTimer || this.muted) return;
+    var self = this;
+    this.bgmStep = 0;
+    this.bgmTimer = setInterval(function(){
+      if(!self.ctx || self.muted) return;
+      var n = self.bgmNotes[self.bgmStep % self.bgmNotes.length];
+      self.tone(n, 0.55, {type:'sine', vol:0.045});
+      self.bgmStep++;
+    }, 280);
+  },
+  bgmStop: function(){
+    if(this.bgmTimer){ clearInterval(this.bgmTimer); this.bgmTimer = null; }
+  },
+  setMuted: function(m){
+    this.muted = m;
+    if(m){ this.bgmStop(); } else { this.bgmStart(); }
+    try{ localStorage.setItem('love-flight-muted', m ? '1' : '0'); }catch(e){}
+    updateSoundBtn();
+  }
+};
+function updateSoundBtn(){
+  var btn = $('btn-sound');
+  if(btn){ btn.innerHTML = SFX.muted ? MUTE_ICON : SOUND_ICON; }
+}
+/* 落格涟漪 */
+function ripple(pos){
+  var c = $('cell-' + pos);
+  if(!c) return;
+  c.classList.add('landed');
+  setTimeout(function(){ c.classList.remove('landed'); }, 780);
+}
+/* 奖励星光粒子 */
+function sparkles(cardEl){
+  for(var i = 0; i < 5; i++){
+    var s = document.createElement('span');
+    s.className = 'sparkle';
+    s.innerHTML = ICONS.star;
+    s.style.left = (8 + Math.random()*84) + '%';
+    s.style.top = (12 + Math.random()*55) + '%';
+    s.style.animationDelay = (Math.random()*0.35) + 's';
+    s.style.color = '#F5B942';
+    cardEl.appendChild(s);
+    (function(el){ setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 1600); })(s);
+  }
+}
+/* 胜利爱心雨 */
+function celebrate(){
+  for(var i = 0; i < 26; i++){
+    var h = document.createElement('span');
+    h.className = 'rain-heart';
+    h.innerHTML = ICONS.heartFill;
+    h.style.left = (Math.random()*100) + '%';
+    h.style.animationDelay = (Math.random()*1.4) + 's';
+    h.style.animationDuration = (2.6 + Math.random()*2.2) + 's';
+    h.style.width = h.style.height = (14 + Math.random()*16) + 'px';
+    document.body.appendChild(h);
+    (function(el){ setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 7000); })(h);
+  }
+}
+
+/* ---------- 棋盘（150 格，10x15 蛇形航线） ---------- */
+var N = 150;
+/* 玩家配色（2-4 人：蓝粉紫绿，默认 男/女/男/女） */
+var PLAYER_COLORS = ['#5E9BFF', '#FF6E9C', '#9B7BFF', '#4FC9A7'];
+
+function buildCells(n){
+  var cells = [];
+  for(var i = 0; i < N; i++){ cells.push({type:'normal'}); }
+  // 起点区与终点区在棋盘之外，棋盘 150 格全部是普通航线格
+
+  // 固定种子确定性伪随机：同人数布局稳定
+  var seed = 20260905 + n * 7919;
+  function rnd(){
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+  // 在 1..N-2 之间放置特殊格，与已放置的特殊格不相邻
+  function place(type, count){
+    var guard = 0, placed = 0;
+    while(placed < count && guard < 6000){
+      guard++;
+      var pos = 1 + Math.floor(rnd() * (N - 2));
+      if(cells[pos].type !== 'normal') continue;
+      var conflict = false;
+      for(var j = pos - 1; j <= pos + 1; j++){
+        if(j >= 0 && j <= N - 1 && cells[j].type !== 'normal'){ conflict = true; break; }
+      }
+      if(conflict) continue;
+      cells[pos].type = type;
+      placed++;
+    }
+    return placed;
+  }
+  // 特殊格分布：奖励/惩罚卡格、固定前进/后退/停一轮格、甜蜜/休息/护身符
+  place('reward', 10);
+  place('penalty', 8);
+  place('love', 18);
+  place('forward', 8);
+  place('backward', 8);
+  place('rest', 4);
+  place('safe', 4);
+  return cells;
+}
+var CELLS = buildCells(2);
+
+var CELL_META = {
+  start:   {icon:'twinHeart', tag:'初见'},
+  finish:  {icon:'heart',     tag:'永远'},
+  love:    {icon:'heart',     tag:'甜蜜'},
+  reward:  {icon:'star',      tag:'奖励'},
+  penalty: {icon:'wave',      tag:'惩罚'},
+  forward: {icon:'plane',     tag:'前进'},
+  backward:{icon:'backArrow', tag:'后退'},
+  rest:    {icon:'moon',      tag:'停一轮'},
+  safe:    {icon:'shield',    tag:'护身符'},
+  normal:  {icon:'',          tag:''},
+  home:    {icon:'',          tag:''}
+};
+
+/* ---------- 甜蜜任务卡 ---------- */
+var LOVE_TASKS = [
+  '给对方一个 10 秒的拥抱，谁先松手谁输',
+  '说出对方身上的 3 个优点，不许重复',
+  '说一句只有你们俩听得懂的情话',
+  '帮对方揉揉肩、捶捶背，至少 20 秒',
+  '对视 10 秒不许笑，笑了就重来一次',
+  '学对方说话，让 TA 猜猜你在学哪一句',
+  '唱一句情歌送给对方',
+  '给对方一个额头吻',
+  '说出你们第一次约会的地点',
+  '用三个词形容对方，再解释为什么',
+  '给对方发一条甜甜的语音消息',
+  '让 TA 指定一个约会计划，你负责当场答应',
+  '给对方一个后背抱，抱满 15 秒',
+  '承诺实现对方一个小愿望，随时可以兑现',
+  '用手机给对方拍一张今日份可爱照片',
+  '说出对方最让你心动的一个瞬间',
+  '给对方捶捶腿 30 秒',
+  '十指相扣，看着对方说一句心里话',
+  '学一种小动物叫，把对方逗笑',
+  '给对方一个 5 秒的公主抱（或熊抱）',
+  '夸夸对方今天最亮眼的一个地方',
+  '说一件下次一定要和 TA 一起做的事',
+  '给对方的微信备注想一个更甜的昵称',
+  '模仿对方一个招牌动作，让 TA 评分'
+];
+
+/* ---------- 事件文案 ---------- */
+/* ---------- 奖励卡 / 惩罚卡 ---------- */
+var SLOT_CLS = ['slot-a', 'slot-b', 'slot-c', 'slot-d'];
+var playerCount = 2;
+
+/* ---------- 自定义卡池（按性别区分） ---------- */
+var CARD_KINDS = {
+  'reward-male': {
+    label: '他 · 奖励卡',
+    gender: 'male',
+    options: [['h2','爱心 +2'],['h3','爱心 +3'],['shield','获得护身符'],['again','再掷一次']],
+    defaults: [
+      ['h2','她踮脚亲了你一下，爱心 +2'],
+      ['h3','她说要跟你去环游世界，爱心 +3'],
+      ['shield','她偷偷往你包里塞了一枚护身符'],
+      ['again','她握住你的手说好运给你，再掷一次']
+    ]
+  },
+  'reward-female': {
+    label: '她 · 奖励卡',
+    gender: 'female',
+    options: [['h2','爱心 +2'],['h3','爱心 +3'],['shield','获得护身符'],['again','再掷一次']],
+    defaults: [
+      ['h2','他把你抱起来转了一圈，爱心 +2'],
+      ['h3','他说你是他的全世界，爱心 +3'],
+      ['shield','他把自己的护身符让给了你'],
+      ['again','他吻了吻你的额头，好运延续，再掷一次']
+    ]
+  },
+  'penalty-male': {
+    label: '他 · 惩罚卡',
+    gender: 'male',
+    options: [['h-2','爱心 -2'],['h-3','爱心 -3']],
+    defaults: [
+      ['h-2','你打游戏太专注冷落了她，爱心 -2'],
+      ['h-3','你忘了她说过的小心愿，爱心 -3']
+    ]
+  },
+  'penalty-female': {
+    label: '她 · 惩罚卡',
+    gender: 'female',
+    options: [['h-2','爱心 -2'],['h-3','爱心 -3']],
+    defaults: [
+      ['h-2','你逛街太久让他等到脚麻，爱心 -2'],
+      ['h-3','你翻旧账让他有点难过，爱心 -3']
+    ]
+  },
+  'task-male': {
+    label: '他 · 甜蜜任务卡',
+    gender: 'male',
+    options: [['task','完成甜蜜任务 +2']],
+    defaults: [
+      ['task','抱她 15 秒，说一句她最想听的话'],
+      ['task','夸她今天最好看的一个细节'],
+      ['task','给她发一条甜甜的语音消息'],
+      ['task','说出她最让你心动的一个瞬间']
+    ]
+  },
+  'task-female': {
+    label: '她 · 甜蜜任务卡',
+    gender: 'female',
+    options: [['task','完成甜蜜任务 +2']],
+    defaults: [
+      ['task','给他一个 10 秒的拥抱，谁先松手谁输'],
+      ['task','学一句他说过的情话，原样说给他听'],
+      ['task','给他揉揉肩捶捶背，至少 20 秒'],
+      ['task','模仿他一个招牌动作，让他打分']
+    ]
+  }
+};
+var REWARD_POOLS = {male: [], female: []};
+var PENALTY_POOLS = {male: [], female: []};
+var LOVE_POOLS = {male: null, female: null};
+
+function makeRewardAct(kind){
+  return function(p, foe){
+    switch(kind){
+      case 'h2': p.hearts += 2; showToast(p.name + ' 爱心 +2'); return 'next';
+      case 'h3': p.hearts += 3; showToast(p.name + ' 爱心 +3'); return 'next';
+      case 'shield': p.shield = true; showToast(p.name + ' 获得一枚爱情护身符'); return 'next';
+      case 'again': return 'keep';
+    }
+    return 'next';
+  };
+}
+function makePenaltyAct(kind){
+  return function(p, foe){
+    switch(kind){
+      case 'h-2': p.hearts = Math.max(0, p.hearts - 2); showToast(p.name + ' 爱心 -2'); return 'next';
+      case 'h-3': p.hearts = Math.max(0, p.hearts - 3); showToast(p.name + ' 爱心 -3'); return 'next';
+    }
+    return 'next';
+  };
+}
+function defaultPool(kind){
+  return CARD_KINDS[kind].defaults.map(function(d){
+    return {t: d[1], act: (kind.indexOf('reward') === 0 ? makeRewardAct(d[0]) : makePenaltyAct(d[0]))};
+  });
+}
+function collectCards(kind){
+  var rows = document.querySelectorAll('#cc-' + kind + '-list .cc-row');
+  var out = [];
+  for(var i = 0; i < rows.length; i++){
+    var actEl = rows[i].querySelector('.cc-act');
+    var act = (actEl && actEl.value) || 'task';
+    var text = rows[i].querySelector('.cc-text').value.trim();
+    if(!text) continue;
+    out.push({act: act, text: text});
+  }
+  return out;
+}
+function rebuildCardPools(){
+  ['reward-male', 'reward-female'].forEach(function(k){
+    var pool = collectCards(k).map(function(c){ return {t: c.text, act: makeRewardAct(c.act)}; });
+    REWARD_POOLS[CARD_KINDS[k].gender] = pool.length ? pool : defaultPool(k);
+  });
+  ['penalty-male', 'penalty-female'].forEach(function(k){
+    var pool = collectCards(k).map(function(c){ return {t: c.text, act: makePenaltyAct(c.act)}; });
+    PENALTY_POOLS[CARD_KINDS[k].gender] = pool.length ? pool : defaultPool(k);
+  });
+  // 甜蜜任务：收集到自定义则覆盖该性别池，全部清空则回退内置 24 条
+  ['task-male', 'task-female'].forEach(function(k){
+    var rows = collectCards(k);
+    var list = rows.map(function(c){ return c.text; });
+    LOVE_POOLS[CARD_KINDS[k].gender] = list.length ? list : null;
+  });
+}
+function saveCustomCards(){
+  var out = {};
+  Object.keys(CARD_KINDS).forEach(function(kind){
+    var rows = collectCards(kind);
+    if(rows.length){ out[kind] = rows; }
+  });
+  try{ localStorage.setItem('love-flight-custom-cards', JSON.stringify(out)); }catch(e){}
+}
+function loadCustomCards(){
+  try{ return JSON.parse(localStorage.getItem('love-flight-custom-cards') || '{}') || {}; }catch(e){ return {}; }
+}
+function cardRowHtml(kind, act, text){
+  var isTask = kind.indexOf('task') === 0;
+  var opts = isTask ? '' : CARD_KINDS[kind].options.map(function(o){
+    return '<option value="' + o[0] + '"' + (o[0] === act ? ' selected' : '') + '>' + o[1] + '</option>';
+  }).join('');
+  var safe = String(text || '').replace(/"/g, '&quot;');
+  return '<div class="cc-row">'
+    + (isTask ? '<span class="cc-task-tag">甜蜜任务 +2</span>' : '<select class="cc-act" aria-label="卡牌效果">' + opts + '</select>')
+    + '<input class="cc-text" type="text" maxlength="30" value="' + safe + '" aria-label="卡牌文案">'
+    + '<button class="cc-del" type="button" aria-label="删除这张卡">×</button>'
+    + '</div>';
+}
+function updateCcCount(kind){
+  var n = document.querySelectorAll('#cc-' + kind + '-list .cc-row').length;
+  $('cc-' + kind + '-count').textContent = n + ' 张';
+}
+function mountCardLists(){
+  var saved = loadCustomCards();
+  Object.keys(CARD_KINDS).forEach(function(kind){
+    var list = $('cc-' + kind + '-list');
+    var defs = CARD_KINDS[kind].defaults;
+    var src = (saved[kind] && saved[kind].length) ? saved[kind] : null;
+    list.innerHTML = (src ? src : defs).map(function(d){
+      return src ? cardRowHtml(kind, d.act, d.text) : cardRowHtml(kind, d[0], d[1]);
+    }).join('');
+    updateCcCount(kind);
+    list.addEventListener('click', function(e){
+      var t = e.target;
+      if(t.classList && t.classList.contains('cc-del')){
+        var row = t.parentNode;
+        row.parentNode.removeChild(row);
+        updateCcCount(kind);
+        saveCustomCards();
+      }
+    });
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(t.classList && t.classList.contains('cc-add')){
+      var kind = t.getAttribute('data-kind');
+      var first = CARD_KINDS[kind].defaults[0];
+      $('cc-' + kind + '-list').insertAdjacentHTML('beforeend', cardRowHtml(kind, first[0], ''));
+      updateCcCount(kind);
+      saveCustomCards();
+    }
+  });
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if(t && t.classList && t.classList.contains('cc-text')){
+      clearTimeout(mountCardLists._saveT);
+      mountCardLists._saveT = setTimeout(saveCustomCards, 300);
+    }
+  });
+}
+function moveBy(p, delta){
+  p.steps = Math.max(0, Math.min(p.end, p.steps + delta));
+  p.pos = ringPos(p);
+}
+function ringPos(p){
+  var d = p.dir || 1;
+  return ((p.start + d * p.steps) % N + N) % N;
+}
+function setPlayerCount(n){
+  playerCount = n;
+  var btns = document.querySelectorAll('.count-btn');
+  for(var i = 0; i < btns.length; i++){
+    btns[i].classList.toggle('active', parseInt(btns[i].getAttribute('data-n'), 10) === n);
+  }
+  var rows = document.querySelectorAll('#player-inputs .input-row');
+  for(var j = 0; j < rows.length; j++){
+    rows[j].style.display = j < n ? 'flex' : 'none';
+  }
+}
+var REST_TEXTS = [
+  '依偎着休息一轮，什么也不做也很甜',
+  '一起窝在沙发刷视频，停一轮',
+  '靠在一起眯一会儿，停一轮'
+];
+
+/* ---------- 状态 ---------- */
+var BEST_KEY = 'love-flight-chess-best-hearts';
+var state = null;
+var onlineMode = false;
+var passMode = false;
+var myId = -1;
+var serverUrl = '';
+var evtSource = null;
+var pawns = [];
+var modal = document.getElementById('modal');
+var toastEl = document.getElementById('toast');
+var toastTimer = null;
+
+function loadBest(){
+  try{
+    var v = localStorage.getItem(BEST_KEY);
+    return v ? parseInt(v,10)||0 : 0;
+  }catch(e){ return 0; }
+}
+function saveBest(n){
+  try{ localStorage.setItem(BEST_KEY, String(n)); }catch(e){}
+}
+
+function $(id){ return document.getElementById(id); }
+
+/* ---------- SVG 图标渲染 ---------- */
+function svgIcon(name, cls){
+  var icon = ICONS[name];
+  if(!icon) return '';
+  return '<span class="icon '+(cls||'')+'">'+icon+'</span>';
+}
+
+/* 初始渲染开始界面图标 */
+function mountStaticIcons(){
+  $('hero-illustration').innerHTML =
+    '<svg viewBox="0 0 150 150" width="100%" height="100%" fill="none">'+
+      '<circle cx="75" cy="72" r="52" fill="#FFE9F1"/>'+
+      '<circle cx="75" cy="72" r="40" fill="#FFFDFB"/>'+
+      '<path d="M75 42c-14 0-23 9-23 21 0 16 23 34 23 34s23-18 23-34c0-12-9-21-23-21z" fill="#FF6E9C"/>'+
+      '<path d="M75 52c-7 0-12 4.5-12 11 0 8.5 12 18 12 18s12-9.5 12-18c0-6.5-5-11-12-11z" fill="#FF9CBB"/>'+
+      '<path d="M62 61h26M75 48v26" stroke="#FFFDFB" stroke-width="2.6" stroke-linecap="round"/>'+
+      '<circle cx="38" cy="30" r="7" fill="#FFD9E4"/>'+
+      '<circle cx="120" cy="26" r="5" fill="#E4DBFF"/>'+
+      '<circle cx="128" cy="92" r="6" fill="#FFE3C9"/>'+
+      '<circle cx="24" cy="96" r="4" fill="#D8EFFF"/>'+
+      '<path d="M52 118c6-4 12 4 18 0s12 4 18 0" stroke="#9B7BFF" stroke-width="2.4" stroke-linecap="round" fill="none"/>'+
+      '<path d="M40 132c6-4 12 4 18 0s12 4 18 0M78 132c6-4 12 4 18 0s12 4 18 0" stroke="#FFB3C7" stroke-width="2.2" stroke-linecap="round" fill="none"/>'+
+    '</svg>';
+  PLAYER_COLORS.forEach(function(c, i){
+    $('input-icon-' + i).innerHTML = pawnSVG(c, i % 2 === 0 ? 'male' : 'female');
+  });
+  document.querySelectorAll('[data-icon]').forEach(function(el){
+    var name = el.getAttribute('data-icon');
+    var size = el.getAttribute('data-size') || '';
+    el.innerHTML = ICONS[name] || '';
+    if(size){ el.style.width = el.style.height = size + 'px'; }
+  });
+  $('end-illustration').innerHTML =
+    '<svg viewBox="0 0 120 120" width="100%" height="100%" fill="none">'+
+      '<circle cx="60" cy="58" r="44" fill="#F1EAFF"/>'+
+      '<path d="M60 30c-12 0-20 8-20 18 0 14 20 30 20 30s20-16 20-30c0-10-8-18-20-18z" fill="#9B7BFF"/>'+
+      '<path d="M60 38c-6 0-10 4-10 9.5C50 55 60 62 60 62s10-7 10-14.5C70 42 66 38 60 38z" fill="#FF6E9C"/>'+
+      '<circle cx="32" cy="24" r="5" fill="#FFD9E4"/><circle cx="94" cy="20" r="4" fill="#FFE3C9"/><circle cx="98" cy="88" r="5" fill="#D8EFFF"/>'+
+      '<path d="M34 96c5-3 10 3 15 0s10 3 15 0 10 3 15 0" stroke="#FFB3C7" stroke-width="2.2" stroke-linecap="round"/>'+
+    '</svg>';
+}
+
+/* ---------- 棋盘构建 ---------- */
+function buildBoard(){
+  var grid = $('board-grid');
+  var cd = $('center-dice');
+  grid.innerHTML = '';
+  CELLS.forEach(function(cell, i){
+    var d = document.createElement('div');
+    d.className = 'cell cell-' + cell.type;
+    d.id = 'cell-' + i;
+    var col = i % 10, row = Math.floor(i / 10);
+    if(row % 2 === 1){ col = 9 - col; }
+    d.style.gridColumn = (col + 1);
+    d.style.gridRow = (row + 1);
+    var meta = CELL_META[cell.type];
+    var icon = meta.icon ? svgIcon(meta.icon,'cell-icon') : '';
+    var tag = meta.tag ? '<span class="cell-tag">'+meta.tag+'</span>' : '';
+    var num = '<span class="cell-num">'+i+'</span>';
+    var dir = '<span class="cell-dir">'+dirIcon(row, col)+'</span>';
+    d.innerHTML = icon + tag + num + dir;
+    d.style.animationDelay = (i * 0.012) + 's';
+    grid.appendChild(d);
+  });
+  if(cd){ grid.appendChild(cd); }
+}
+
+var BOARD_BG_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">'+
+  '<defs><linearGradient id="gbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1F7"/><stop offset="1" stop-color="#F1EBFF"/></linearGradient></defs>'+
+  '<rect width="800" height="400" fill="url(#gbg)" opacity="0.55"/>'+
+  '<path d="M-70 350 A 270 270 0 0 1 330 90" stroke="#FFB3C7" stroke-width="22" fill="none" opacity="0.30"/>'+
+  '<path d="M-46 350 A 246 246 0 0 1 330 108" stroke="#FFE3A8" stroke-width="22" fill="none" opacity="0.26"/>'+
+  '<path d="M-22 350 A 222 222 0 0 1 330 126" stroke="#BFE6FF" stroke-width="22" fill="none" opacity="0.26"/>'+
+  '<circle cx="700" cy="92" r="48" fill="#FFE9A8" opacity="0.5"/><circle cx="700" cy="92" r="34" fill="#FFF3C4" opacity="0.6"/>'+
+  '<g fill="#ffffff" opacity="0.6"><circle cx="150" cy="118" r="30"/><circle cx="192" cy="108" r="38"/><circle cx="232" cy="120" r="30"/><rect x="150" y="118" width="82" height="30" rx="15"/></g>'+
+  '<g fill="#ffffff" opacity="0.5" transform="translate(470,60) scale(0.8)"><circle cx="150" cy="118" r="30"/><circle cx="192" cy="108" r="38"/><circle cx="232" cy="120" r="30"/><rect x="150" y="118" width="82" height="30" rx="15"/></g>'+
+  '<g fill="#FF9CBB" opacity="0.42"><path d="M120 310c-6-7-13-14-13-22a9.5 9.5 0 0 1 19-1 9.5 9.5 0 0 1 19 1c0 8-7 15-13 22z"/><path d="M360 308c-6-7-13-14-13-22a9.5 9.5 0 0 1 19-1 9.5 9.5 0 0 1 19 1c0 8-7 15-13 22z"/><path d="M600 312c-6-7-13-14-13-22a9.5 9.5 0 0 1 19-1 9.5 9.5 0 0 1 19 1c0 8-7 15-13 22z" transform="scale(0.82) translate(120,70)"/></g>'+
+  '<g fill="#FFD98A" opacity="0.5"><path d="M520 250l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z"/><path d="M205 248l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z" transform="scale(0.85)"/></g>'+
+  '<g fill="#FF9CBB" opacity="0.45"><circle cx="660" cy="245" r="9"/><circle cx="660" cy="227" r="9"/><circle cx="678" cy="236" r="9"/><circle cx="642" cy="236" r="9"/><circle cx="660" cy="236" r="7" fill="#FFE9A8"/></g>'+
+  '<g fill="#9BD8FF" opacity="0.42" transform="translate(70,150)"><circle cx="40" cy="42" r="7"/><circle cx="40" cy="28" r="7"/><circle cx="54" cy="35" r="7"/><circle cx="26" cy="35" r="7"/><circle cx="40" cy="35" r="6" fill="#FFF3C4"/></g>'+
+  '</svg>';
+var ARROW_R = '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none"><path d="M3 12h16M14 6.5L20 12l-6 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var ARROW_L = '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none"><path d="M21 12H5M10 6.5L4 12l6 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var TURN_R = '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none"><path d="M4 4h9a7 7 0 0 1 0 14H4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13l-5 5 5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var TURN_L = '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none"><path d="M20 4h-9a7 7 0 0 0 0 14h9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 13l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function dirIcon(row, col){
+  var even = row % 2 === 0;
+  var turn = (even && col === 9) || (!even && col === 0);
+  if(turn){ return even ? TURN_R : TURN_L; }
+  return even ? ARROW_R : ARROW_L;
+}
+function applyBoardBg(){
+  var grid = $('board-grid');
+  if(!grid) return;
+  var saved = '';
+  try{ saved = localStorage.getItem('love-flight-board-bg') || ''; }catch(e){}
+  var img = saved ? ('url("' + saved + '")') : ('url("data:image/svg+xml;utf8,' + encodeURIComponent(BOARD_BG_SVG) + '")');
+  grid.style.backgroundImage = img;
+  grid.style.backgroundSize = 'cover';
+  grid.style.backgroundPosition = 'center';
+}
+
+/* ---------- 棋子 ---------- */
+function pawnSVG(color, gender){
+  // 小男孩：蘑菇头 + 呆毛 + 小领结 + 圆头身体
+  if(gender === 'male'){
+    return '<svg viewBox="0 0 48 48">'+
+      '<path d="M14 43c0-4.4 4.3-7.2 10-7.2s10 2.8 10 7.2v3H14z" fill="'+color+'"/>'+
+      '<circle cx="24" cy="22.5" r="12.5" fill="'+color+'"/>'+
+      '<path d="M11.4 23c0-6.6 5.6-12 12.6-12s12.6 5.4 12.6 12c-1.2-2.3-3.4-3.2-5.8-2.7-1.8.4-2.7 1.5-3.2 2.9-1-2.1-2.8-3.3-5-3.3s-4 1.2-5 3.3c-.5-1.4-1.4-2.5-3.2-2.9-2.4-.5-4.6.4-5.8 2.7z" fill="#5B4034"/>'+
+      '<path d="M24 9.6c0-1.6.8-2.4 2-3" stroke="#5B4034" stroke-width="1.8" stroke-linecap="round" fill="none"/>'+
+      '<circle cx="19" cy="24.5" r="1.9" fill="#4A3447"/><circle cx="29" cy="24.5" r="1.9" fill="#4A3447"/>'+
+      '<path d="M19.8 30.5c2.6 2.2 5.8 2.2 8.4 0" stroke="#4A3447" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+      '<circle cx="13.8" cy="28.5" r="2.2" fill="#FFB3C7" opacity=".9"/><circle cx="34.2" cy="28.5" r="2.2" fill="#FFB3C7" opacity=".9"/>'+
+      '<path d="M24 36.8l-4.2-3.1v6.2zM24 36.8l4.2-3.1v6.2z" fill="#FF6E9C"/><circle cx="24" cy="36.8" r="1.5" fill="#FF9CBB"/>'+
+    '</svg>';
+  }
+  // 小女孩：双丸子头 + 粉色发圈 + 小裙子 + 裙边爱心
+  return '<svg viewBox="0 0 48 48">'+
+    '<path d="M15.5 43c0-4.6 3.8-7.5 8.5-7.5s8.5 2.9 8.5 7.5v3h-17z" fill="'+color+'"/>'+
+    '<path d="M19.5 37l4.5 2 4.5-2v2.6l-4.5 2-4.5-2z" fill="#FF6E9C"/>'+
+    '<circle cx="24" cy="22.5" r="12.5" fill="'+color+'"/>'+
+    '<circle cx="12.2" cy="10.8" r="3.9" fill="#5B4034"/><circle cx="35.8" cy="10.8" r="3.9" fill="#5B4034"/>'+
+    '<circle cx="12.2" cy="10.8" r="1.4" fill="#FF6E9C"/><circle cx="35.8" cy="10.8" r="1.4" fill="#FF6E9C"/>'+
+    '<path d="M11.4 23c0-6.6 5.6-12 12.6-12s12.6 5.4 12.6 12c-1.2-2.3-3.4-3.2-5.8-2.7-1.8.4-2.7 1.5-3.2 2.9-1-2.1-2.8-3.3-5-3.3s-4 1.2-5 3.3c-.5-1.4-1.4-2.5-3.2-2.9-2.4-.5-4.6.4-5.8 2.7z" fill="#5B4034"/>'+
+    '<circle cx="19" cy="24.5" r="1.9" fill="#4A3447"/><circle cx="29" cy="24.5" r="1.9" fill="#4A3447"/>'+
+    '<path d="M19.8 30.5c2.6 2.2 5.8 2.2 8.4 0" stroke="#4A3447" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+    '<circle cx="13.8" cy="28.5" r="2.2" fill="#FFB3C7" opacity=".9"/><circle cx="34.2" cy="28.5" r="2.2" fill="#FFB3C7" opacity=".9"/>'+
+  '</svg>';
+}
+
+function ensurePawns(){
+  pawns = state.players.map(function(p, i){
+    var el = document.createElement('div');
+    el.className = 'pawn ' + p.gender;
+    el.id = 'pawn-' + i;
+    el.innerHTML = pawnSVG(p.color, p.gender);
+    return el;
+  });
+  // 棋子先挂在起点区待命，掷骰起飞后 render() 会把它们移到航线格
+  pawns.forEach(function(el){
+    var zone = $('start-pawns');
+    if(zone){ zone.appendChild(el); }
+  });
+}
+
+/* ---------- 渲染 ---------- */
+function render(){
+  // 同格错位：先统计每格棋子数，再为同格棋子分配错位样式
+  var cellCount = {};
+  state.players.forEach(function(p){
+    if(!p.flying || p.pos < 0) return;
+    cellCount[p.pos] = (cellCount[p.pos]||0) + 1;
+  });
+  var cellIdx = {};
+  state.players.forEach(function(p, i){
+    if(!p.flying || p.pos < 0) return;
+    var k = p.pos;
+    cellIdx[k] = (cellIdx[k]||0) + 1;
+    var pw = $('pawn-' + i);
+    if(pw){
+      pw.classList.remove('slot-a','slot-b','slot-c','slot-d','tight');
+      if(cellCount[k] > 1){
+        pw.classList.add(SLOT_CLS[Math.min(cellIdx[k] - 1, 3)]);
+      }
+      if(cellCount[k] >= 3){ pw.classList.add('tight'); }
+    }
+  });
+  state.players.forEach(function(p, i){
+    var pawn = $('pawn-' + i);
+    if(pawn){
+      var target = (p.flying && p.pos >= 0) ? $('cell-' + p.pos) : $('start-pawns');
+      if(target && pawn.parentNode !== target){
+        // 触发弹入动画：先移除再追加
+        target.appendChild(pawn);
+        pawn.style.animation = 'none';
+        void pawn.offsetWidth;
+        pawn.style.animation = '';
+      }
+    }
+    $('hearts-' + (i+1)).textContent = p.hearts;
+    $('pill-name-' + (i+1)).textContent = p.name;
+    var pill = $('pill-' + (i+1));
+    pill.className = 'score-pill' + (state.turn===i ? ' turn-on' : '');
+    if(state.turn===i){ pill.style.borderColor = p.color; pill.style.background = p.color + '26'; }
+    else { pill.style.borderColor = ''; pill.style.background = ''; }
+  });
+  var cur = state.players[state.turn];
+  var turnName = $('turn-name');
+  turnName.textContent = cur.name;
+  turnName.className = 'turn-name';
+  turnName.style.color = cur.color;
+  $('btn-roll').className = 'roll-btn';
+  var left = cur.end - cur.steps;
+  var hint = (cur.flying && cur.pos >= 0)
+    ? ('位于第 '+cur.pos+' 格 · 距终点还有 '+left+' 格')
+    : ('在起点区待命 · 距终点还有 '+left+' 格');
+  if(cur.shield){ hint += ' · 带着护身符'; }
+  $('turn-hint').textContent = hint;
+}
+
+/* ---------- 骰子 ---------- */
+var DICE_MAP = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function showDice(n){
+  var dice = $('dice');
+  var dots = '';
+  for(var i=0;i<9;i++){
+    var on = DICE_MAP[n].indexOf(i) > -1;
+    dots += '<span class="dot'+(on?' on':'')+'"></span>';
+  }
+  dice.innerHTML = dots;
+  var big = $('dice-big');
+  if(big){ big.innerHTML = dots; }
+}
+
+function burstHearts(){
+  var zone = $('dice-zone');
+  for(var i=0;i<3;i++){
+    var h = document.createElement('span');
+    h.className = 'burst-heart';
+    h.innerHTML = ICONS.heartFill;
+    h.style.left = (10 + i*18) + 'px';
+    h.style.animationDelay = (i*0.12)+'s';
+    zone.appendChild(h);
+    (function(el){ setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 1400); })(h);
+  }
+}
+
+/* ---------- 掷骰流程 ---------- */
+function setRollEnabled(on){
+  var btn = $('btn-roll');
+  btn.disabled = !on;
+  var cd = $('center-dice');
+  if(cd){ cd.classList.toggle('off', !on); }
+}
+
+/* ---------- 联机模式 ---------- */
+function nextTurnSmart(){
+  if(onlineMode){
+    syncPlayer();
+    if(state && state.turn === myId){
+      fetch(serverUrl+'/nextturn',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})}).catch(function(){});
+    }
+  } else {
+    nextTurn();
+  }
+}
+function syncPlayer(){
+  if(!onlineMode || !state || !state.players[myId]) return;
+  var p = state.players[myId];
+  fetch(serverUrl+'/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId,pos:p.pos,steps:p.steps,flying:p.flying,hearts:p.hearts,shield:p.shield,skip:p.skip})}).catch(function(){});
+}
+function sendRoll(){
+  state.phase = 'rolling';
+  setRollEnabled(false);
+  SFX.dice();
+  fetch(serverUrl+'/roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); state.phase='idle'; setRollEnabled(true); }
+    })
+    .catch(function(){ showToast('与服务器断开'); state.phase='idle'; setRollEnabled(true); });
+}
+function handleOnlineDice(pid, val){
+  if(!state) return;
+  var p = state.players[pid];
+  if(!p) return;
+  state.phase = 'rolling';
+  setRollEnabled(false);
+  showDice(val);
+  SFX.dice();
+  setTimeout(function(){ movePawn(p, val); }, 350);
+}
+function applyServerState(data){
+  if(onlineMode && state && state.players && state.players.length){
+    data.players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
+    state.players = data.players;
+    state.turn = data.turn;
+    render();
+    setRollEnabled(state.phase==='idle' && state.turn===myId);
+    return;
+  }
+  data.players.forEach(function(p, i){
+    p.start = 0; p.end = N; p.dir = 1;
+    p.color = PLAYER_COLORS[i % PLAYER_COLORS.length];
+    if(p.pos === undefined) p.pos = -1;
+    if(p.steps === undefined) p.steps = 0;
+    if(p.flying === undefined) p.flying = false;
+    if(p.hearts === undefined) p.hearts = 0;
+    if(p.shield === undefined) p.shield = false;
+    if(p.skip === undefined) p.skip = false;
+  });
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner};
+  onlineMode = true;
+  rebuildCardPools();
+  buildBoard();
+  render();
+  setRollEnabled(state.phase==='idle' && state.turn===myId);
+  switchView('view-game');
+  var st = $('online-status');
+  if(st){ st.textContent='已加入房间，当前 '+state.players.length+' 人'; st.className='online-status ok'; }
+}
+function setupSSE(){
+  if(evtSource){ try{evtSource.close();}catch(e){} }
+  evtSource = new EventSource(serverUrl+'/events');
+  evtSource.addEventListener('snapshot', function(e){
+    try{ applyServerState(JSON.parse(e.data)); }catch(err){}
+  });
+  evtSource.addEventListener('players', function(e){
+    try{
+      var players = JSON.parse(e.data);
+      if(state){
+        players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
+        state.players = players;
+        render();
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('dice', function(e){
+    try{ var d=JSON.parse(e.data); handleOnlineDice(d.player, d.value); }catch(err){}
+  });
+  evtSource.addEventListener('turn', function(e){
+    try{
+      var t = JSON.parse(e.data);
+      if(state){ state.turn=t; state.phase='idle'; setRollEnabled(state.turn===myId); render(); }
+    }catch(err){}
+  });
+  evtSource.onerror = function(){
+    var st = $('online-status');
+    if(st && !onlineMode){ st.textContent='连接中...'; st.className='online-status'; }
+  };
+}
+function joinOnline(){
+  var url = ($('online-server').value||'').trim().replace(/\/+$/,'');
+  var name = ($('online-name').value||'').trim() || ('宝贝'+(myId+1));
+  if(!url){ showToast('请输入服务器地址'); return; }
+  serverUrl = url;
+  var st = $('online-status');
+  st.textContent='正在连接...'; st.className='online-status';
+  fetch(url+'/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,gender:'male'})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d && d.error){ st.textContent=d.error; st.className='online-status err'; return; }
+      myId = d.id;
+      if(d && d.state){ applyServerState(d.state); }
+      setupSSE();
+    })
+    .catch(function(){
+      st.textContent='连接失败，请确认 server.py 已运行且地址正确';
+      st.className='online-status err';
+    });
+}
+function leaveOnline(){
+  if(evtSource){ try{evtSource.close();}catch(e){} evtSource=null; }
+  if(onlineMode && serverUrl && myId>=0){
+    try{ fetch(serverUrl+'/leave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})}); }catch(e){}
+  }
+  onlineMode=false; myId=-1;
+}
+
+function roll(){
+  if(!state || state.phase !== 'idle') return;
+  if(onlineMode){
+    if(state.turn !== myId){ showToast('还没轮到你掷骰'); return; }
+    sendRoll();
+    return;
+  }
+  state.phase = 'rolling';
+  setRollEnabled(false);
+  burstHearts();
+  SFX.dice();
+  var dice = $('dice');
+  dice.classList.add('rolling');
+  var finalN = 1 + Math.floor(Math.random()*6);
+  var ticks = 0;
+  var iv = setInterval(function(){
+    ticks++;
+    showDice(1 + Math.floor(Math.random()*6));
+    if(ticks >= 10){
+      clearInterval(iv);
+      dice.classList.remove('rolling');
+      showDice(finalN);
+      movePawn(state.players[state.turn], finalN);
+    }
+  }, 90);
+}
+
+function movePawn(p, n){
+  var from = p.pos;
+  if(!p.flying){ p.flying = true; from = -1; }
+  p.steps = Math.min(p.end, p.steps + n);
+  var target = ringPos(p);
+  p.pos = target;
+  var cur = from;
+  var guard = 0;
+  var iv = setInterval(function(){
+    guard++;
+    cur = ((cur + (p.dir || 1)) % N + N) % N;
+    p.pos = cur;
+    render();
+    SFX.step();
+    if(cur === target || guard > 8){
+      clearInterval(iv);
+      ripple(p.pos);
+      SFX.move();
+      if(p.steps >= p.end){
+        setTimeout(function(){ flyHome(p); }, 450);
+        return;
+      }
+      var met = false;
+      for(var i = 0; i < state.players.length; i++){
+        var o = state.players[i];
+        if(o !== p && o.pos === p.pos){ met = true; break; }
+      }
+      if(met && state.phase !== 'ended'){
+        showToast('你们在途中相遇了，好甜');
+      }
+      setTimeout(function(){ resolveCell(p); }, 400);
+    }
+  }, 120);
+}
+
+function resolveCell(p){
+  if(state.phase === 'ended') return;
+  var cell = CELLS[p.pos];
+  var endPos = p.end;
+  if(onlineMode){
+    switch(cell.type){
+      case 'love':
+        p.hearts += 2; showToast(p.name+' 完成甜蜜任务，爱心+2'); render(); syncPlayer();
+        setTimeout(nextTurnSmart, 800); break;
+      case 'reward':{
+        var pool = (REWARD_POOLS[p.gender]&&REWARD_POOLS[p.gender].length)?REWARD_POOLS[p.gender]:REWARD_POOLS.male;
+        var card = pick(pool); var r = card.act(p, getFoe(p));
+        showToast(p.name+' 抽到奖励：'+card.t); render(); syncPlayer();
+        if(r==='keep'){ state.phase='idle'; setRollEnabled(true); }
+        else { setTimeout(nextTurnSmart, 800); }
+        break;
+      }
+      case 'penalty':
+        if(p.shield){ p.shield=false; showToast('护身符挡住了惩罚'); render(); syncPlayer(); setTimeout(nextTurnSmart,800); break; }
+        var pp = (PENALTY_POOLS[p.gender]&&PENALTY_POOLS[p.gender].length)?PENALTY_POOLS[p.gender]:PENALTY_POOLS.male;
+        var pc = pick(pp); pc.act(p, getFoe(p));
+        showToast(p.name+' 抽到惩罚：'+pc.t); render(); syncPlayer();
+        setTimeout(nextTurnSmart, 800); break;
+      case 'forward':
+        state.phase='moving'; showToast('顺风助力，向前飞跃3格'); moveBy(p,3); render(); ripple(p.pos); SFX.move();
+        if(p.steps>=p.end){ setTimeout(function(){flyHome(p);},500); } else { syncPlayer(); setTimeout(nextTurnSmart,900); }
+        break;
+      case 'backward':
+        state.phase='moving'; showToast('一阵小风把你吹回3格'); moveBy(p,-3); render(); ripple(p.pos); syncPlayer();
+        setTimeout(nextTurnSmart,900); break;
+      case 'rest':
+        state.phase='moving'; p.skip=true; showToast(pick(REST_TEXTS)); syncPlayer();
+        setTimeout(nextTurnSmart,1100); break;
+      case 'safe':
+        state.phase='moving'; p.shield=true; showToast('获得爱情护身符'); render(); syncPlayer();
+        setTimeout(nextTurnSmart,1000); break;
+      default:
+        syncPlayer();
+        setTimeout(nextTurnSmart,450);
+    }
+    return;
+  }
+  switch(cell.type){
+    case 'love':
+      openTask(p);
+      break;
+    case 'reward':
+      openCard(p, REWARD_POOLS, '奖励卡');
+      break;
+    case 'penalty':
+      if(p.shield){
+        p.shield = false;
+        render();
+        showToast('护身符挡住了惩罚，这次逃过一劫');
+        setTimeout(nextTurn, 1000);
+      } else {
+        openCard(p, PENALTY_POOLS, '惩罚卡');
+      }
+      break;
+    case 'forward':
+      state.phase = 'moving';
+      showToast('顺风助力，向前飞跃 3 格');
+      moveBy(p, 3);
+      render();
+      ripple(p.pos);
+      SFX.move();
+      if(p.steps >= p.end){
+        setTimeout(function(){ flyHome(p); }, 500);
+      } else {
+        setTimeout(nextTurn, 900);
+      }
+      break;
+    case 'backward':
+      state.phase = 'moving';
+      showToast('一阵小风把你吹回 3 格');
+      moveBy(p, -3);
+      render();
+      ripple(p.pos);
+      setTimeout(nextTurn, 900);
+      break;
+    case 'rest':
+      state.phase = 'moving';
+      p.skip = true;
+      showToast(pick(REST_TEXTS));
+      setTimeout(nextTurn, 1100);
+      break;
+    case 'safe':
+      state.phase = 'moving';
+      p.shield = true;
+      showToast('获得爱情护身符，下次可抵挡一次惩罚');
+      render();
+      setTimeout(nextTurn, 1000);
+      break;
+    default:
+      setTimeout(nextTurn, 450);
+  }
+}
+
+/* ---------- 甜蜜任务弹窗 ---------- */
+function getFoe(p){
+  var others = state.players.filter(function(x){ return x !== p; });
+  return pick(others);
+}
+function openTask(p){
+  state.phase = 'event';
+  var taskPool = LOVE_POOLS[p.gender];
+  var task = pick(taskPool && taskPool.length ? taskPool : LOVE_TASKS);
+  $('modal-icon').innerHTML = svgIcon('heartFill','');
+  $('modal-kicker').textContent = '甜蜜任务卡';
+  $('modal-title').textContent = p.name + ' 的甜蜜任务';
+  $('modal-body').textContent = task;
+  $('modal-note').textContent = '完成后请对方确认，领取 +2 爱心';
+  SFX.task();
+  $('modal-action').textContent = '完成啦，领取爱心';
+  $('modal-action').className = 'btn-modal';
+  $('modal-secondary').textContent = '';
+  $('modal-secondary').style.display = 'none';
+  modal.classList.add('show');
+  $('modal-action').onclick = function(){
+    modal.classList.remove('show');
+    p.hearts += 2;
+    render();
+    showToast(p.name + ' 获得 +2 爱心');
+    setTimeout(nextTurn, 650);
+  };
+}
+
+/* ---------- 卡片弹窗（奖励/惩罚） ---------- */
+function openCard(p, cards, kicker){
+  state.phase = 'event';
+  var gender = p.gender || 'male';
+  var pool = (cards[gender] && cards[gender].length) ? cards[gender] : cards.male;
+  var card = pick(pool);
+  var foe = getFoe(p);
+  var good = (kicker === '奖励卡');
+  $('modal-icon').innerHTML = good ? svgIcon('star','') : svgIcon('wave','');
+  $('modal-icon').style.color = good ? 'var(--boost)' : 'var(--setback)';
+  $('modal-kicker').textContent = kicker;
+  $('modal-title').textContent = p.name + (good ? ' 抽到奖励' : ' 抽到惩罚');
+  $('modal-body').textContent = card.t;
+  $('modal-note').textContent = '';
+  $('modal-action').textContent = '确认';
+  $('modal-action').className = 'btn-modal' + (good ? '' : ' violet');
+  $('modal-secondary').textContent = '';
+  $('modal-secondary').style.display = 'none';
+  modal.classList.add('show');
+  var mc = modal.querySelector('.modal-card');
+  if(good){
+    SFX.reward();
+    sparkles(mc);
+  } else {
+    SFX.penalty();
+    mc.classList.add('shake');
+    setTimeout(function(){ mc.classList.remove('shake'); }, 520);
+  }
+  $('modal-action').onclick = function(){
+    modal.classList.remove('show');
+    var res = card.act(p, foe);
+    render();
+    ripple(p.pos);
+    setTimeout(function(){
+      if(res === 'keep'){ state.phase = 'idle'; setRollEnabled(true); }
+      else if(res !== 'win'){ nextTurn(); }
+    }, 700);
+  };
+}
+
+/* ---------- 胜利结算 ---------- */
+function flyHome(p){
+  state.phase = 'moving';
+  var pawn = $('pawn-' + state.players.indexOf(p));
+  var homeEl = $('zone-finish');
+  if(pawn && homeEl && homeEl.getBoundingClientRect){
+    var hb = homeEl.getBoundingClientRect();
+    var pb = pawn.getBoundingClientRect();
+    var dx = hb.left + hb.width / 2 - (pb.left + pb.width / 2);
+    var dy = hb.top + hb.height / 2 - (pb.top + pb.height / 2);
+    pawn.style.transition = 'transform .9s cubic-bezier(.25,.9,.35,1.15)';
+    pawn.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(1.9)';
+    pawn.style.zIndex = 9;
+  }
+  setTimeout(function(){ win(p); }, 950);
+}
+function win(p){
+  state.phase = 'ended';
+  p.hearts += 5;
+  var best = loadBest();
+  for(var i = 0; i < state.players.length; i++){ best = Math.max(best, state.players[i].hearts); }
+  saveBest(best);
+  render();
+  SFX.win();
+  celebrate();
+
+  $('end-title').textContent = p.name + ' 赢啦';
+  $('end-sub').textContent = '率先飞入终点区「永远」，爱情航线完美收官';
+  var maxH = 1;
+  for(var j = 0; j < state.players.length; j++){ maxH = Math.max(maxH, state.players[j].hearts); }
+  var vsHtml = '';
+  for(var k = 0; k < state.players.length; k++){
+    var a = state.players[k];
+    var w = Math.round(a.hearts / maxH * 100);
+    vsHtml += '<div class="vs-col"><div class="name" style="color:' + a.color + '">' + a.name + '</div>'
+      + '<div class="vs-bar"><i style="width:' + w + '%;background:' + a.color + '"></i></div>'
+      + '<div class="vs-num">' + a.hearts + '<small>爱心</small></div></div>';
+  }
+  $('vs-row').innerHTML = vsHtml;
+  $('best-score').textContent = '爱情最高纪录：' + best + ' 爱心';
+  switchView('view-end');
+}
+
+/* ---------- 回合切换 ---------- */
+function nextTurn(){
+  var n = state.players.length;
+  for(var k = 1; k <= n; k++){
+    state.turn = (state.turn + 1) % n;
+    var p = state.players[state.turn];
+    if(p.skip){
+      p.skip = false;
+      showToast(p.name + ' 还在休息，自动跳过');
+      continue;
+    }
+    break;
+  }
+  state.phase = 'idle';
+  render();
+  if(passMode){
+    showPassMask(state.players[state.turn]);
+  } else {
+    setRollEnabled(true);
+  }
+}
+function showPassMask(p){
+  setRollEnabled(false);
+  $('pass-name').textContent = p.name;
+  $('pass-name').style.color = p.color;
+  $('pass-btn').textContent = '我是 ' + p.name + '，开始掷骰';
+  $('pass-mask').style.display = 'flex';
+}
+
+/* ---------- 提示 ---------- */
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ---------- 视图切换 ---------- */
+function switchView(id){
+  var views = document.querySelectorAll('.view');
+  for(var i=0;i<views.length;i++){
+    views[i].classList.remove('active');
+  }
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+
+/* ============ 密钥激活 ============ */
+var ACTIVATION_KEYS = [
+  'LOVE-FLIGHT-2024',
+  'SWEET-150',
+  'COUPLE-GAME',
+  'FOREVER-LOVE',
+  '甜蜜飞行150'
+];
+var ACTIVATED = false;
+
+function isActivated(){
+  if(ACTIVATED) return true;
+  try{
+    ACTIVATED = localStorage.getItem('love-flight-activated') === '1';
+  }catch(e){ ACTIVATED = false; }
+  return ACTIVATED;
+}
+
+function tryActivate(key){
+  var input = (key || '').trim();
+  if(!input){
+    showActivateError('请输入激活码');
+    return false;
+  }
+  var upper = input.toUpperCase();
+  var matched = false;
+  for(var i = 0; i < ACTIVATION_KEYS.length; i++){
+    if(ACTIVATION_KEYS[i].toUpperCase() === upper){
+      matched = true;
+      break;
+    }
+  }
+  if(matched){
+    try{ localStorage.setItem('love-flight-activated', '1'); }catch(e){}
+    ACTIVATED = true;
+    $('activate-error').textContent = '';
+    $('activate-key').value = '';
+    SFX.init(); SFX.resume(); SFX.click();
+    showToast('激活成功！欢迎来到恋爱飞行棋');
+    switchView('view-start');
+    return true;
+  }else{
+    showActivateError('激活码无效，请检查后重试');
+    return false;
+  }
+}
+
+function showActivateError(msg){
+  var el = $('activate-error');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  setTimeout(function(){ el.style.opacity = '0'; }, 2500);
+}
+
+function resetActivation(){
+  try{ localStorage.removeItem('love-flight-activated'); }catch(e){}
+  ACTIVATED = false;
+  state = null;
+  SFX.bgmStop();
+  switchView('view-activate');
+  showToast('已退出激活状态');
+}
+
+/* 长按静音按钮3秒重置激活 */
+var _soundPressTimer = null;
+function setupSoundLongPress(){
+  var btn = $('btn-sound');
+  if(!btn) return;
+  btn.addEventListener('mousedown', function(){
+    _soundPressTimer = setTimeout(function(){
+      if(isActivated() && confirm('确定要重置激活状态吗？重置后需要重新输入激活码。')){
+        resetActivation();
+      }
+    }, 3000);
+  });
+  btn.addEventListener('mouseup', function(){
+    if(_soundPressTimer){ clearTimeout(_soundPressTimer); _soundPressTimer = null; }
+  });
+  btn.addEventListener('mouseleave', function(){
+    if(_soundPressTimer){ clearTimeout(_soundPressTimer); _soundPressTimer = null; }
+  });
+  /* 移动端触摸 */
+  btn.addEventListener('touchstart', function(e){
+    _soundPressTimer = setTimeout(function(){
+      if(isActivated() && confirm('确定要重置激活状态吗？重置后需要重新输入激活码。')){
+        resetActivation();
+      }
+    }, 3000);
+  }, {passive: true});
+  btn.addEventListener('touchend', function(){
+    if(_soundPressTimer){ clearTimeout(_soundPressTimer); _soundPressTimer = null; }
+  });
+}
+
+/* ---------- 开始 / 再来一局 ---------- */
+function renderScorePills(){
+  var box = $('pills');
+  box.innerHTML = '';
+  state.players.forEach(function(p, i){
+    var el = document.createElement('div');
+    el.className = 'score-pill';
+    el.id = 'pill-' + (i+1);
+    el.innerHTML = '<span class="icon" style="color:' + p.color + '">' + ICONS.heart + '</span>'
+      + '<span class="hearts-num" id="hearts-' + (i+1) + '">0</span>'
+      + '<span class="name" id="pill-name-' + (i+1) + '"></span>';
+    box.appendChild(el);
+  });
+}
+function initGame(list){
+  rebuildCardPools();
+  var n = list.length;
+  CELLS = buildCells(n);
+  state = {
+    players: list.map(function(pl, i){
+      return {name: pl.name, gender: pl.gender, color: PLAYER_COLORS[i % 4], start: 0, steps: 0, end: N, pos: -1, dir: 1, flying: false, hearts: 0, shield: false, skip: false};
+    }),
+    turn: 0,
+    phase: 'idle'
+  };
+  renderScorePills();
+  buildBoard();
+  applyBoardBg();
+  ensurePawns();
+  showDice(1);
+  render();
+  setRollEnabled(true);
+  switchView('view-game');
+}
+
+/* ---------- 事件绑定 ---------- */
+$('btn-activate').addEventListener('click', function(){
+  SFX.init(); SFX.resume(); SFX.click();
+  tryActivate($('activate-key').value);
+});
+$('activate-key').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.keyCode === 13){
+    SFX.init(); SFX.resume(); SFX.click();
+    tryActivate(this.value);
+  }
+});
+
+$('btn-start').addEventListener('click', function(){
+  SFX.init();
+  SFX.resume();
+  SFX.bgmStart();
+  SFX.click();
+  passMode = false;
+  var list = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    list.push({name: v || '宝贝' + (i+1), gender: gender});
+  }
+  initGame(list);
+});
+$('btn-pass').addEventListener('click', function(){
+  SFX.init();
+  SFX.resume();
+  SFX.bgmStart();
+  SFX.click();
+  passMode = true;
+  var list = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    list.push({name: v || '宝贝' + (i+1), gender: gender});
+  }
+  initGame(list);
+});
+$('pass-btn').addEventListener('click', function(){
+  $('pass-mask').style.display = 'none';
+  setRollEnabled(true);
+  SFX.click();
+});
+var bgFile = $('bg-file');
+$('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.click(); bgFile.click(); });
+bgFile.addEventListener('change', function(){
+  var f = bgFile.files && bgFile.files[0];
+  if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    try{ localStorage.setItem('love-flight-board-bg', rd.result); }catch(e){}
+    applyBoardBg();
+    showToast('棋盘背景已更新并自动保存');
+  };
+  rd.readAsDataURL(f);
+});
+$('btn-bg-reset').addEventListener('click', function(){
+  try{ localStorage.removeItem('love-flight-board-bg'); }catch(e){}
+  applyBoardBg();
+  showToast('已恢复默认卡通背景');
+});
+$('btn-roll').addEventListener('click', function(){ SFX.resume(); SFX.click(); roll(); });
+$('center-dice').addEventListener('click', function(){ SFX.resume(); SFX.click(); roll(); });
+$('btn-sound').addEventListener('click', function(){
+  SFX.init();
+  SFX.resume();
+  SFX.setMuted(!SFX.muted);
+  if(!SFX.muted){ SFX.click(); }
+});
+$('btn-again').addEventListener('click', function(){
+  SFX.resume();
+  SFX.click();
+  if(onlineMode){ leaveOnline(); }
+  initGame(state.players.map(function(p){ return {name: p.name, gender: p.gender}; }));
+});
+$('btn-online').addEventListener('click', function(){
+  SFX.resume(); SFX.click();
+  var panel = $('online-panel');
+  panel.style.display = (panel.style.display==='none') ? 'block' : 'none';
+});
+$('btn-join').addEventListener('click', function(){
+  SFX.resume(); SFX.click();
+  joinOnline();
+});
+$('btn-restart').addEventListener('click', function(){
+  if(onlineMode){ leaveOnline(); }
+  passMode = false;
+  $('pass-mask').style.display = 'none';
+});
+window.addEventListener('beforeunload', function(){ leaveOnline(); });
+$('btn-restart').addEventListener('click', function(){
+  SFX.bgmStop();
+  SFX.click();
+  state = null;
+  switchView('view-start');
+});
+var btnRestartEnd = $('btn-restart-end');
+if(btnRestartEnd){ btnRestartEnd.addEventListener('click', function(){
+  SFX.bgmStop(); SFX.click(); state = null; switchView('view-start');
+}); }
+var countBtns = document.querySelectorAll('.count-btn');
+for(var cb = 0; cb < countBtns.length; cb++){
+  countBtns[cb].addEventListener('click', function(){
+    setPlayerCount(parseInt(this.getAttribute('data-n'), 10));
+  });
+}
+var genderBtns = document.querySelectorAll('.g-btn');
+for(var gb = 0; gb < genderBtns.length; gb++){
+  genderBtns[gb].addEventListener('click', function(){
+    var sw = this.parentNode;
+    var bs = sw.querySelectorAll('.g-btn');
+    for(var b = 0; b < bs.length; b++){ bs[b].classList.remove('active'); }
+    this.classList.add('active');
+    var row = sw.parentNode;
+    var idx = row.getAttribute('data-row');
+    $('input-icon-' + idx).innerHTML = pawnSVG(PLAYER_COLORS[parseInt(idx, 10) % 4], this.getAttribute('data-g'));
+  });
+}
+
+/* ---------- 初始化 ---------- */
+mountStaticIcons();
+showDice(1);
+updateSoundBtn();
+setPlayerCount(2);
+mountCardLists();
+setupSoundLongPress();
+if(isActivated()){
+  ACTIVATED = true;
+  switchView('view-start');
+}else{
+  switchView('view-activate');
+}
+
+})();
+</script>
+</body>
+</html>
