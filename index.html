@@ -520,6 +520,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rps-choice span{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-top:6px}
 .btn-rps-next{margin:0 auto}
 .btn-rps-punish{display:block;margin:14px auto 0}
+.rps-custom-btn{display:block;margin:10px auto 0;font-size:14px;color:var(--love);background:transparent;border:1px dashed rgba(255,110,156,.5);border-radius:999px;padding:8px 18px;cursor:pointer}
+.rps-custom-panel{background:#FFF9FC;border:1px solid #FFD9E6;border-radius:16px;padding:14px;margin-top:12px}
+.rps-gender-tabs{display:flex;justify-content:center;gap:8px;margin-bottom:10px}
+.rps-gtab{padding:6px 18px;border-radius:999px;border:1.5px solid #FFD9E6;background:#fff;color:var(--ink);font-size:14px;font-weight:700;cursor:pointer}
+.rps-gtab.active{background:var(--love);border-color:var(--love);color:#fff}
+.btn-rps-save{margin:12px auto 0;font-size:16px;letter-spacing:1px;padding:12px 26px}
 /* 联机猜拳：当前对决玩家高亮 */
 .rps-pill-active{box-shadow:0 0 0 2.5px var(--love);transform:scale(1.04)}
 .rps-vs-empty{font-size:16px;font-weight:700;color:var(--ink-soft);padding:30px 0}
@@ -1431,6 +1437,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
         </div>
         <button class="btn-primary btn-rps-punish" id="btn-rps-punish" type="button" style="display:none">🎴 抽取惩罚卡</button>
         <button class="btn-primary btn-rps-next" id="btn-rps-next" type="button" style="display:none">下一轮</button>
+        <button class="rps-custom-btn" id="btn-rps-custom-toggle" type="button" style="display:none">✏️ 自定义惩罚卡（房主） ▼</button>
+        <div class="rps-custom-panel" id="rps-custom-panel" style="display:none">
+          <div class="wc-title">自定义惩罚卡 · 仅房主可改，保存后同步全员</div>
+          <div class="rps-gender-tabs" id="rps-gender-tabs">
+            <button class="rps-gtab active" type="button" data-g="male">👦 他</button>
+            <button class="rps-gtab" type="button" data-g="female">👧 她</button>
+          </div>
+          <div class="wc-list" id="rps-custom-list"></div>
+          <button class="cc-add" type="button" id="rps-custom-add">+ 加一张</button>
+          <button class="btn-primary btn-rps-save" id="rps-custom-save" type="button">💾 保存并同步全员</button>
+        </div>
       </div>
     </div>
   </section>
@@ -2479,6 +2496,7 @@ function applyServerState(data){
     state.gameType = data.gameType || state.gameType;
     state.rps = data.rps;
     state.tda = data.tda;
+    state.penaltyCards = data.penaltyCards;
     applyServerBoard(data);
     // 游戏已开始但还在等待大厅时，切换到对局
     if(data.started && $('view-lobby').classList.contains('active')){
@@ -2509,7 +2527,7 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, penaltyCards:data.penaltyCards};
   onlineMode = true;
   applyServerBoard(data);
   // 若房间未开始，进入等待大厅
@@ -2700,6 +2718,12 @@ function setupSSE(){
           renderOnlineRps();
         }
       }
+    }catch(err){}
+  });
+  evtSource.addEventListener('rps-cards', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){ state.penaltyCards = d; if(state.gameType === 'rps') renderOnlineRps(); }
     }catch(err){}
   });
   evtSource.addEventListener('tda', function(e){
@@ -3544,6 +3568,11 @@ function renderOnlineRps(){
   var rollBtn = $('btn-rps-roll');
   var nextBtn = $('btn-rps-next');
   var punishBox = $('rps-punish');
+  // 自定义惩罚卡入口：仅房主可见；面板打开时刷新列表
+  var ct = $('btn-rps-custom-toggle');
+  if(ct){ ct.style.display = (state.hostId === myId) ? 'block' : 'none'; }
+  var cp = $('rps-custom-panel');
+  if(cp && cp.style.display !== 'none'){ renderRpsCustomList(); }
   rollBtn.disabled = true;
   nextBtn.style.display = 'none';
   if(punishBox){ punishBox.style.display = 'none'; }
@@ -3596,13 +3625,60 @@ function renderOnlineRps(){
     st.textContent = (w ? w.name : '玩家') + ' 赢了！等待抽取惩罚...';
   }
 }
+var rpsCustomGender = 'male';
+function renderRpsCustomList(){
+  var list = $('rps-custom-list');
+  if(!list) return;
+  var rows = (state && state.penaltyCards && state.penaltyCards[rpsCustomGender]) || [];
+  if(!rows.length){
+    var defs = CARD_KINDS['penalty-' + rpsCustomGender].defaults;
+    rows = defs.map(function(d){ return {act: d[0], text: d[1]}; });
+  }
+  var opts = CARD_KINDS['penalty-' + rpsCustomGender].options.map(function(o){
+    return '<option value="' + o[0] + '">' + o[1] + '</option>';
+  }).join('');
+  list.innerHTML = rows.map(function(c){
+    var sel = opts.replace('value="' + c.act + '"', 'value="' + c.act + '" selected');
+    var safe = String(c.text || '').replace(/"/g, '&quot;');
+    return '<div class="cc-row"><select class="cc-act">' + sel + '</select>'
+      + '<input class="cc-text" type="text" maxlength="30" value="' + safe + '">'
+      + '<button class="cc-del" type="button" aria-label="删除">×</button></div>';
+  }).join('');
+}
+function saveRpsCustomCards(){
+  var list = $('rps-custom-list');
+  var rows = list.querySelectorAll('.cc-row');
+  var out = [];
+  for(var i = 0; i < rows.length; i++){
+    var act = rows[i].querySelector('.cc-act').value;
+    var text = rows[i].querySelector('.cc-text').value.trim();
+    if(text){ out.push({act: act, text: text}); }
+  }
+  fetch(serverUrl+'/rps-cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gender:rpsCustomGender, cards:out})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      showToast('惩罚卡已保存并同步全员');
+      var p = $('rps-custom-panel');
+      if(p){ p.style.display = 'none'; var t = $('btn-rps-custom-toggle'); if(t){ t.textContent = '✏️ 自定义惩罚卡（房主） ▼'; } }
+    })
+    .catch(function(){ showToast('连接失败，请检查网络'); });
+}
+function serverPenaltyPool(gender){
+  // 优先用服务器下发的房主自定义惩罚卡池
+  if(state && state.penaltyCards && state.penaltyCards[gender] && state.penaltyCards[gender].length){
+    return state.penaltyCards[gender].map(function(c){ return {t: c.text, act: makePenaltyAct(c.act)}; });
+  }
+  return null;
+}
 function onlineRpsPunish(){
   if(!onlineMode || !state || !state.rps) return;
   var rps = state.rps;
   if(rps.winner !== myId){ showToast('只有赢家可以抽取惩罚'); return; }
   var l = playerById(rps.loser);
   if(!l){ showToast('找不到输家'); return; }
-  var pool = PENALTY_POOLS[l.gender];
+  var pool = serverPenaltyPool(l.gender);
+  if(!pool || !pool.length){ pool = PENALTY_POOLS[l.gender]; }
   if(!pool || !pool.length){ pool = defaultPool('penalty-' + l.gender); }
   var card = pool[Math.floor(Math.random() * pool.length)];
   var show = (card.t || '').replace(/爱心\s*[-+]\d+/g, '').trim();
@@ -4211,6 +4287,42 @@ $('btn-rps-punish-ok').addEventListener('click', function(){
   closeRpsPunish();
 });
 $('btn-rps-punish').addEventListener('click', function(){ onlineRpsPunish(); });
+$('btn-rps-custom-toggle').addEventListener('click', function(){
+  var p = $('rps-custom-panel');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  this.textContent = '✏️ 自定义惩罚卡（房主） ' + (open ? '▼' : '▲');
+  if(!open){ renderRpsCustomList(); }
+  SFX.click();
+});
+$('rps-custom-add').addEventListener('click', function(){
+  var def = CARD_KINDS['penalty-' + rpsCustomGender].defaults[0];
+  var opts = CARD_KINDS['penalty-' + rpsCustomGender].options.map(function(o){
+    return '<option value="' + o[0] + '"' + (o[0] === def[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+  }).join('');
+  $('rps-custom-list').insertAdjacentHTML('beforeend',
+    '<div class="cc-row"><select class="cc-act">' + opts + '</select>'
+    + '<input class="cc-text" type="text" maxlength="30" value="">'
+    + '<button class="cc-del" type="button" aria-label="删除">×</button></div>');
+  SFX.click();
+});
+$('rps-custom-list').addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('cc-del')){
+    var row = e.target.parentNode;
+    row.parentNode.removeChild(row);
+    SFX.click();
+  }
+});
+$('rps-custom-save').addEventListener('click', function(){ saveRpsCustomCards(); SFX.click(); });
+var rpsGtabs = document.querySelectorAll('#rps-gender-tabs .rps-gtab');
+for(var rgt = 0; rgt < rpsGtabs.length; rgt++){
+  rpsGtabs[rgt].addEventListener('click', function(){
+    rpsCustomGender = this.getAttribute('data-g');
+    for(var i = 0; i < rpsGtabs.length; i++){ rpsGtabs[i].classList.toggle('active', rpsGtabs[i] === this); }
+    renderRpsCustomList();
+    SFX.click();
+  });
+}
 var bgFile = $('bg-file');
 $('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.click(); bgFile.click(); });
 bgFile.addEventListener('change', function(){
