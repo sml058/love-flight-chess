@@ -41,6 +41,7 @@ state = {
         'scores': {},      # {id: 胜场}
         'penalty': '',     # 惩罚内容（房主抽取后广播）
     },
+    'penaltyCards': {'male': [], 'female': []},  # 房主自定义的惩罚卡池（{act,text}），空=用默认；仅房主可改
     'tda': {           # 联机真心话大冒险状态
         'turn': 0,       # 当前轮到抽卡的玩家
         'phase': 'idle', # idle=待抽卡 / show=已抽展示
@@ -193,6 +194,8 @@ class Handler(BaseHTTPRequestHandler):
             self._admin_clean()
         elif path == '/admin/reset':
             self._admin_reset()
+        elif path == '/rps-cards':
+            self._rps_cards(body)
         else:
             self.send_error(404)
 
@@ -553,13 +556,39 @@ class Handler(BaseHTTPRequestHandler):
             if not state['started'] or state['gameType'] != 'rps':
                 self._json(400, {'error': '当前不是猜拳对局'})
                 return
-            if body.get('id') != state['hostId']:
-                self._json(400, {'error': '只有房主可以抽取惩罚'})
+            if state['rps']['winner'] < 0 or body.get('id') != state['rps']['winner']:
+                self._json(400, {'error': '只有赢家可以抽取惩罚'})
                 return
             state['rps']['penalty'] = (body.get('penalty') or '').strip()
             snap = self._rps_snapshot()
         broadcast('rps', snap)
         self._json(200, {'rps': snap})
+
+    def _rps_cards(self, body):
+        """房主自定义惩罚卡池，广播全员（只有房主可以修改添加）。"""
+        with state_lock:
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以修改自定义惩罚卡'})
+                return
+            gender = body.get('gender')
+            if gender not in ('male', 'female'):
+                self._json(400, {'error': '性别参数无效'})
+                return
+            cards = body.get('cards')
+            if not isinstance(cards, list):
+                self._json(400, {'error': '卡片数据无效'})
+                return
+            cleaned = []
+            for c in cards:
+                if isinstance(c, dict):
+                    text = str(c.get('text') or '').strip()
+                    act = str(c.get('act') or '').strip()
+                    if text and act in ('h-2', 'h-3'):
+                        cleaned.append({'act': act, 'text': text})
+            state['penaltyCards'][gender] = cleaned
+            snap = json.loads(json.dumps(state['penaltyCards']))
+        broadcast('rps-cards', snap)
+        self._json(200, {'penaltyCards': snap})
 
     def _tda_snapshot(self):
         return json.loads(json.dumps(state['tda']))
