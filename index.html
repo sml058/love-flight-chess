@@ -519,6 +519,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rps-choice:hover{border-color:var(--love);box-shadow:0 6px 16px rgba(255,110,156,.18)}
 .rps-choice span{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-top:6px}
 .btn-rps-next{margin:0 auto}
+.btn-rps-punish{display:block;margin:14px auto 0}
 /* 联机猜拳：当前对决玩家高亮 */
 .rps-pill-active{box-shadow:0 0 0 2.5px var(--love);transform:scale(1.04)}
 .rps-vs-empty{font-size:16px;font-weight:700;color:var(--ink-soft);padding:30px 0}
@@ -3609,7 +3610,10 @@ function onlineRpsPunish(){
   SFX.click();
   fetch(serverUrl+'/rps-punish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, penalty: show})})
     .then(function(r){ return r.json(); })
-    .then(function(d){ if(d && d.rps){ state.rps = d.rps; renderOnlineRps(); } })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.rps){ state.rps = d.rps; renderOnlineRps(); }
+    })
     .catch(function(){ showToast('连接失败，请检查网络'); });
 }
 function onlineRpsRoll(){
