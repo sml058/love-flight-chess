@@ -27,7 +27,7 @@ state = {
     'started': False,   # False=等待大厅，True=游戏进行中
     'hostId': -1,       # 房主（第一个加入的玩家）
     'boardVersion': 50, # 本局棋盘版本（50/100/150）
-    'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳
+    'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳 / tda=真心话大冒险
     'rps': {           # 联机猜拳状态
         'pair': [],        # [idA, idB] 本轮对决的两位玩家
         'picks': {},       # {id: 'rock'|'scissors'|'paper'}
@@ -39,6 +39,12 @@ state = {
         'round': 0,
         'scores': {},      # {id: 胜场}
         'penalty': '',     # 惩罚内容（房主抽取后广播）
+    },
+    'tda': {           # 联机真心话大冒险状态
+        'turn': 0,       # 当前轮到抽卡的玩家
+        'phase': 'idle', # idle=待抽卡 / show=已抽展示
+        'card': None,    # {type:'truth'|'dare', text:'...'} 当前展示的卡
+        'round': 0,      # 已轮数
     },
 }
 state_lock = threading.Lock()
@@ -160,6 +166,10 @@ class Handler(BaseHTTPRequestHandler):
             self._rps_next(body)
         elif path == '/rps-punish':
             self._rps_punish(body)
+        elif path == '/tda-draw':
+            self._tda_draw(body)
+        elif path == '/tda-next':
+            self._tda_next(body)
         else:
             self.send_error(404)
 
@@ -210,7 +220,7 @@ class Handler(BaseHTTPRequestHandler):
             state['turn'] = 0
             state['winner'] = None
             gt = body.get('gameType')
-            if gt in ('flight', 'rps'):
+            if gt in ('flight', 'rps', 'tda'):
                 state['gameType'] = gt
             bv = body.get('boardVersion')
             if bv in (50, 100, 150):
@@ -220,6 +230,10 @@ class Handler(BaseHTTPRequestHandler):
                 'pair': [], 'picks': {}, 'turn': -1, 'phase': 'wait',
                 'winner': -1, 'loser': -1, 'draw': False, 'round': 0,
                 'scores': {}, 'penalty': '',
+            }
+            # 初始化真心话大冒险状态
+            state['tda'] = {
+                'turn': 0, 'phase': 'idle', 'card': None, 'round': 0,
             }
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
@@ -395,6 +409,62 @@ class Handler(BaseHTTPRequestHandler):
             snap = self._rps_snapshot()
         broadcast('rps', snap)
         self._json(200, {'rps': snap})
+
+    def _tda_snapshot(self):
+        return json.loads(json.dumps(state['tda']))
+
+    def _tda_draw(self, body):
+        """当前轮到的玩家抽卡（客户端抽好卡后上报，广播给全员）"""
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'tda':
+                self._json(400, {'error': '当前不是真心话大冒险对局'})
+                return
+            pid = body.get('id')
+            tda = state['tda']
+            if tda['phase'] != 'idle':
+                self._json(400, {'error': '当前卡片还没看完'})
+                return
+            if pid != tda['turn'] or pid >= len(state['players']):
+                self._json(400, {'error': '还没轮到你抽卡'})
+                return
+            ctype = body.get('type')
+            if ctype not in ('truth', 'dare'):
+                self._json(400, {'error': '卡片类型不合法'})
+                return
+            text = (body.get('text') or '').strip()
+            if not text:
+                self._json(400, {'error': '卡片内容为空'})
+                return
+            tda['card'] = {'type': ctype, 'text': text}
+            tda['phase'] = 'show'
+            snap = self._tda_snapshot()
+        broadcast('tda', snap)
+        self._json(200, {'tda': snap})
+
+    def _tda_next(self, body):
+        """轮到下一位玩家抽卡（房主或当前抽卡者可触发）"""
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'tda':
+                self._json(400, {'error': '当前不是真心话大冒险对局'})
+                return
+            pid = body.get('id')
+            tda = state['tda']
+            n = len(state['players'])
+            # 权限：房主 或 当前轮到/刚抽完卡的玩家
+            if pid != state['hostId'] and pid != tda['turn']:
+                self._json(400, {'error': '只有房主或当前玩家可以继续'})
+                return
+            if n == 0:
+                self._json(200, {'tda': self._tda_snapshot()})
+                return
+            nxt = (tda['turn'] + 1) % n
+            tda['turn'] = nxt
+            tda['phase'] = 'idle'
+            tda['card'] = None
+            tda['round'] += 1
+            snap = self._tda_snapshot()
+        broadcast('tda', snap)
+        self._json(200, {'tda': snap})
 
 
 # ---------- 入口 ----------
