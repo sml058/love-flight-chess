@@ -28,6 +28,7 @@ state = {
     'hostId': -1,       # 房主（第一个加入的玩家）
     'boardVersion': 50, # 本局棋盘版本（50/100/150）
     'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳 / tda=真心话大冒险
+    'cells': [],           # 本局特殊格位置（开局由服务器统一生成，全员一致）
     'rps': {           # 联机猜拳状态
         'pair': [],        # [idA, idB] 本轮对决的两位玩家
         'picks': {},       # {id: 'rock'|'scissors'|'paper'}
@@ -45,9 +46,13 @@ state = {
         'phase': 'idle', # idle=待抽卡 / show=已抽展示
         'card': None,    # {type:'truth'|'dare', text:'...'} 当前展示的卡
         'round': 0,      # 已轮数
+        'auto': 10,      # 抽卡后自动切换到下一位的秒数
     },
 }
 state_lock = threading.Lock()
+# 真心话大冒险抽卡后自动切换下一位的定时器（模块级，跨 Handler 实例共享）
+tda_timer = None
+TDA_AUTO_SECONDS = 10
 sse_clients = []       # 已连接的 SSE 响应对象
 sse_lock = threading.Lock()
 
@@ -207,6 +212,37 @@ class Handler(BaseHTTPRequestHandler):
             broadcast('players', state['players'])
         self._json(200, {'id': pid, 'state': snapshot()})
 
+    def _gen_cells(self, n):
+        """生成特殊格位置（奖励/惩罚/甜蜜/前进/后退/停一轮/护身符），与前端 buildCells 同分布。"""
+        cells = [{'type': 'normal'} for _ in range(int(n))]
+        def place(t, count):
+            guard = 0
+            placed = 0
+            while placed < count and guard < 6000:
+                guard += 1
+                pos = random.randint(1, int(n) - 2)
+                if cells[pos]['type'] != 'normal':
+                    continue
+                conflict = False
+                for j in (pos - 1, pos, pos + 1):
+                    if 0 <= j <= int(n) - 1 and cells[j]['type'] != 'normal':
+                        conflict = True
+                        break
+                if conflict:
+                    continue
+                cells[pos]['type'] = t
+                placed += 1
+        n = int(n)
+        ratio = n / 150.0
+        place('reward', max(3, int(round(10 * ratio))))
+        place('penalty', max(2, int(round(8 * ratio))))
+        place('love', max(5, int(round(18 * ratio))))
+        place('forward', max(2, int(round(8 * ratio))))
+        place('backward', max(2, int(round(8 * ratio))))
+        place('rest', max(1, int(round(4 * ratio))))
+        place('safe', max(1, int(round(4 * ratio))))
+        return cells
+
     def _start(self, body):
         with state_lock:
             if not state['players']:
@@ -225,6 +261,8 @@ class Handler(BaseHTTPRequestHandler):
             bv = body.get('boardVersion')
             if bv in (50, 100, 150):
                 state['boardVersion'] = bv
+            # 开局由服务器统一生成特殊格位置（全员一致，每次随机）
+            state['cells'] = self._gen_cells(state['boardVersion'])
             # 初始化猜拳状态
             state['rps'] = {
                 'pair': [], 'picks': {}, 'turn': -1, 'phase': 'wait',
@@ -233,7 +271,7 @@ class Handler(BaseHTTPRequestHandler):
             }
             # 初始化真心话大冒险状态
             state['tda'] = {
-                'turn': 0, 'phase': 'idle', 'card': None, 'round': 0,
+                'turn': 0, 'phase': 'idle', 'card': None, 'round': 0, 'auto': TDA_AUTO_SECONDS,
             }
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
@@ -415,6 +453,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _tda_draw(self, body):
         """当前轮到的玩家抽卡（客户端抽好卡后上报，广播给全员）"""
+        global tda_timer
         with state_lock:
             if not state['started'] or state['gameType'] != 'tda':
                 self._json(400, {'error': '当前不是真心话大冒险对局'})
@@ -438,11 +477,44 @@ class Handler(BaseHTTPRequestHandler):
             tda['card'] = {'type': ctype, 'text': text}
             tda['phase'] = 'show'
             snap = self._tda_snapshot()
+        # 展示结束后自动切到下一位
+        if tda_timer:
+            try: tda_timer.cancel()
+            except Exception: pass
+        tda_timer = threading.Timer(TDA_AUTO_SECONDS, self._tda_auto_next)
+        tda_timer.daemon = True
+        tda_timer.start()
         broadcast('tda', snap)
         self._json(200, {'tda': snap})
 
+    def _tda_auto_next(self):
+        """定时器触发：展示结束自动切到下一位"""
+        global tda_timer
+        tda_timer = None
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'tda':
+                return
+            tda = state['tda']
+            if tda['phase'] != 'show':
+                return
+            n = len(state['players'])
+            if n == 0:
+                return
+            nxt = (tda['turn'] + 1) % n
+            tda['turn'] = nxt
+            tda['phase'] = 'idle'
+            tda['card'] = None
+            tda['round'] += 1
+            snap = self._tda_snapshot()
+        broadcast('tda', snap)
+
     def _tda_next(self, body):
-        """轮到下一位玩家抽卡（房主或当前抽卡者可触发）"""
+        """轮到下一位玩家抽卡（房主或当前抽卡者可手动提前触发）"""
+        global tda_timer
+        if tda_timer:
+            try: tda_timer.cancel()
+            except Exception: pass
+            tda_timer = None
         with state_lock:
             if not state['started'] or state['gameType'] != 'tda':
                 self._json(400, {'error': '当前不是真心话大冒险对局'})
