@@ -550,7 +550,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .tda-card.dare .tda-card-type{background:linear-gradient(120deg,#FF7A45,#FF5C8A)}
 .tda-card-text{font-size:18px;font-weight:700;color:var(--ink);line-height:1.6;min-height:56px;display:flex;align-items:center;justify-content:center}
 .tda-card-count{font-size:12px;color:var(--ink-soft)}
-.tda-actions{display:flex;justify-content:center;margin-bottom:14px}
+.tda-actions{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
 .tda-mode-edit{display:flex;gap:8px;margin-bottom:8px}
 .tda-mode-edit .tda-mode-btn{max-width:none;flex:1;padding:8px;font-size:13px}
 .wc-add{background:linear-gradient(120deg,#9B7BFF,#7B9BFF);color:#fff}
@@ -1390,20 +1390,20 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="lobby-card">
       <div class="lobby-title">💘 等待玩家加入</div>
       <div class="lobby-sub">房间在线 <span id="lobby-count">0</span> / 4 人</div>
-      <div class="lobby-version" id="lobby-version">
-        <div class="lv-label">选择棋盘版本</div>
-        <div class="lv-btns" id="lobby-version-btns">
-          <button class="lv-btn active" type="button" data-v="50">基础版 50格</button>
-          <button class="lv-btn" type="button" data-v="100">进阶版 100格</button>
-          <button class="lv-btn" type="button" data-v="150">高级版 150格</button>
-        </div>
-      </div>
       <div class="lobby-version" id="lobby-game">
         <div class="lv-label">选择游戏</div>
         <div class="lv-btns" id="lobby-game-btns">
           <button class="lv-btn active" type="button" data-g="flight">✈️ 飞行棋</button>
           <button class="lv-btn" type="button" data-g="rps">✊ 猜拳</button>
           <button class="lv-btn" type="button" data-g="tda">🎯 真心话大冒险</button>
+        </div>
+      </div>
+      <div class="lobby-version" id="lobby-version">
+        <div class="lv-label">选择棋盘版本</div>
+        <div class="lv-btns" id="lobby-version-btns">
+          <button class="lv-btn active" type="button" data-v="50">基础版 50格</button>
+          <button class="lv-btn" type="button" data-v="100">进阶版 100格</button>
+          <button class="lv-btn" type="button" data-v="150">高级版 150格</button>
         </div>
       </div>
       <div class="lobby-players" id="lobby-players"></div>
