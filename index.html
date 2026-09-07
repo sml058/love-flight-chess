@@ -2582,9 +2582,9 @@ function renderLobby(){
     hint.textContent = '等待房主开始游戏...';
     hint.className = 'lobby-hint lobby-pulse';
   }
-  // 只有房主能选择棋盘版本和游戏类型
+  // 只有房主能选择棋盘版本和游戏类型；版本区仅选飞行棋时显示
   var verBox = $('lobby-version');
-  if(verBox){ verBox.style.display = (state.hostId === myId) ? 'block' : 'none'; }
+  if(verBox){ verBox.style.display = (state.hostId === myId && lobbyGame === 'flight') ? 'block' : 'none'; }
   var gameBox = $('lobby-game');
   if(gameBox){ gameBox.style.display = (state.hostId === myId) ? 'block' : 'none'; }
   switchView('view-lobby');
@@ -3807,13 +3807,23 @@ function getTdaPool(type, gender){
 function renderTdaPill(){
   var box = $('tda-score');
   if(!box) return;
-  if(!onlineMode || !state){ box.style.display = 'none'; return; }
+  var players, curTurn;
+  if(onlineMode && state){
+    players = state.players;
+    curTurn = state.tda ? state.tda.turn : 0;
+  }else{
+    players = tdaLocalPlayers;
+    curTurn = tdaLocalTurn;
+  }
+  if(!players || !players.length){ box.style.display = 'none'; return; }
   box.style.display = 'flex';
   box.innerHTML = '';
-  state.players.forEach(function(p){
+  players.forEach(function(p, i){
     var el = document.createElement('div');
-    el.className = 'rps-score-pill' + ((state.tda && state.tda.turn === p.id) ? ' rps-pill-active' : '');
-    el.innerHTML = '<span class="icon" data-icon="pawn" data-size="14" style="color:' + p.color + '"></span><span>' + p.name + '</span>' + ((state.tda && state.tda.turn === p.id) ? ' 🎯' : '');
+    el.className = 'rps-score-pill' + (curTurn === i ? ' rps-pill-active' : '');
+    var pname = p.name || ('宝贝' + (i+1));
+    var emo = (p.gender === 'female') ? '👧' : '👦';
+    el.innerHTML = '<span>' + emo + '</span><span>' + pname + '</span>' + (curTurn === i ? ' 🎯' : '');
     box.appendChild(el);
   });
   mountStaticIcons();
@@ -3821,6 +3831,7 @@ function renderTdaPill(){
 function openTda(){
   SFX.init(); SFX.resume(); SFX.click();
   loadTdaPools();
+  if(_tdaLocalTimer){ clearInterval(_tdaLocalTimer); _tdaLocalTimer = null; }
   if(!onlineMode){
     tdaMode = 'truth';
     // 单机：从配置页读取玩家（性别由玩家进入时选择）
@@ -3834,6 +3845,7 @@ function openTda(){
     tdaLocalTurn = 0;
   }
   setTdaModeUI();
+  renderTdaPill();
   renderTdaStatus();
   $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
   $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
@@ -3879,6 +3891,7 @@ function renderTdaStatus(){
 function renderOnlineTda(){
   if(!state) return;
   renderTdaPill();
+  stopTdaCountdown();
   if(!state.tda){ state.tda = {turn:0, phase:'idle', card:null}; }
   var tda = state.tda;
   var curType = (tda.card && tda.card.type === 'dare') ? 'dare' : 'truth';
@@ -3890,6 +3903,8 @@ function renderOnlineTda(){
     $('tda-card-text').textContent = tda.card.text;
     $('tda-card-count').textContent = '轮到 ' + (state.players[tda.turn] ? state.players[tda.turn].name : '') + ' 完成挑战';
     $('btn-tda-next').style.display = (myId === state.hostId || myId === tda.turn) ? 'block' : 'none';
+    // 自动切换倒计时
+    startTdaCountdown(tda.auto || 10);
   }else{
     $('tda-card-type').textContent = '💗 真心话';
     $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
@@ -3902,6 +3917,30 @@ function renderOnlineTda(){
   drawBtn.textContent = canDraw ? '🎴 抽一张' : '等待抽卡...';
   renderTdaStatus();
 }
+var _tdaCountdown = null;
+function startTdaCountdown(sec){
+  stopTdaCountdown();
+  var left = sec;
+  _tdaCountdown = setInterval(function(){
+    left--;
+    if(left <= 0){
+      stopTdaCountdown();
+      var cnt = $('tda-card-count');
+      if(cnt && onlineMode && state && state.tda && state.tda.phase === 'show'){
+        cnt.textContent = '正在切换下一位...';
+      }
+      return;
+    }
+    var cnt = $('tda-card-count');
+    if(cnt && onlineMode && state && state.tda && state.tda.phase === 'show'){
+      cnt.textContent = '轮到 ' + (state.players[state.tda.turn] ? state.players[state.tda.turn].name : '') + ' 完成挑战 · ' + left + ' 秒后自动轮到下一位';
+    }
+  }, 1000);
+}
+function stopTdaCountdown(){
+  if(_tdaCountdown){ clearInterval(_tdaCountdown); _tdaCountdown = null; }
+}
+var _tdaLocalTimer = null;
 function drawTdaLocal(){
   SFX.click(); SFX.dice();
   var p = tdaLocalPlayers[tdaLocalTurn] || {};
@@ -3915,13 +3954,40 @@ function drawTdaLocal(){
   var idx = Math.floor(Math.random() * pool.length);
   $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
   $('tda-card-text').textContent = pool[idx];
-  $('tda-card-count').textContent = '共 ' + pool.length + ' 张 · 已抽到第 ' + (idx + 1) + ' 张';
   $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
-  // 单机抽完卡后显示「下一位」用于切换玩家
-  if(!onlineMode && tdaLocalPlayers.length > 1){
+  // 单机：抽完自动切换到下一位玩家（本地倒计时）
+  if(tdaLocalPlayers.length > 1){
+    if(_tdaLocalTimer){ clearInterval(_tdaLocalTimer); _tdaLocalTimer = null; }
+    var left = 8;
+    $('tda-card-count').textContent = '共 ' + pool.length + ' 张 · ' + left + ' 秒后自动轮到下一位';
     $('btn-tda-next').style.display = 'block';
     $('btn-tda-next').textContent = '👥 下一位';
+    _tdaLocalTimer = setInterval(function(){
+      left--;
+      if(left <= 0){
+        clearInterval(_tdaLocalTimer); _tdaLocalTimer = null;
+        nextTdaLocal();
+        return;
+      }
+      var cnt = $('tda-card-count');
+      if(cnt && !onlineMode){ cnt.textContent = '共 ' + pool.length + ' 张 · ' + left + ' 秒后自动轮到下一位'; }
+    }, 1000);
+  }else{
+    $('tda-card-count').textContent = '共 ' + pool.length + ' 张 · 已抽到第 ' + (idx + 1) + ' 张';
   }
+}
+function nextTdaLocal(){
+  SFX.click();
+  if(!tdaLocalPlayers.length) return;
+  if(_tdaLocalTimer){ clearInterval(_tdaLocalTimer); _tdaLocalTimer = null; }
+  tdaLocalTurn = (tdaLocalTurn + 1) % tdaLocalPlayers.length;
+  setTdaModeUI();
+  renderTdaPill();
+  renderTdaStatus();
+  $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
+  $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
+  $('tda-card-count').textContent = '';
+  $('btn-tda-next').style.display = 'none';
 }
 function drawTdaOnline(){
   if(!state || !state.tda || !onlineMode) return;
@@ -3941,17 +4007,8 @@ function drawTdaOnline(){
 }
 function tdaNext(){
   if(!onlineMode){
-    // 单机：切换到下一位玩家，重置卡片
-    SFX.click();
-    if(!tdaLocalPlayers.length) return;
-    tdaLocalTurn = (tdaLocalTurn + 1) % tdaLocalPlayers.length;
-    tdaMode = (tdaMode === 'dare') ? 'dare' : 'truth';
-    setTdaModeUI();
-    renderTdaStatus();
-    $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
-    $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
-    $('tda-card-count').textContent = '';
-    $('btn-tda-next').style.display = 'none';
+    // 单机：手动切换到下一位玩家
+    nextTdaLocal();
     return;
   }
   if(!state) return;
@@ -3992,6 +4049,7 @@ function commitTdaCustom(){
 $('btn-tda-entry').addEventListener('click', function(){ openTda(); });
 $('btn-tda-exit').addEventListener('click', function(){
   SFX.click();
+  if(_tdaLocalTimer){ clearInterval(_tdaLocalTimer); _tdaLocalTimer = null; }
   if(onlineMode){
     showToast('已退出联机');
     leaveOnline();
@@ -4222,8 +4280,12 @@ for(var lvb = 0; lvb < lobbyVersionBtns.length; lvb++){
     try{ SFX.click(); }catch(e){}
   });
 }
-// 等待大厅：游戏类型选择（飞行棋 / 猜拳）
+// 等待大厅：游戏类型选择（飞行棋 / 猜拳 / 真心话）
 var lobbyGameBtns = document.querySelectorAll('#lobby-game-btns .lv-btn');
+function updateLobbyVersionVisibility(){
+  var ver = $('lobby-version');
+  if(ver){ ver.style.display = (lobbyGame === 'flight') ? 'block' : 'none'; }
+}
 for(var lgb = 0; lgb < lobbyGameBtns.length; lgb++){
   lobbyGameBtns[lgb].addEventListener('click', function(){
     var g = this.getAttribute('data-g');
@@ -4231,9 +4293,11 @@ for(var lgb = 0; lgb < lobbyGameBtns.length; lgb++){
     for(var i = 0; i < lobbyGameBtns.length; i++){
       lobbyGameBtns[i].classList.toggle('active', lobbyGameBtns[i].getAttribute('data-g') === g);
     }
+    updateLobbyVersionVisibility();
     try{ SFX.click(); }catch(e){}
   });
 }
+updateLobbyVersionVisibility();
 // 联机性别选择
 var onlineGenderBtns = document.querySelectorAll('#online-gender .g-btn');
 for(var og = 0; og < onlineGenderBtns.length; og++){
