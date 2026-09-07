@@ -1428,6 +1428,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <button class="btn-primary btn-rps-roll" id="btn-rps-roll" type="button">🎲 随机出拳</button>
           <div class="rps-hands">✊ ✌️ 🖐️</div>
         </div>
+        <button class="btn-primary btn-rps-punish" id="btn-rps-punish" type="button" style="display:none">🎴 抽取惩罚卡</button>
         <button class="btn-primary btn-rps-next" id="btn-rps-next" type="button" style="display:none">下一轮</button>
       </div>
     </div>
@@ -2434,6 +2435,8 @@ function handleOnlineDice(pid, val){
   showDice(val);
   SFX.dice();
   setTimeout(function(){ movePawn(p, val); }, 350);
+  // 点数显示完再隐藏骰子
+  setTimeout(function(){ hideCenterDice(); }, 1500);
 }
 /* 大厅选择的棋盘版本 */
 var lobbyVersion = 50;
@@ -2749,6 +2752,13 @@ function roll(x, y){
   if(!state || state.phase !== 'idle') return;
   if(onlineMode){
     if(state.turn !== myId){ showToast('还没轮到你掷骰'); return; }
+    // 联机掷骰：也在触屏位置显示骰子框
+    if(x !== undefined && y !== undefined){
+      showDiceAt(x, y);
+    }else{
+      showDiceAt('50%', '50%');
+    }
+    showCenterDice(true);
     sendRoll();
     return;
   }
@@ -3562,23 +3572,45 @@ function renderOnlineRps(){
     return;
   }
   var w = playerById(rps.winner), l = playerById(rps.loser);
-  st.textContent = (w ? w.name : '玩家') + ' 赢了！' + (l ? l.name : '玩家') + ' 接受惩罚 😈';
+  var isWinner = (rps.winner === myId);
+  var isLoser = (rps.loser === myId);
+  var punishBtn = $('btn-rps-punish');
+  if(punishBtn){ punishBtn.style.display = 'none'; }
   if(rps.penalty){
+    st.textContent = isWinner ? '🎉 你赢了！' : (isLoser ? '😈 你输了！' : (w ? w.name : '玩家') + ' 赢了！');
     $('rps-punish-title').textContent = (l ? l.name : '玩家') + ' 输了！';
     $('rps-punish-body').textContent = '惩罚：' + rps.penalty;
     if(punishBox){ punishBox.style.display = 'flex'; }
     if(state.hostId === myId){ nextBtn.style.display = 'block'; }
-  }else if(state.hostId === myId && l){
-    // 房主按输家性别抽惩罚并广播给全员
-    var pool = PENALTY_POOLS[l.gender];
-    if(!pool || !pool.length){ pool = defaultPool('penalty-' + l.gender); }
-    var card = pool[Math.floor(Math.random() * pool.length)];
-    var cardText = card.t || '';
-    var show = cardText.replace(/爱心\s*[-+]\d+/g, '').trim();
-    if(!show){ show = '完成一次小小的惩罚挑战！'; }
-    fetch(serverUrl+'/rps-punish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, penalty: show})})
-      .catch(function(){});
+  }else if(rps.winner === myId && l){
+    // 我是赢家：点「抽取惩罚卡」给输家
+    st.textContent = '🎉 你赢了！点「抽取惩罚卡」惩罚 ' + (l.name || '对方');
+    if(punishBtn){
+      punishBtn.style.display = 'block';
+      punishBtn.disabled = false;
+    }
+  }else if(isLoser){
+    st.textContent = '😈 你输了，等待对方抽取惩罚...';
+  }else{
+    st.textContent = (w ? w.name : '玩家') + ' 赢了！等待抽取惩罚...';
   }
+}
+function onlineRpsPunish(){
+  if(!onlineMode || !state || !state.rps) return;
+  var rps = state.rps;
+  if(rps.winner !== myId){ showToast('只有赢家可以抽取惩罚'); return; }
+  var l = playerById(rps.loser);
+  if(!l){ showToast('找不到输家'); return; }
+  var pool = PENALTY_POOLS[l.gender];
+  if(!pool || !pool.length){ pool = defaultPool('penalty-' + l.gender); }
+  var card = pool[Math.floor(Math.random() * pool.length)];
+  var show = (card.t || '').replace(/爱心\s*[-+]\d+/g, '').trim();
+  if(!show){ show = '完成一次小小的惩罚挑战！'; }
+  SFX.click();
+  fetch(serverUrl+'/rps-punish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, penalty: show})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.rps){ state.rps = d.rps; renderOnlineRps(); } })
+    .catch(function(){ showToast('连接失败，请检查网络'); });
 }
 function onlineRpsRoll(){
   if(!onlineMode || !state || !state.rps) return;
@@ -4174,6 +4206,7 @@ $('btn-rps-punish-ok').addEventListener('click', function(){
   }
   closeRpsPunish();
 });
+$('btn-rps-punish').addEventListener('click', function(){ onlineRpsPunish(); });
 var bgFile = $('bg-file');
 $('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.click(); bgFile.click(); });
 bgFile.addEventListener('change', function(){
