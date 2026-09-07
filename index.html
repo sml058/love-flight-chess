@@ -2448,6 +2448,15 @@ function applyBoardVersion(v){
   BOARD_ROWS = ver.ROWS;
   CELLS = buildCells(2);
 }
+function applyServerBoard(data){
+  // 联机棋盘统一：版本与特殊格位置一律以服务器为准，全员一致
+  if(!data) return;
+  if(data.boardVersion){
+    var _ver = BOARD_VERSIONS[data.boardVersion];
+    if(_ver){ currentBoardVersion = data.boardVersion; N = _ver.N; BOARD_COLS = _ver.COLS; BOARD_ROWS = _ver.ROWS; }
+  }
+  if(data.cells && data.cells.length === N){ CELLS = data.cells; }
+}
 function applyServerState(data){
   // 处理等待大厅状态
   if(data && data.started === false && onlineMode){
@@ -2466,6 +2475,7 @@ function applyServerState(data){
     state.gameType = data.gameType || state.gameType;
     state.rps = data.rps;
     state.tda = data.tda;
+    applyServerBoard(data);
     // 游戏已开始但还在等待大厅时，切换到对局
     if(data.started && $('view-lobby').classList.contains('active')){
       enterOnlineGame(data);
@@ -2497,6 +2507,7 @@ function applyServerState(data){
   });
   state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda};
   onlineMode = true;
+  applyServerBoard(data);
   // 若房间未开始，进入等待大厅
   if(data.started === false){
     renderLobby();
@@ -2527,6 +2538,8 @@ function enterOnlineGame(data){
   }
   state.gameType = 'flight';
   applyBoardVersion(data.boardVersion);
+  // 特殊格位置以服务器为准（覆盖本地随机，全员一致）
+  if(data.cells && data.cells.length === N){ CELLS = data.cells; }
   rebuildCardPools();
   renderScorePills();
   buildBoard();
