@@ -13,7 +13,7 @@ import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 # 云平台部署时端口由环境变量 PORT 决定（Render/Railway 等平台自动注入）
 PORT = int(os.environ.get('PORT', 8765))
@@ -55,6 +55,7 @@ tda_timer = None
 TDA_AUTO_SECONDS = 10
 sse_clients = []       # 已连接的 SSE 响应对象
 sse_lock = threading.Lock()
+sse_owner = {}         # SSE 连接(wfile) -> 玩家 id，用于掉线自动清理
 
 
 def broadcast(event, data):
@@ -92,6 +93,8 @@ class Handler(BaseHTTPRequestHandler):
             self._serve_file('server.py', 'text/plain; charset=utf-8')
         elif path == '/events':
             self._handle_sse()
+        elif path == '/admin':
+            self._admin_page()
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
@@ -118,6 +121,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Connection', 'keep-alive')
         self.send_header('X-Accel-Buffering', 'no')
         self.end_headers()
+        # 解析 ?pid=N，用于掉线时自动清理对应玩家
+        try:
+            pid = int(parse_qs(urlparse(self.path).query).get('pid', ['-1'])[0])
+        except Exception:
+            pid = -1
         # 先发快照
         try:
             self.wfile.write(
@@ -128,10 +136,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         with sse_lock:
             sse_clients.append(self.wfile)
-        # 保持连接
+            if pid >= 0:
+                sse_owner[self.wfile] = pid
+        # 保持连接（keepalive 间隔短，掉线能较快被检测并自动清理）
         try:
             while True:
-                time.sleep(25)
+                time.sleep(3)
                 self.wfile.write(b": keepalive\n\n")
                 self.wfile.flush()
         except Exception:
@@ -140,6 +150,10 @@ class Handler(BaseHTTPRequestHandler):
             with sse_lock:
                 if self.wfile in sse_clients:
                     sse_clients.remove(self.wfile)
+                spid = sse_owner.pop(self.wfile, None)
+            # 连接断开：若该玩家仍在房间，自动清理（意外退出/断网）
+            if spid is not None:
+                self._remove_player(spid)
 
     # ---- POST ----
     def do_POST(self):
@@ -175,6 +189,10 @@ class Handler(BaseHTTPRequestHandler):
             self._tda_draw(body)
         elif path == '/tda-next':
             self._tda_next(body)
+        elif path == '/admin/clean':
+            self._admin_clean()
+        elif path == '/admin/reset':
+            self._admin_reset()
         else:
             self.send_error(404)
 
@@ -247,6 +265,9 @@ class Handler(BaseHTTPRequestHandler):
         with state_lock:
             if not state['players']:
                 self._json(400, {'error': '房间为空'})
+                return
+            if len(state['players']) < 2:
+                self._json(400, {'error': '至少 2 人才能开始游戏'})
                 return
             if body.get('id') != state['hostId']:
                 self._json(400, {'error': '只有房主可以开始游戏'})
@@ -327,10 +348,19 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, {})
 
     def _leave(self, body):
+        self._remove_player(body.get('id'))
+        self._json(200, {})
+
+    def _remove_player(self, pid):
+        """把玩家移出房间（正常退出 / 掉线自动清理 / 管理清理共用）。"""
+        if pid is None or pid < 0:
+            return
         with state_lock:
-            pid = body.get('id')
             was_started = state['started']
+            before = len(state['players'])
             state['players'] = [p for p in state['players'] if p['id'] != pid]
+            if len(state['players']) == before:
+                return  # 该玩家本就不在房间，无需处理
             if state['hostId'] == pid:
                 state['hostId'] = state['players'][0]['id'] if state['players'] else -1
             if state['turn'] >= len(state['players']):
@@ -345,7 +375,6 @@ class Handler(BaseHTTPRequestHandler):
             broadcast('ended', {'reason': '有玩家退出了游戏，本局已结束'})
         broadcast('players', players_snap)
         broadcast('turn', snap['turn'])
-        self._json(200, {})
 
     def _reset(self):
         with state_lock:
@@ -358,6 +387,90 @@ class Handler(BaseHTTPRequestHandler):
             broadcast('players', state['players'])
             broadcast('turn', 0)
         self._json(200, {})
+
+    # ---------- 服务器管理入口 ----------
+    def _online_pids(self):
+        with sse_lock:
+            return set(sse_owner.values())
+
+    def _admin_page(self):
+        """管理页：查看房间状态，清理意外退出残留的玩家 / 重置房间。"""
+        with state_lock:
+            st = json.loads(json.dumps(state))
+        online = self._online_pids()
+        html = ['<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                '<title>恋爱飞行棋 · 服务器管理</title>'
+                '<style>body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;'
+                'max-width:640px;margin:0 auto;padding:20px}'
+                'h1{font-size:20px;color:#FF5E8A}'
+                '.card{background:#fff;border-radius:14px;padding:16px;margin:12px 0;'
+                'box-shadow:0 2px 10px rgba(255,94,138,.12)}'
+                '.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f4e4ea}'
+                '.row:last-child{border-bottom:none}'
+                '.tag{font-size:12px;padding:2px 8px;border-radius:10px}'
+                '.on{background:#E2F7E6;color:#1F8A3D}.off{background:#FFE8E8;color:#D63B3B}'
+                '.btn{display:inline-block;margin:8px 8px 0 0;padding:10px 18px;border:none;border-radius:12px;'
+                'cursor:pointer;font-size:15px;color:#fff}'
+                '.clean{background:#FF8A65}.reset{background:#9B7BFF}'
+                '.ok{background:#E2F7E6;color:#1F8A3D;padding:8px 12px;border-radius:10px;margin-top:10px;display:none}'
+                '</style></head><body>']
+        html.append('<h1>🎛 恋爱飞行棋 · 服务器管理</h1>')
+        html.append(f'<div class="card"><div class="row"><span>房间状态</span><b>{("进行中" if st["started"] else "等待大厅")}</b></div>'
+                    f'<div class="row"><span>游戏类型</span><b>{st["gameType"]}</b></div>'
+                    f'<div class="row"><span>棋盘版本</span><b>{st["boardVersion"]} 格</b></div>'
+                    f'<div class="row"><span>在线玩家（有连接）</span><b>{len(online)}</b></div>'
+                    f'<div class="row"><span>房间记录玩家</span><b>{len(st["players"])}</b></div></div>')
+        if st['players']:
+            html.append('<div class="card"><div class="row" style="font-weight:700"><span>玩家</span><span>状态</span></div>')
+            for p in st['players']:
+                pid = p['id']
+                ok = '在线' if pid in online else '离线(残留)'
+                cls = 'on' if pid in online else 'off'
+                tag = '👑房主' if pid == st['hostId'] else ''
+                html.append(f'<div class="row"><span>#{pid} {p.get("name","")} {tag}</span>'
+                            f'<span class="tag {cls}">{ok}</span></div>')
+            html.append('</div>')
+            html.append('<button class="btn clean" onclick="cleanup()">🧹 清理离线残留玩家</button>')
+        html.append('<button class="btn reset" onclick="resetAll()">♻️ 重置房间（清空所有玩家）</button>')
+        html.append('<div class="ok" id="msg"></div>')
+        html.append('<script>'
+                    'function show(m){var e=document.getElementById("msg");e.textContent=m;e.style.display="block";}'
+                    'function cleanup(){fetch("/admin/clean",{method:"POST"}).then(function(r){return r.json()})'
+                    '.then(function(d){show("已清理 "+d.removed+" 名离线玩家");setTimeout(function(){location.reload()},800)})'
+                    '.catch(function(){show("操作失败")})}'
+                    'function resetAll(){if(!confirm("确定重置房间？所有玩家将被清空"))return;'
+                    'fetch("/admin/reset",{method:"POST"}).then(function(r){return r.json()})'
+                    '.then(function(){show("房间已重置");setTimeout(function(){location.reload()},800)})'
+                    '.catch(function(){show("操作失败")})}'
+                    '</script></body></html>')
+        page = ''.join(html)
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(page.encode('utf-8'))))
+        self.end_headers()
+        self.wfile.write(page.encode('utf-8'))
+
+    def _admin_clean(self):
+        """清理离线（无 SSE 连接）的残留玩家。"""
+        online = self._online_pids()
+        with state_lock:
+            pids = [p['id'] for p in state['players'] if p['id'] not in online]
+        removed = 0
+        for pid in pids:
+            before = len(state['players'])
+            self._remove_player(pid)
+            if len(state['players']) < before:
+                removed += 1
+        self._json(200, {'removed': removed, 'state': snapshot()})
+
+    def _admin_reset(self):
+        """重置房间：清空所有玩家，回到空房状态。"""
+        with state_lock:
+            pids = [p['id'] for p in state['players']]
+        for pid in pids:
+            self._remove_player(pid)
+        self._json(200, {'state': snapshot()})
 
     # ---------- 联机猜拳 ----------
     def _rps_snapshot(self):
