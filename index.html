@@ -462,25 +462,143 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .online-status.err{color:var(--setback)}
 .online-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1px;color:#fff;background:linear-gradient(120deg,#9B7BFF,#7B9BFF);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
 
+/* ============ 猜拳对决 ============ */
+.btn-rps-entry{margin-top:10px}
+.rps-wrap{
+  max-width:430px;margin:0 auto;padding:20px 16px 30px;
+}
+.rps-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.rps-title{
+  font-family:var(--display);font-size:22px;font-weight:800;
+  background:linear-gradient(120deg,#FF6E9C,#9B7BFF);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.rps-exit{
+  font-size:13px;color:var(--ink-soft);background:var(--card);
+  border:1.5px solid rgba(74,52,71,.1);border-radius:999px;padding:8px 18px;cursor:pointer;
+}
+.rps-score{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;
+}
+.rps-score-pill{
+  display:flex;align-items:center;gap:6px;background:var(--card);
+  border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);
+  box-shadow:0 4px 12px rgba(74,52,71,.06);
+}
+.rps-score-pill .rps-wins{font-family:var(--display);font-size:14px;color:var(--love)}
+.rps-stage{
+  background:var(--card);border-radius:24px;padding:22px 16px;
+  box-shadow:0 12px 36px rgba(74,52,71,.1);text-align:center;
+  border:1.5px solid rgba(255,110,156,.14);
+}
+.rps-vs{
+  display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;
+}
+.rps-fighter{
+  flex:1;max-width:150px;background:#FFF9FC;border:1.5px solid #FFE0EC;
+  border-radius:18px;padding:14px 10px;
+}
+.rps-fighter .rps-fname{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rps-fighter .rps-fhand{font-size:44px;line-height:1;min-height:50px}
+.rps-fighter.rps-f1{border-color:rgba(94,155,255,.4);background:#F2F8FF}
+.rps-fighter.rps-f2{border-color:rgba(255,110,156,.4);background:#FFF4F8}
+.rps-vs-mark{font-family:var(--display);font-size:18px;font-weight:800;color:var(--ink-soft)}
+.rps-status{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:16px;min-height:22px}
+.rps-actions{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
+.btn-rps-roll{min-width:220px;font-size:17px;padding:14px 20px;letter-spacing:1px}
+.rps-hands{font-size:22px;letter-spacing:10px;color:var(--ink-soft)}
+.rps-choice{
+  flex:1;max-width:110px;padding:14px 8px;background:#FFF9FC;
+  border:2px solid #FFD9E6;border-radius:18px;cursor:pointer;
+  transition:transform .15s,box-shadow .2s,border-color .2s;
+}
+.rps-choice:active{transform:scale(.94)}
+.rps-choice:hover{border-color:var(--love);box-shadow:0 6px 16px rgba(255,110,156,.18)}
+.rps-choice span{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-top:6px}
+.btn-rps-next{margin:0 auto}
+/* 联机猜拳：当前对决玩家高亮 */
+.rps-pill-active{box-shadow:0 0 0 2.5px var(--love);transform:scale(1.04)}
+.rps-vs-empty{font-size:16px;font-weight:700;color:var(--ink-soft);padding:30px 0}
+.rps-punish{
+  position:fixed;inset:0;z-index:60;background:rgba(74,52,71,.45);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+
+/* ============ 真心话大冒险 ============ */
+.tda-mode{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.tda-mode + .tda-mode{margin-bottom:14px}
+#tda-gender .tda-mode-btn{background:#FFF9FC;border-color:#FFE0EC;font-size:14px}
+#tda-gender .tda-mode-btn.active{background:linear-gradient(120deg,#5B9BFF,#9B7BFF);border-color:transparent}
+.tda-status{font-size:14px;font-weight:600;color:var(--ink-soft);text-align:center;min-height:20px;margin-bottom:12px}
+.tda-status.on{color:var(--love)}
+.tda-mode-btn{
+  flex:1;max-width:150px;padding:12px 8px;font-size:15px;font-weight:700;
+  color:var(--ink-soft);background:#FFF;border:2px solid #EFE6F3;border-radius:16px;cursor:pointer;
+  transition:transform .15s,border-color .2s,color .2s,background .2s;
+}
+.tda-mode-btn.active{color:#fff;border-color:transparent;background:linear-gradient(120deg,#FF6E9C,#9B7BFF);box-shadow:0 6px 16px rgba(255,110,156,.25)}
+.tda-mode-btn:active{transform:scale(.95)}
+.tda-mode-btn.dare.active{background:linear-gradient(120deg,#FF7A45,#FF5C8A);box-shadow:0 6px 16px rgba(255,110,120,.25)}
+.tda-card{
+  background:var(--card);border-radius:24px;padding:30px 20px;text-align:center;
+  box-shadow:0 12px 36px rgba(74,52,71,.1);margin-bottom:16px;
+  border:1.5px solid rgba(255,110,156,.14);min-height:170px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+}
+.tda-card-type{font-size:13px;font-weight:700;letter-spacing:2px;color:#fff;background:linear-gradient(120deg,#FF6E9C,#9B7BFF);border-radius:999px;padding:5px 16px}
+.tda-card.dare .tda-card-type{background:linear-gradient(120deg,#FF7A45,#FF5C8A)}
+.tda-card-text{font-size:18px;font-weight:700;color:var(--ink);line-height:1.6;min-height:56px;display:flex;align-items:center;justify-content:center}
+.tda-card-count{font-size:12px;color:var(--ink-soft)}
+.tda-actions{display:flex;justify-content:center;margin-bottom:14px}
+.tda-mode-edit{display:flex;gap:8px;margin-bottom:8px}
+.tda-mode-edit .tda-mode-btn{max-width:none;flex:1;padding:8px;font-size:13px}
+.wc-add{background:linear-gradient(120deg,#9B7BFF,#7B9BFF);color:#fff}
+.rps-punish-card{
+  background:var(--card);border-radius:24px;padding:28px 22px;max-width:320px;width:100%;
+  text-align:center;box-shadow:0 20px 60px rgba(74,52,71,.3);
+  animation:rpsPop .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes rpsPop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.rps-punish-icon{font-size:48px;margin-bottom:8px}
+.rps-punish-title{font-size:19px;font-weight:800;color:var(--setback);margin-bottom:10px}
+.rps-punish-body{font-size:15px;color:var(--ink);line-height:1.7;margin-bottom:20px}
+
 /* ============ 对局界面 ============ */
 .topbar{
   display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:14px;
+}
+.topbar-row1{
+  display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:14px;
+  gap:8px;
 }
 .brand{
   font-family:var(--display);
   font-size:19px;
   letter-spacing:1px;
+  flex:none;
 }
 .brand small{display:block;font-size:10.5px;color:var(--ink-soft);font-family:var(--body);letter-spacing:1.5px;margin-top:1px}
 .scorebox{
   display:flex;
   gap:8px;
   align-items:center;
+  min-width:0;
 }
-.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pills{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  align-items:center;
+}
+.score-pill{justify-content:center}
 .sound-btn{
   width:44px;height:44px;border-radius:50%;flex:none;
   background:var(--card);
@@ -635,6 +753,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .cell-forward{background:var(--fwd-soft);border-color:rgba(255,201,77,.4)}
 .cell-forward .cell-icon{color:var(--fwd);fill:var(--fwd);stroke:var(--fwd)}
 .cell-forward .cell-tag{color:#D99A12}
+/* 基础版50格：格子更小巧紧凑 */
+.board-grid.board-50{gap:3px;padding:5px}
+.board-50 .cell{border-radius:7px;min-height:22px}
+.board-50 .cell-num{font-size:clamp(6px,1.1vw,8.5px);top:1.5px;left:2.5px}
+.board-50 .cell-dir{top:1.5px;right:2.5px;width:clamp(6.5px,1.3vw,9.5px);height:clamp(6.5px,1.3vw,9.5px)}
+.board-50 .cell-icon{width:clamp(17px,3.2vw,23px);height:clamp(17px,3.2vw,23px)}
 .cell-backward{background:var(--bwd-soft);border-color:rgba(255,143,163,.4)}
 .cell-backward .cell-icon{color:var(--bwd);fill:var(--bwd);stroke:var(--bwd)}
 .cell-backward .cell-tag{color:#E86A85}
@@ -1237,6 +1361,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
 
       <button class="btn-wheel-entry" id="btn-wheel-entry" type="button">🎡 幸运转盘</button>
+      <button class="btn-wheel-entry btn-rps-entry" id="btn-rps-entry" type="button">✊ 猜拳对决</button>
+      <button class="btn-wheel-entry btn-rps-entry" id="btn-tda-entry" type="button">🎯 真心话大冒险</button>
       <button class="btn-primary" id="btn-start" type="button">开始飞行</button>
       <button class="btn-pass" id="btn-pass" type="button">传递模式（2-4人轮流一部手机）</button>
       <div class="online-entry">
@@ -1274,6 +1400,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <button class="lv-btn" type="button" data-v="150">高级版 150格</button>
         </div>
       </div>
+      <div class="lobby-version" id="lobby-game">
+        <div class="lv-label">选择游戏</div>
+        <div class="lv-btns" id="lobby-game-btns">
+          <button class="lv-btn active" type="button" data-g="flight">✈️ 飞行棋</button>
+          <button class="lv-btn" type="button" data-g="rps">✊ 猜拳</button>
+          <button class="lv-btn" type="button" data-g="tda">🎯 真心话大冒险</button>
+        </div>
+      </div>
       <div class="lobby-players" id="lobby-players"></div>
       <div class="lobby-hint" id="lobby-hint">等待更多玩家加入...</div>
       <button class="btn-primary btn-lobby-start" id="btn-lobby-start" type="button" style="display:none">🚀 开始游戏</button>
@@ -1281,14 +1415,89 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
   </section>
 
+  <!-- ========== 视图：猜拳对决 ========== -->
+  <section id="view-rps" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="rps-title">✊ 猜拳对决</div>
+        <button class="rps-exit" id="btn-rps-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="rps-score"></div>
+      <div class="rps-stage">
+        <div class="rps-vs" id="rps-vs"></div>
+        <div class="rps-status" id="rps-status">准备开始...</div>
+        <div class="rps-actions" id="rps-actions">
+          <button class="btn-primary btn-rps-roll" id="btn-rps-roll" type="button">🎲 随机出拳</button>
+          <div class="rps-hands">✊ ✌️ 🖐️</div>
+        </div>
+        <button class="btn-primary btn-rps-next" id="btn-rps-next" type="button" style="display:none">下一轮</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 猜拳惩罚弹窗 -->
+  <div class="rps-punish" id="rps-punish" style="display:none">
+    <div class="rps-punish-card">
+      <div class="rps-punish-icon">😈</div>
+      <div class="rps-punish-title" id="rps-punish-title"></div>
+      <div class="rps-punish-body" id="rps-punish-body"></div>
+      <button class="btn-primary" id="btn-rps-punish-ok" type="button">收到！继续</button>
+    </div>
+  </div>
+
+  <!-- ========== 视图：真心话大冒险 ========== -->
+  <section id="view-tda" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="tda-title">🎯 真心话大冒险</div>
+        <button class="rps-exit" id="btn-tda-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="tda-score" style="display:none"></div>
+      <div class="tda-mode" id="tda-mode">
+        <button class="tda-mode-btn active" type="button" data-m="truth">💗 真心话</button>
+        <button class="tda-mode-btn" type="button" data-m="dare">🔥 大冒险</button>
+      </div>
+      <div class="tda-mode" id="tda-gender">
+        <button class="tda-mode-btn active" type="button" data-g="male">👦 男生</button>
+        <button class="tda-mode-btn" type="button" data-g="female">👧 女生</button>
+      </div>
+      <div class="tda-status" id="tda-status"></div>
+      <div class="tda-card" id="tda-card">
+        <div class="tda-card-type" id="tda-card-type">💗 真心话</div>
+        <div class="tda-card-text" id="tda-card-text">点击下方按钮，抽取一张卡片</div>
+        <div class="tda-card-count" id="tda-card-count"></div>
+      </div>
+      <div class="tda-actions">
+        <button class="btn-primary btn-rps-roll" id="btn-tda-draw" type="button">🎴 抽一张</button>
+        <button class="btn-primary btn-rps-next" id="btn-tda-next" type="button" style="display:none">👥 下一位</button>
+      </div>
+      <button class="wheel-custom-btn" id="btn-tda-custom-toggle" type="button">✏️ 自定义卡片内容 ▼</button>
+      <div class="wheel-custom-panel" id="tda-custom-panel" style="display:none">
+        <div class="wc-title">编辑卡片内容（增 / 删 / 改，自动保存）</div>
+        <div class="tda-mode-edit" id="tda-edit-quad">
+          <button class="tda-mode-btn active" type="button" data-q="truth-male">💗👦 真心话·男</button>
+          <button class="tda-mode-btn" type="button" data-q="truth-female">💗👧 真心话·女</button>
+          <button class="tda-mode-btn" type="button" data-q="dare-male">🔥👦 大冒险·男</button>
+          <button class="tda-mode-btn" type="button" data-q="dare-female">🔥👧 大冒险·女</button>
+        </div>
+        <div class="wc-list" id="tda-custom-list"></div>
+        <button class="wc-btn wc-add" id="btn-tda-add" type="button" style="margin-top:8px">➕ 添加一条</button>
+        <div class="wc-actions">
+          <button class="wc-btn wc-save" id="btn-tda-save" type="button">保存</button>
+          <button class="wc-btn wc-reset" id="btn-tda-reset" type="button">恢复默认</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== 视图：对局界面 ========== -->
   <section id="view-game" class="view">
     <div class="topbar">
-      <div class="brand">恋爱飞行棋<small>COUPLE FLIGHT</small></div>
-      <div class="scorebox">
+      <div class="topbar-row1">
+        <div class="brand">恋爱飞行棋<small>COUPLE FLIGHT</small></div>
         <button class="sound-btn" id="btn-sound" type="button" aria-label="音效与背景音乐开关"></button>
-        <div class="pills" id="pills"></div>
       </div>
+      <div class="pills" id="pills"></div>
     </div>
 
     <div class="board-card">
@@ -1971,6 +2180,8 @@ function buildBoard(){
   var grid = $('board-grid');
   var cd = $('center-dice');
   grid.innerHTML = '';
+  // 版本标记：基础版格子更小巧
+  grid.className = 'board-grid board-' + currentBoardVersion;
   // 动态设置列数
   grid.style.gridTemplateColumns = 'repeat(' + BOARD_COLS + ',1fr)';
   CELLS.forEach(function(cell, i){
@@ -1984,8 +2195,8 @@ function buildBoard(){
     var meta = CELL_META[cell.type];
     var icon = meta.icon ? svgIcon(meta.icon,'cell-icon') : '';
     var dir = '<span class="cell-dir">'+dirIcon(row, col)+'</span>';
-    // 只保留图标和方向箭头，取消数字和标签文字
-    d.innerHTML = icon + dir;
+    // 格子里显示：数字 + 图标 + 方向箭头
+    d.innerHTML = '<span class="cell-num">' + (i+1) + '</span>' + icon + dir;
     d.style.animationDelay = (i * 0.012) + 's';
     grid.appendChild(d);
   });
@@ -2127,9 +2338,12 @@ function render(){
         pawn.style.animation = '';
       }
     }
-    $('hearts-' + (i+1)).textContent = p.hearts;
-    $('pill-name-' + (i+1)).textContent = p.name;
+    var hp = $('hearts-' + (i+1));
+    if(hp){ hp.textContent = p.hearts; }
+    var pn = $('pill-name-' + (i+1));
+    if(pn){ pn.textContent = p.name; }
     var pill = $('pill-' + (i+1));
+    if(!pill) return;
     pill.className = 'score-pill' + (state.turn===i ? ' turn-on' : '');
     if(state.turn===i){ pill.style.borderColor = p.color; pill.style.background = p.color + '26'; }
     else { pill.style.borderColor = ''; pill.style.background = ''; }
@@ -2229,6 +2443,7 @@ function handleOnlineDice(pid, val){
 }
 /* 大厅选择的棋盘版本 */
 var lobbyVersion = 50;
+var lobbyGame = 'flight';
 function applyBoardVersion(v){
   if(!v) return;
   var ver = BOARD_VERSIONS[v];
@@ -2254,15 +2469,23 @@ function applyServerState(data){
     state.turn = data.turn;
     state.started = data.started;
     state.hostId = data.hostId;
+    state.gameType = data.gameType || state.gameType;
+    state.rps = data.rps;
+    state.tda = data.tda;
     // 游戏已开始但还在等待大厅时，切换到对局
     if(data.started && $('view-lobby').classList.contains('active')){
-      applyBoardVersion(data.boardVersion);
-      rebuildCardPools();
-      renderScorePills();
-      buildBoard();
-      ensurePawns();
-      applyBoardBg();
-      switchView('view-game');
+      enterOnlineGame(data);
+      return;
+    }
+    // 联机猜拳：不渲染飞行棋棋盘
+    if(state.gameType === 'rps'){
+      if(state.started){ renderOnlineRps(); }
+      return;
+    }
+    // 联机真心话大冒险：不渲染飞行棋棋盘
+    if(state.gameType === 'tda'){
+      if(state.started){ renderOnlineTda(); }
+      return;
     }
     render();
     setRollEnabled(state.phase==='idle' && state.turn===myId);
@@ -2278,7 +2501,7 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda};
   onlineMode = true;
   // 若房间未开始，进入等待大厅
   if(data.started === false){
@@ -2287,19 +2510,37 @@ function applyServerState(data){
     if(oc2){ oc2.textContent = state.players.length; }
     return;
   }
+  enterOnlineGame(data);
+  var st = $('online-status');
+  if(st){ st.textContent='已加入房间，当前 '+state.players.length+' 人'; st.className='online-status ok'; }
+  var oc3 = $('online-count');
+  if(oc3){ oc3.textContent = state.players.length; }
+}
+/* 联机开始后按游戏类型进入对应界面 */
+function enterOnlineGame(data){
+  if(data.gameType === 'rps'){
+    state.gameType = 'rps';
+    renderOnlineRps();
+    switchView('view-rps');
+    return;
+  }
+  if(data.gameType === 'tda'){
+    state.gameType = 'tda';
+    loadTdaPools();
+    renderOnlineTda();
+    switchView('view-tda');
+    return;
+  }
+  state.gameType = 'flight';
   applyBoardVersion(data.boardVersion);
   rebuildCardPools();
   renderScorePills();
   buildBoard();
   ensurePawns();
   applyBoardBg();
+  switchView('view-game');
   render();
   setRollEnabled(state.phase==='idle' && state.turn===myId);
-  switchView('view-game');
-  var st = $('online-status');
-  if(st){ st.textContent='已加入房间，当前 '+state.players.length+' 人'; st.className='online-status ok'; }
-  var oc3 = $('online-count');
-  if(oc3){ oc3.textContent = state.players.length; }
 }
 function renderLobby(){
   if(!state || !state.players){ return; }
@@ -2347,21 +2588,23 @@ function renderLobby(){
     hint.textContent = '等待房主开始游戏...';
     hint.className = 'lobby-hint lobby-pulse';
   }
-  // 只有房主能选择棋盘版本
+  // 只有房主能选择棋盘版本和游戏类型
   var verBox = $('lobby-version');
   if(verBox){ verBox.style.display = (state.hostId === myId) ? 'block' : 'none'; }
+  var gameBox = $('lobby-game');
+  if(gameBox){ gameBox.style.display = (state.hostId === myId) ? 'block' : 'none'; }
   switchView('view-lobby');
 }
 function startOnlineGame(){
   if(!onlineMode) return;
   SFX.click();
-  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, boardVersion: lobbyVersion})})
+  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, boardVersion: lobbyVersion, gameType: lobbyGame})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d && d.error){ showToast(d.error); return; }
       if(d && d.state){ applyServerState(d.state); }
     })
-    .catch(function(err){ showToast('连接失败：' + ((err && err.message) ? err.message : '网络错误')); });
+    .catch(function(err){ showToast('连接失败：' + ((err && err.stack) ? err.stack.split('\n').slice(0,3).join(' | ') : ((err && err.message) ? err.message : '网络错误'))); });
 }
 function leaveLobby(){
   SFX.click();
@@ -2390,7 +2633,13 @@ function setupSSE(){
       if(state){
         players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
         state.players = players;
-        render();
+        if(state.started && state.gameType === 'rps'){
+          renderOnlineRps();
+        }else if(state.started && state.gameType === 'tda'){
+          renderOnlineTda();
+        }else{
+          render();
+        }
       }
     }catch(err){}
   });
@@ -2418,7 +2667,35 @@ function setupSSE(){
   evtSource.addEventListener('turn', function(e){
     try{
       var t = JSON.parse(e.data);
-      if(state){ state.turn=t; state.phase='idle'; setRollEnabled(state.turn===myId); render(); }
+      if(state){
+        state.turn=t; state.phase='idle';
+        if(state.gameType === 'rps'){ renderOnlineRps(); return; }
+        setRollEnabled(state.turn===myId); render();
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('rps', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.rps = d;
+        if(state.started && state.gameType === 'rps'){
+          if(!$('view-rps').classList.contains('active')){ switchView('view-rps'); }
+          renderOnlineRps();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('tda', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.tda = d;
+        if(state.started && state.gameType === 'tda'){
+          if(!$('view-tda').classList.contains('active')){ switchView('view-tda'); }
+          renderOnlineTda();
+        }
+      }
     }catch(err){}
   });
   evtSource.onerror = function(){
@@ -3070,7 +3347,261 @@ function initGame(list){
   switchView('view-game');
 }
 
+/* ---------- 猜拳对决 ---------- */
+var rpsPlayers = [];
+var rpsScores = {};
+var rpsPair = null;
+var rpsTurn = null;
+var rpsPicks = {};
+var rpsLock = false;
+var RPS_EMOJI = {rock:'✊', scissors:'✌️', paper:'🖐️'};
+var RPS_NAME = {rock:'石头', scissors:'剪刀', paper:'布'};
+
+function openRps(){
+  SFX.init(); SFX.resume(); SFX.click();
+  rebuildCardPools();
+  rpsPlayers = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    rpsPlayers.push({name: v || '宝贝' + (i+1), gender: gender, color: PLAYER_COLORS[i % 4]});
+  }
+  rpsScores = {};
+  rpsPlayers.forEach(function(p){ rpsScores[p.name] = 0; });
+  renderRpsScore();
+  startRpsRound();
+  switchView('view-rps');
+}
+function renderRpsScore(){
+  var box = $('rps-score');
+  if(!box) return;
+  box.innerHTML = '';
+  rpsPlayers.forEach(function(p){
+    var el = document.createElement('div');
+    el.className = 'rps-score-pill';
+    el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span>'
+      + '<span>' + p.name + '</span>'
+      + '<span class="rps-wins">' + (rpsScores[p.name] || 0) + '胜</span>';
+    box.appendChild(el);
+    mountStaticIcons();
+  });
+}
+function startRpsRound(){
+  rpsLock = false;
+  if(rpsPlayers.length < 2) return;
+  var a = Math.floor(Math.random() * rpsPlayers.length);
+  var b;
+  do{ b = Math.floor(Math.random() * rpsPlayers.length); }while(b === a);
+  rpsPair = {p1: rpsPlayers[a], p2: rpsPlayers[b]};
+  rpsPicks = {};
+  rpsTurn = rpsPair.p1;
+  renderRpsVs();
+  var st = $('rps-status');
+  if(st){ st.textContent = '轮到 ' + rpsPair.p1.name + ' 出拳'; }
+  $('btn-rps-next').style.display = 'none';
+}
+function renderRpsVs(){
+  var box = $('rps-vs');
+  if(!box || !rpsPair) return;
+  var h1 = (rpsPicks[rpsPair.p1.name]) ? RPS_EMOJI[rpsPicks[rpsPair.p1.name]] : '❓';
+  var h2 = (rpsPicks[rpsPair.p2.name]) ? RPS_EMOJI[rpsPicks[rpsPair.p2.name]] : '❓';
+  box.innerHTML =
+    '<div class="rps-fighter rps-f1"><div class="rps-fname">' + rpsPair.p1.name + '</div><div class="rps-fhand">' + h1 + '</div></div>'
+    + '<div class="rps-vs-mark">VS</div>'
+    + '<div class="rps-fighter rps-f2"><div class="rps-fname">' + rpsPair.p2.name + '</div><div class="rps-fhand">' + h2 + '</div></div>';
+}
+function rpsChoose(){
+  if(!rpsPair || !rpsTurn || rpsLock) return;
+  SFX.click();
+  // 单手机轮流玩：点按钮随机出拳，保证公平
+  var opts = ['rock','scissors','paper'];
+  var choice = opts[Math.floor(Math.random() * opts.length)];
+  rpsPicks[rpsTurn.name] = choice;
+  if(rpsTurn.name === rpsPair.p1.name && !rpsPicks[rpsPair.p2.name]){
+    rpsTurn = rpsPair.p2;
+    renderRpsVs();
+    $('rps-status').textContent = '轮到 ' + rpsPair.p2.name + ' 出拳';
+    return;
+  }
+  // 双方都出拳，判定
+  rpsTurn = null;
+  renderRpsVs();
+  var c1 = rpsPicks[rpsPair.p1.name], c2 = rpsPicks[rpsPair.p2.name];
+  var res = rpsResult(c1, c2);
+  if(res === 'draw'){
+    $('rps-status').textContent = '平局！再来一次';
+    setTimeout(function(){
+      if(!rpsPair) return;
+      rpsPicks = {};
+      rpsTurn = rpsPair.p1;
+      renderRpsVs();
+      $('rps-status').textContent = '轮到 ' + rpsPair.p1.name + ' 出拳';
+    }, 900);
+    return;
+  }
+  var winner = (res === 'p1') ? rpsPair.p1 : rpsPair.p2;
+  var loser = (res === 'p1') ? rpsPair.p2 : rpsPair.p1;
+  rpsScores[winner.name] = (rpsScores[winner.name] || 0) + 1;
+  renderRpsScore();
+  $('rps-status').textContent = winner.name + ' 赢了！' + loser.name + ' 接受惩罚 😈';
+  setTimeout(function(){ showRpsPunish(loser); }, 700);
+}
+function rpsResult(c1, c2){
+  if(c1 === c2) return 'draw';
+  if((c1 === 'rock' && c2 === 'scissors') || (c1 === 'scissors' && c2 === 'paper') || (c1 === 'paper' && c2 === 'rock')) return 'p1';
+  return 'p2';
+}
+function showRpsPunish(loser){
+  rpsLock = true;
+  // 惩罚内容与飞行棋惩罚卡同步（按性别区分，自定义添加的也在池里）
+  var pool = PENALTY_POOLS[loser.gender];
+  if(!pool || !pool.length){ pool = defaultPool('penalty-' + loser.gender); }
+  var card = pool[Math.floor(Math.random() * pool.length)];
+  var cardText = card.t || '';
+  // 惩罚卡里的"爱心 -2/-3"等动作描述保留，但猜拳不扣爱心，替换为行动提示
+  var show = cardText.replace(/爱心\s*[-+]\d+/g, '').trim();
+  if(!show){ show = '完成一次小小的惩罚挑战！'; }
+  $('rps-punish-title').textContent = loser.name + ' 输了！';
+  $('rps-punish-body').textContent = '惩罚：' + show;
+  $('rps-punish').style.display = 'flex';
+}
+function closeRpsPunish(){
+  SFX.click();
+  $('rps-punish').style.display = 'none';
+  $('btn-rps-next').style.display = 'block';
+  rpsLock = false;
+}
+function exitRps(){
+  SFX.click();
+  $('rps-punish').style.display = 'none';
+  rpsPair = null; rpsTurn = null; rpsPicks = {}; rpsLock = false;
+  switchView('view-start');
+}
+
+/* ---------- 联机猜拳（服务器驱动） ---------- */
+function playerById(pid){
+  if(!state || !state.players) return null;
+  for(var i = 0; i < state.players.length; i++){
+    if(state.players[i].id === pid) return state.players[i];
+  }
+  return null;
+}
+function renderOnlineRps(){
+  if(!state || !state.rps || !onlineMode) return;
+  var rps = state.rps;
+  var title = $('rps-title');
+  if(title){ title.textContent = '✊ 联机猜拳'; }
+  var box = $('rps-score');
+  box.innerHTML = '';
+  state.players.forEach(function(p){
+    var inPair = rps.pair.indexOf(p.id) >= 0;
+    var el = document.createElement('div');
+    el.className = 'rps-score-pill' + (inPair ? ' rps-pill-active' : '');
+    el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span>'
+      + '<span>' + p.name + '</span>'
+      + '<span class="rps-wins">' + (rps.scores[String(p.id)] || 0) + '胜</span>';
+    box.appendChild(el);
+  });
+  mountStaticIcons();
+  var vsBox = $('rps-vs');
+  var pair = rps.pair;
+  if(pair && pair.length === 2){
+    var p1 = playerById(pair[0]), p2 = playerById(pair[1]);
+    var h1 = rps.picks[pair[0]] ? RPS_EMOJI[rps.picks[pair[0]]] : '❓';
+    var h2 = rps.picks[pair[1]] ? RPS_EMOJI[rps.picks[pair[1]]] : '❓';
+    vsBox.innerHTML =
+      '<div class="rps-fighter rps-f1"><div class="rps-fname">' + (p1 ? p1.name : '玩家') + '</div><div class="rps-fhand">' + h1 + '</div></div>'
+      + '<div class="rps-vs-mark">VS</div>'
+      + '<div class="rps-fighter rps-f2"><div class="rps-fname">' + (p2 ? p2.name : '玩家') + '</div><div class="rps-fhand">' + h2 + '</div></div>';
+  }else{
+    vsBox.innerHTML = '<div class="rps-vs-empty">等待对决安排...</div>';
+  }
+  var st = $('rps-status');
+  var rollBtn = $('btn-rps-roll');
+  var nextBtn = $('btn-rps-next');
+  var punishBox = $('rps-punish');
+  rollBtn.disabled = true;
+  nextBtn.style.display = 'none';
+  if(punishBox){ punishBox.style.display = 'none'; }
+  if(rps.phase === 'wait'){
+    st.textContent = '准备开始，房主将安排第一轮对决...';
+    if(state.hostId === myId){
+      nextBtn.style.display = 'block';
+      nextBtn.textContent = '🎲 开始对决';
+    }
+    return;
+  }
+  nextBtn.textContent = '下一轮';
+  if(rps.phase === 'play'){
+    var who = playerById(rps.turn);
+    if(rps.turn === myId){
+      st.textContent = '轮到你了！点「随机出拳」';
+      rollBtn.disabled = false;
+    }else{
+      st.textContent = '等待 ' + (who ? who.name : '玩家') + ' 出拳...';
+    }
+    return;
+  }
+  // judge 判定完成
+  if(rps.draw){
+    st.textContent = '平局！房主点「下一轮」再来';
+    if(state.hostId === myId){ nextBtn.style.display = 'block'; }
+    return;
+  }
+  var w = playerById(rps.winner), l = playerById(rps.loser);
+  st.textContent = (w ? w.name : '玩家') + ' 赢了！' + (l ? l.name : '玩家') + ' 接受惩罚 😈';
+  if(rps.penalty){
+    $('rps-punish-title').textContent = (l ? l.name : '玩家') + ' 输了！';
+    $('rps-punish-body').textContent = '惩罚：' + rps.penalty;
+    if(punishBox){ punishBox.style.display = 'flex'; }
+    if(state.hostId === myId){ nextBtn.style.display = 'block'; }
+  }else if(state.hostId === myId && l){
+    // 房主按输家性别抽惩罚并广播给全员
+    var pool = PENALTY_POOLS[l.gender];
+    if(!pool || !pool.length){ pool = defaultPool('penalty-' + l.gender); }
+    var card = pool[Math.floor(Math.random() * pool.length)];
+    var cardText = card.t || '';
+    var show = cardText.replace(/爱心\s*[-+]\d+/g, '').trim();
+    if(!show){ show = '完成一次小小的惩罚挑战！'; }
+    fetch(serverUrl+'/rps-punish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, penalty: show})})
+      .catch(function(){});
+  }
+}
+function onlineRpsRoll(){
+  if(!onlineMode || !state || !state.rps) return;
+  if(state.rps.turn !== myId){ showToast('还没轮到你出拳'); return; }
+  SFX.click();
+  fetch(serverUrl+'/rps-roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.rps){ state.rps = d.rps; renderOnlineRps(); }
+    })
+    .catch(function(){ showToast('连接失败，请检查网络'); });
+}
+function onlineRpsNext(){
+  if(!onlineMode || state.hostId !== myId){ showToast('只有房主可以开始下一轮'); return; }
+  SFX.click();
+  fetch(serverUrl+'/rps-next',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.rps){ state.rps = d.rps; renderOnlineRps(); }
+    })
+    .catch(function(){ showToast('连接失败，请检查网络'); });
+}
+
 /* ---------- 事件绑定 ---------- */
+window.addEventListener('error', function(ev){
+  try{
+    var t = $('toast');
+    if(t){
+      t.textContent = 'ERR: ' + (ev.message||'') + ' @' + String((ev.filename||'').split('/').pop()) + ':' + (ev.lineno||0);
+      t.classList.add('show');
+    }
+  }catch(e){}
+});
 $('btn-activate').addEventListener('click', function(){
   SFX.init(); SFX.resume(); SFX.click();
   tryActivate($('activate-key').value);
@@ -3188,6 +3719,357 @@ $('drawer-bg-music-toggle').addEventListener('click', function(){
 $('btn-wheel-entry').addEventListener('click', function(){
   SFX.init(); SFX.resume(); SFX.click();
   openWheelStandalone();
+});
+// 猜拳对决入口
+$('btn-rps-entry').addEventListener('click', function(){
+  SFX.init(); SFX.resume();
+  openRps();
+});
+// ===== 真心话大冒险 =====
+var TRUTH_MALE_DEFAULT = [
+  '你是什么时候开始喜欢我的？',
+  '你最喜欢的女生特质是什么？',
+  '你偷偷为我做过什么浪漫的事？',
+  '你最想带我去哪个地方约会？',
+  '你手机里最舍不得删的关于我的照片是哪个？',
+  '如果只能对我说一句话，你想说什么？',
+  '你上一次吃醋是因为什么？',
+  '你最想让我夸你什么？',
+  '你第一次见到我是什么印象？',
+  '你希望我们五年后是什么样子？',
+  '你最想和我一起做的新鲜事是什么？',
+  '我做什么会最让你心动？'
+];
+var TRUTH_FEMALE_DEFAULT = [
+  '你是什么时候开始喜欢我的？',
+  '你最喜欢的男生特质是什么？',
+  '你偷偷为我做过什么贴心的事？',
+  '你最想和我去哪个城市旅行？',
+  '你最舍不得删的关于我的聊天记录是哪条？',
+  '如果只能对我说一句话，你想说什么？',
+  '你什么时候最想我？',
+  '你最想让我记住关于你的什么？',
+  '你第一次见到我是什么印象？',
+  '你希望我们五年后是什么样子？',
+  '你最想和我尝试的新鲜事是什么？',
+  '我做什么会最让你心动？'
+];
+var DARE_MALE_DEFAULT = [
+  '对我说一句最甜的土味情话',
+  '学猫叫三声哄我开心',
+  '给我一个超过10秒的拥抱',
+  '大声喊"我爱你"三遍',
+  '用最温柔的声音哄我一句',
+  '唱一句我最爱听的歌',
+  '做10个深蹲',
+  '让我在你脸上画一颗爱心',
+  '学机器人说话一分钟',
+  '用一只手转三圈然后夸我一句',
+  '模仿我的经典表情三连',
+  '背着我原地转一圈'
+];
+var DARE_FEMALE_DEFAULT = [
+  '对我说一句最甜的土味情话',
+  '学猫叫三声哄我开心',
+  '给我一个超过10秒的拥抱',
+  '大声喊"我爱你"三遍',
+  '用最温柔的声音哄我一句',
+  '唱一句我最爱听的歌',
+  '做10个深蹲',
+  '让我在你脸上画一颗爱心',
+  '学机器人说话一分钟',
+  '用一只手转三圈然后夸我一句',
+  '模仿我的经典表情三连',
+  '踮起脚尖亲我一下（脸颊）'
+];
+var truthMalePool = [], truthFemalePool = [], dareMalePool = [], dareFemalePool = [];
+var tdaMode = 'truth';        // truth / dare（单机抽卡模式）
+var tdaGender = 'male';       // 单机抽卡性别
+var tdaEditQuad = 'truth-male'; // 编辑四象限 truth-male/truth-female/dare-male/dare-female
+function initTdaPools(){
+  truthMalePool = TRUTH_MALE_DEFAULT.slice();
+  truthFemalePool = TRUTH_FEMALE_DEFAULT.slice();
+  dareMalePool = DARE_MALE_DEFAULT.slice();
+  dareFemalePool = DARE_FEMALE_DEFAULT.slice();
+  loadTdaPools();
+}
+function loadTdaPools(){
+  try{ var t = localStorage.getItem('love-flight-truth-male-custom'); if(t){ var p = JSON.parse(t); if(Array.isArray(p) && p.length) truthMalePool = p; } }catch(e){}
+  try{ var t2 = localStorage.getItem('love-flight-truth-female-custom'); if(t2){ var p2 = JSON.parse(t2); if(Array.isArray(p2) && p2.length) truthFemalePool = p2; } }catch(e){}
+  try{ var t3 = localStorage.getItem('love-flight-dare-male-custom'); if(t3){ var p3 = JSON.parse(t3); if(Array.isArray(p3) && p3.length) dareMalePool = p3; } }catch(e){}
+  try{ var t4 = localStorage.getItem('love-flight-dare-female-custom'); if(t4){ var p4 = JSON.parse(t4); if(Array.isArray(p4) && p4.length) dareFemalePool = p4; } }catch(e){}
+}
+function saveTdaPool(){
+  try{ localStorage.setItem('love-flight-truth-male-custom', JSON.stringify(truthMalePool)); }catch(e){}
+  try{ localStorage.setItem('love-flight-truth-female-custom', JSON.stringify(truthFemalePool)); }catch(e){}
+  try{ localStorage.setItem('love-flight-dare-male-custom', JSON.stringify(dareMalePool)); }catch(e){}
+  try{ localStorage.setItem('love-flight-dare-female-custom', JSON.stringify(dareFemalePool)); }catch(e){}
+}
+function getTdaPool(type, gender){
+  if(type === 'dare') return gender === 'female' ? dareFemalePool : dareMalePool;
+  return gender === 'female' ? truthFemalePool : truthMalePool;
+}
+function renderTdaPill(){
+  var box = $('tda-score');
+  if(!box) return;
+  if(!onlineMode || !state){ box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  box.innerHTML = '';
+  state.players.forEach(function(p){
+    var el = document.createElement('div');
+    el.className = 'rps-score-pill' + ((state.tda && state.tda.turn === p.id) ? ' rps-pill-active' : '');
+    el.innerHTML = '<span class="icon" data-icon="pawn" data-size="14" style="color:' + p.color + '"></span><span>' + p.name + '</span>' + ((state.tda && state.tda.turn === p.id) ? ' 🎯' : '');
+    box.appendChild(el);
+  });
+  mountStaticIcons();
+}
+function openTda(){
+  SFX.init(); SFX.resume(); SFX.click();
+  loadTdaPools();
+  if(!onlineMode){ tdaMode = 'truth'; tdaGender = 'male'; }
+  setTdaModeUI();
+  renderTdaStatus();
+  $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
+  $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
+  $('tda-card-count').textContent = '';
+  $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
+  $('tda-custom-panel').style.display = 'none';
+  $('btn-tda-custom-toggle').textContent = '✏️ 自定义卡片内容 ▼';
+  switchView('view-tda');
+}
+function setTdaModeUI(){
+  var mb = document.querySelectorAll('#tda-mode .tda-mode-btn');
+  for(var i = 0; i < mb.length; i++){ mb[i].classList.toggle('active', mb[i].getAttribute('data-m') === tdaMode); }
+  var gb = document.querySelectorAll('#tda-gender .tda-mode-btn');
+  for(var j = 0; j < gb.length; j++){ gb[j].classList.toggle('active', gb[j].getAttribute('data-g') === tdaGender); }
+  $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
+}
+function renderTdaStatus(){
+  var st = $('tda-status');
+  if(!st) return;
+  if(onlineMode && state){
+    var tda = state.tda || {};
+    var cur = state.players[tda.turn] || state.players[0];
+    if(tda.phase === 'show' && tda.card){
+      st.textContent = '轮到 ' + (cur ? cur.name : '') + ' 完成挑战';
+      st.className = 'tda-status on';
+    }else if(tda.turn === myId){
+      st.textContent = '轮到你抽卡了！';
+      st.className = 'tda-status on';
+    }else{
+      st.textContent = '等待 ' + (cur ? cur.name : '') + ' 抽卡...';
+      st.className = 'tda-status';
+    }
+    return;
+  }
+  st.textContent = '';
+}
+function renderOnlineTda(){
+  if(!state) return;
+  renderTdaPill();
+  if(!state.tda){ state.tda = {turn:0, phase:'idle', card:null}; }
+  var tda = state.tda;
+  var curType = (tda.card && tda.card.type === 'dare') ? 'dare' : 'truth';
+  var mb = document.querySelectorAll('#tda-mode .tda-mode-btn');
+  for(var i = 0; i < mb.length; i++){ mb[i].classList.toggle('active', mb[i].getAttribute('data-m') === curType); }
+  $('tda-card').className = 'tda-card' + (curType === 'dare' ? ' dare' : '');
+  if(tda.phase === 'show' && tda.card){
+    $('tda-card-type').textContent = tda.card.type === 'dare' ? '🔥 大冒险' : '💗 真心话';
+    $('tda-card-text').textContent = tda.card.text;
+    $('tda-card-count').textContent = '轮到 ' + (state.players[tda.turn] ? state.players[tda.turn].name : '') + ' 完成挑战';
+    $('btn-tda-next').style.display = (myId === state.hostId || myId === tda.turn) ? 'block' : 'none';
+  }else{
+    $('tda-card-type').textContent = '💗 真心话';
+    $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
+    $('tda-card-count').textContent = '';
+    $('btn-tda-next').style.display = 'none';
+  }
+  var drawBtn = $('btn-tda-draw');
+  var canDraw = (tda.phase === 'idle' && tda.turn === myId);
+  drawBtn.disabled = !canDraw;
+  drawBtn.textContent = canDraw ? '🎴 抽一张' : '等待抽卡...';
+  renderTdaStatus();
+}
+function drawTdaLocal(){
+  SFX.click(); SFX.dice();
+  var pool = getTdaPool(tdaMode, tdaGender);
+  if(!pool.length){
+    $('tda-card-text').textContent = '当前卡片池为空，请先自定义添加';
+    $('tda-card-count').textContent = '';
+    return;
+  }
+  var idx = Math.floor(Math.random() * pool.length);
+  $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
+  $('tda-card-text').textContent = pool[idx];
+  $('tda-card-count').textContent = '共 ' + pool.length + ' 张 · 已抽到第 ' + (idx + 1) + ' 张';
+  $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
+}
+function drawTdaOnline(){
+  if(!state || !state.tda || !onlineMode) return;
+  var tda = state.tda;
+  if(tda.phase !== 'idle' || tda.turn !== myId){ showToast('还没轮到你抽卡'); return; }
+  var p = state.players[myId];
+  var gender = (p && p.gender) || 'male';
+  var type = (tdaMode === 'dare') ? 'dare' : 'truth';
+  var pool = getTdaPool(type, gender);
+  if(!pool.length){ showToast('当前卡片池为空，请先自定义'); return; }
+  var text = pool[Math.floor(Math.random() * pool.length)];
+  $('btn-tda-draw').disabled = true;
+  fetch(serverUrl + '/tda-draw', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:myId, type:type, text:text})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.error) showToast(d.error); })
+    .catch(function(){ showToast('连接失败'); });
+}
+function tdaNext(){
+  if(!onlineMode || !state) return;
+  SFX.click();
+  fetch(serverUrl + '/tda-next', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:myId})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.error) showToast(d.error); })
+    .catch(function(){ showToast('连接失败'); });
+}
+function renderTdaCustomList(){
+  var list = $('tda-custom-list');
+  if(!list) return;
+  var q = tdaEditQuad.split('-');
+  var pool = getTdaPool(q[0], q[1]);
+  list.innerHTML = '';
+  for(var i = 0; i < pool.length; i++){
+    var row = document.createElement('div');
+    row.className = 'wc-row';
+    row.innerHTML = '<span class="wc-num" style="background:' + (q[0] === 'dare' ? '#FF7A45' : '#FF6E9C') + '">' + (i+1) + '</span>'
+      + '<input class="wc-input" type="text" value="' + escapeHtml(pool[i]) + '" data-idx="' + i + '">'
+      + '<button class="wc-del" type="button" data-del="' + i + '">✕</button>';
+    list.appendChild(row);
+  }
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function commitTdaCustom(){
+  var inputs = document.querySelectorAll('#tda-custom-list .wc-input');
+  var out = [];
+  for(var i = 0; i < inputs.length; i++){ var v = inputs[i].value.trim(); if(v) out.push(v); }
+  var q = tdaEditQuad.split('-');
+  if(q[0] === 'dare'){ if(q[1] === 'female'){ dareFemalePool = out; } else { dareMalePool = out; } }
+  else { if(q[1] === 'female'){ truthFemalePool = out; } else { truthMalePool = out; } }
+  saveTdaPool();
+  renderTdaCustomList();
+}
+$('btn-tda-entry').addEventListener('click', function(){ openTda(); });
+$('btn-tda-exit').addEventListener('click', function(){
+  SFX.click();
+  if(onlineMode){
+    showToast('已退出联机');
+    leaveOnline();
+    state = null;
+    switchView('view-start');
+    return;
+  }
+  switchView('view-start');
+});
+$('btn-tda-draw').addEventListener('click', function(){
+  if(onlineMode){ drawTdaOnline(); return; }
+  drawTdaLocal();
+});
+$('btn-tda-next').addEventListener('click', function(){ tdaNext(); });
+$('tda-mode').addEventListener('click', function(e){
+  var b = e.target.closest('.tda-mode-btn');
+  if(!b) return;
+  tdaMode = b.getAttribute('data-m');
+  setTdaModeUI();
+  if(!onlineMode){
+    $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
+    $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
+    $('tda-card-count').textContent = '';
+  }
+});
+$('tda-gender').addEventListener('click', function(e){
+  var b = e.target.closest('.tda-mode-btn');
+  if(!b) return;
+  tdaGender = b.getAttribute('data-g');
+  setTdaModeUI();
+});
+$('btn-tda-custom-toggle').addEventListener('click', function(){
+  SFX.click();
+  var panel = $('tda-custom-panel');
+  if(panel.style.display === 'none'){
+    renderTdaCustomList();
+    panel.style.display = 'block';
+    $('btn-tda-custom-toggle').textContent = '✏️ 自定义卡片内容 ▲';
+  }else{
+    panel.style.display = 'none';
+    $('btn-tda-custom-toggle').textContent = '✏️ 自定义卡片内容 ▼';
+  }
+});
+$('tda-custom-list').addEventListener('click', function(e){
+  var del = e.target.closest('.wc-del');
+  if(!del) return;
+  var idx = parseInt(del.getAttribute('data-del'), 10);
+  var q = tdaEditQuad.split('-');
+  if(q[0] === 'dare'){ if(q[1] === 'female'){ dareFemalePool.splice(idx, 1); } else { dareMalePool.splice(idx, 1); } }
+  else { if(q[1] === 'female'){ truthFemalePool.splice(idx, 1); } else { truthMalePool.splice(idx, 1); } }
+  saveTdaPool();
+  renderTdaCustomList();
+});
+$('btn-tda-add').addEventListener('click', function(){
+  var q = tdaEditQuad.split('-');
+  var isDare = q[0] === 'dare';
+  var pushTo = (q[1] === 'female') ? (isDare ? dareFemalePool : truthFemalePool) : (isDare ? dareMalePool : truthMalePool);
+  pushTo.push(isDare ? '新的大冒险任务' : '新的真心话问题');
+  renderTdaCustomList();
+});
+$('btn-tda-save').addEventListener('click', function(){
+  commitTdaCustom();
+  SFX.click();
+  showToast('卡片内容已保存');
+});
+$('btn-tda-reset').addEventListener('click', function(){
+  var q = tdaEditQuad.split('-');
+  if(q[0] === 'dare'){ if(q[1] === 'female'){ dareFemalePool = DARE_FEMALE_DEFAULT.slice(); } else { dareMalePool = DARE_MALE_DEFAULT.slice(); } }
+  else { if(q[1] === 'female'){ truthFemalePool = TRUTH_FEMALE_DEFAULT.slice(); } else { truthMalePool = TRUTH_MALE_DEFAULT.slice(); } }
+  saveTdaPool();
+  renderTdaCustomList();
+  SFX.click();
+  showToast('已恢复默认卡片');
+});
+document.querySelectorAll('#tda-edit-quad .tda-mode-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    tdaEditQuad = b.getAttribute('data-q');
+    var q = document.querySelectorAll('#tda-edit-quad .tda-mode-btn');
+    for(var i = 0; i < q.length; i++){ q[i].classList.toggle('active', q[i].getAttribute('data-q') === tdaEditQuad); }
+    renderTdaCustomList();
+  });
+});
+initTdaPools();
+// 退出真心话大冒险视图
+$('btn-rps-roll').addEventListener('click', function(){
+  if(onlineMode){ onlineRpsRoll(); return; }
+  rpsChoose();
+});
+$('btn-rps-next').addEventListener('click', function(){
+  SFX.click();
+  if(onlineMode){ onlineRpsNext(); return; }
+  startRpsRound();
+});
+$('btn-rps-exit').addEventListener('click', function(){
+  if(onlineMode){
+    SFX.click();
+    showToast('已退出联机猜拳');
+    leaveOnline();
+    state = null;
+    switchView('view-start');
+    return;
+  }
+  exitRps();
+});
+$('btn-rps-punish-ok').addEventListener('click', function(){
+  if(onlineMode){
+    SFX.click();
+    $('rps-punish').style.display = 'none';
+    return;
+  }
+  closeRpsPunish();
 });
 var bgFile = $('bg-file');
 $('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.click(); bgFile.click(); });
@@ -3309,6 +4191,18 @@ for(var lvb = 0; lvb < lobbyVersionBtns.length; lvb++){
     lobbyVersion = v;
     for(var i = 0; i < lobbyVersionBtns.length; i++){
       lobbyVersionBtns[i].classList.toggle('active', parseInt(lobbyVersionBtns[i].getAttribute('data-v'), 10) === v);
+    }
+    try{ SFX.click(); }catch(e){}
+  });
+}
+// 等待大厅：游戏类型选择（飞行棋 / 猜拳）
+var lobbyGameBtns = document.querySelectorAll('#lobby-game-btns .lv-btn');
+for(var lgb = 0; lgb < lobbyGameBtns.length; lgb++){
+  lobbyGameBtns[lgb].addEventListener('click', function(){
+    var g = this.getAttribute('data-g');
+    lobbyGame = g;
+    for(var i = 0; i < lobbyGameBtns.length; i++){
+      lobbyGameBtns[i].classList.toggle('active', lobbyGameBtns[i].getAttribute('data-g') === g);
     }
     try{ SFX.click(); }catch(e){}
   });
