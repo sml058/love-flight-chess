@@ -4305,6 +4305,7 @@ for(var gb = 0; gb < genderBtns.length; gb++){
     this.classList.add('active');
     var row = sw.parentNode;
     var idx = row.getAttribute('data-row');
+    if(idx === null) return; // 联机面板的性别按钮，不更新配置页棋子
     $('input-icon-' + idx).innerHTML = pawnSVG(PLAYER_COLORS[parseInt(idx, 10) % 4], this.getAttribute('data-g'));
   });
 }
