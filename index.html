@@ -2588,8 +2588,12 @@ function renderLobby(){
   });
   if(state.hostId === myId){
     startBtn.style.display = 'block';
-    hint.textContent = state.players.length >= 2 ? '玩家已就位，可以开始游戏啦！' : '至少 2 人才能开始，等待其他玩家...';
-    hint.className = 'lobby-hint' + (state.players.length >= 2 ? ' lobby-pulse' : '');
+    var canStart = state.players.length >= 2;
+    startBtn.disabled = !canStart;
+    startBtn.style.opacity = canStart ? '1' : '.5';
+    startBtn.style.cursor = canStart ? 'pointer' : 'not-allowed';
+    hint.textContent = canStart ? '玩家已就位，可以开始游戏啦！' : '至少 2 人才能开始，等待其他玩家...';
+    hint.className = 'lobby-hint' + (canStart ? ' lobby-pulse' : '');
   }else{
     startBtn.style.display = 'none';
     hint.textContent = '等待房主开始游戏...';
@@ -2605,6 +2609,7 @@ function renderLobby(){
 function startOnlineGame(){
   if(!onlineMode) return;
   SFX.click();
+  if(state && state.players && state.players.length < 2){ showToast('至少 2 人才能开始游戏'); return; }
   fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, boardVersion: lobbyVersion, gameType: lobbyGame})})
     .then(function(r){return r.json();})
     .then(function(d){
@@ -2621,7 +2626,7 @@ function leaveLobby(){
 }
 function setupSSE(){
   if(evtSource){ try{evtSource.close();}catch(e){} }
-  evtSource = new EventSource(serverUrl+'/events');
+  evtSource = new EventSource(serverUrl+'/events?pid=' + (myId >= 0 ? myId : -1));
   evtSource.addEventListener('snapshot', function(e){
     try{ applyServerState(JSON.parse(e.data)); }catch(err){}
   });
