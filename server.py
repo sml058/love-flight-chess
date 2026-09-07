@@ -27,6 +27,19 @@ state = {
     'started': False,   # False=等待大厅，True=游戏进行中
     'hostId': -1,       # 房主（第一个加入的玩家）
     'boardVersion': 50, # 本局棋盘版本（50/100/150）
+    'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳
+    'rps': {           # 联机猜拳状态
+        'pair': [],        # [idA, idB] 本轮对决的两位玩家
+        'picks': {},       # {id: 'rock'|'scissors'|'paper'}
+        'turn': -1,        # 当前该出拳的玩家
+        'phase': 'wait',   # wait=等待开局 / play=出拳中 / judge=判定完成
+        'winner': -1,
+        'loser': -1,
+        'draw': False,
+        'round': 0,
+        'scores': {},      # {id: 胜场}
+        'penalty': '',     # 惩罚内容（房主抽取后广播）
+    },
 }
 state_lock = threading.Lock()
 sse_clients = []       # 已连接的 SSE 响应对象
@@ -141,6 +154,12 @@ class Handler(BaseHTTPRequestHandler):
             self._leave(body)
         elif path == '/reset':
             self._reset()
+        elif path == '/rps-roll':
+            self._rps_roll(body)
+        elif path == '/rps-next':
+            self._rps_next(body)
+        elif path == '/rps-punish':
+            self._rps_punish(body)
         else:
             self.send_error(404)
 
@@ -190,9 +209,18 @@ class Handler(BaseHTTPRequestHandler):
             state['phase'] = 'idle'
             state['turn'] = 0
             state['winner'] = None
+            gt = body.get('gameType')
+            if gt in ('flight', 'rps'):
+                state['gameType'] = gt
             bv = body.get('boardVersion')
             if bv in (50, 100, 150):
                 state['boardVersion'] = bv
+            # 初始化猜拳状态
+            state['rps'] = {
+                'pair': [], 'picks': {}, 'turn': -1, 'phase': 'wait',
+                'winner': -1, 'loser': -1, 'draw': False, 'round': 0,
+                'scores': {}, 'penalty': '',
+            }
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
             # 在锁内做深拷贝，锁外再广播（snapshot() 会再次获取同一把锁，不能在此调用）
@@ -278,6 +306,95 @@ class Handler(BaseHTTPRequestHandler):
             broadcast('players', state['players'])
             broadcast('turn', 0)
         self._json(200, {})
+
+    # ---------- 联机猜拳 ----------
+    def _rps_snapshot(self):
+        return json.loads(json.dumps(state['rps']))
+
+    def _rps_result(self, c1, c2):
+        if c1 == c2:
+            return 'draw'
+        beat = {'rock': 'scissors', 'scissors': 'paper', 'paper': 'rock'}
+        return 'p1' if beat[c1] == c2 else 'p2'
+
+    def _rps_roll(self, body):
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'rps':
+                self._json(400, {'error': '当前不是猜拳对局'})
+                return
+            rps = state['rps']
+            pid = body.get('id')
+            if rps['phase'] != 'play':
+                self._json(400, {'error': '还不是出拳时机'})
+                return
+            if pid != rps['turn']:
+                self._json(400, {'error': '还没轮到你出拳'})
+                return
+            choice = random.choice(['rock', 'scissors', 'paper'])
+            rps['picks'][pid] = choice
+            pair = rps['pair']
+            if pid == pair[0] and len(rps['picks']) < 2:
+                rps['turn'] = pair[1]
+            else:
+                # 双方都出拳，判定胜负
+                c1 = rps['picks'][pair[0]]
+                c2 = rps['picks'][pair[1]]
+                res = self._rps_result(c1, c2)
+                rps['phase'] = 'judge'
+                rps['turn'] = -1
+                if res == 'draw':
+                    rps['draw'] = True
+                    rps['winner'] = rps['loser'] = -1
+                else:
+                    rps['draw'] = False
+                    rps['winner'] = pair[0] if res == 'p1' else pair[1]
+                    rps['loser'] = pair[1] if res == 'p1' else pair[0]
+                    rps['scores'][str(rps['winner'])] = rps['scores'].get(str(rps['winner']), 0) + 1
+            snap = self._rps_snapshot()
+        broadcast('rps', snap)
+        self._json(200, {'rps': snap})
+
+    def _rps_next(self, body):
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'rps':
+                self._json(400, {'error': '当前不是猜拳对局'})
+                return
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以开始下一轮'})
+                return
+            rps = state['rps']
+            rps['round'] += 1
+            rps['phase'] = 'play'
+            rps['picks'] = {}
+            rps['winner'] = rps['loser'] = -1
+            rps['draw'] = False
+            rps['penalty'] = ''
+            ids = [p['id'] for p in state['players']]
+            if len(ids) >= 2:
+                a = random.choice(ids)
+                rest = [x for x in ids if x != a]
+                b = random.choice(rest)
+                rps['pair'] = [a, b]
+                rps['turn'] = a
+            else:
+                rps['phase'] = 'wait'
+                rps['turn'] = -1
+            snap = self._rps_snapshot()
+        broadcast('rps', snap)
+        self._json(200, {'rps': snap})
+
+    def _rps_punish(self, body):
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'rps':
+                self._json(400, {'error': '当前不是猜拳对局'})
+                return
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以抽取惩罚'})
+                return
+            state['rps']['penalty'] = (body.get('penalty') or '').strip()
+            snap = self._rps_snapshot()
+        broadcast('rps', snap)
+        self._json(200, {'rps': snap})
 
 
 # ---------- 入口 ----------
