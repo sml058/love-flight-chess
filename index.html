@@ -530,8 +530,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
 /* ============ 真心话大冒险 ============ */
 .tda-mode{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
 .tda-mode + .tda-mode{margin-bottom:14px}
-#tda-gender .tda-mode-btn{background:#FFF9FC;border-color:#FFE0EC;font-size:14px}
-#tda-gender .tda-mode-btn.active{background:linear-gradient(120deg,#5B9BFF,#9B7BFF);border-color:transparent}
 .tda-status{font-size:14px;font-weight:600;color:var(--ink-soft);text-align:center;min-height:20px;margin-bottom:12px}
 .tda-status.on{color:var(--love)}
 .tda-mode-btn{
@@ -1456,10 +1454,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <div class="tda-mode" id="tda-mode">
         <button class="tda-mode-btn active" type="button" data-m="truth">💗 真心话</button>
         <button class="tda-mode-btn" type="button" data-m="dare">🔥 大冒险</button>
-      </div>
-      <div class="tda-mode" id="tda-gender">
-        <button class="tda-mode-btn active" type="button" data-g="male">👦 男生</button>
-        <button class="tda-mode-btn" type="button" data-g="female">👧 女生</button>
       </div>
       <div class="tda-status" id="tda-status"></div>
       <div class="tda-card" id="tda-card">
@@ -3784,7 +3778,8 @@ var DARE_FEMALE_DEFAULT = [
 ];
 var truthMalePool = [], truthFemalePool = [], dareMalePool = [], dareFemalePool = [];
 var tdaMode = 'truth';        // truth / dare（单机抽卡模式）
-var tdaGender = 'male';       // 单机抽卡性别
+var tdaLocalPlayers = [];     // 单机：从配置页读取的玩家（含性别）
+var tdaLocalTurn = 0;         // 单机：当前抽卡玩家下标
 var tdaEditQuad = 'truth-male'; // 编辑四象限 truth-male/truth-female/dare-male/dare-female
 function initTdaPools(){
   truthMalePool = TRUTH_MALE_DEFAULT.slice();
@@ -3826,7 +3821,18 @@ function renderTdaPill(){
 function openTda(){
   SFX.init(); SFX.resume(); SFX.click();
   loadTdaPools();
-  if(!onlineMode){ tdaMode = 'truth'; tdaGender = 'male'; }
+  if(!onlineMode){
+    tdaMode = 'truth';
+    // 单机：从配置页读取玩家（性别由玩家进入时选择）
+    tdaLocalPlayers = [];
+    for(var _i = 0; _i < playerCount; _i++){
+      var _g = document.querySelector('#gender-' + _i + ' .g-btn.active');
+      var _gender = (_g && _g.getAttribute('data-g')) || (_i % 2 === 0 ? 'male' : 'female');
+      var _v = $('name-' + _i).value.trim();
+      tdaLocalPlayers.push({name: _v || ('宝贝' + (_i+1)), gender: _gender});
+    }
+    tdaLocalTurn = 0;
+  }
   setTdaModeUI();
   renderTdaStatus();
   $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
@@ -3835,13 +3841,12 @@ function openTda(){
   $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
   $('tda-custom-panel').style.display = 'none';
   $('btn-tda-custom-toggle').textContent = '✏️ 自定义卡片内容 ▼';
+  $('btn-tda-next').style.display = 'none';
   switchView('view-tda');
 }
 function setTdaModeUI(){
   var mb = document.querySelectorAll('#tda-mode .tda-mode-btn');
   for(var i = 0; i < mb.length; i++){ mb[i].classList.toggle('active', mb[i].getAttribute('data-m') === tdaMode); }
-  var gb = document.querySelectorAll('#tda-gender .tda-mode-btn');
-  for(var j = 0; j < gb.length; j++){ gb[j].classList.toggle('active', gb[j].getAttribute('data-g') === tdaGender); }
   $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
 }
 function renderTdaStatus(){
@@ -3862,7 +3867,14 @@ function renderTdaStatus(){
     }
     return;
   }
-  st.textContent = '';
+  // 单机：显示当前抽卡玩家（男女由进入时选择决定）
+  var p = tdaLocalPlayers[tdaLocalTurn];
+  if(p){
+    st.textContent = '当前抽卡：' + p.name + ' ' + (p.gender === 'female' ? '👧' : '👦');
+    st.className = 'tda-status on';
+  }else{
+    st.textContent = '';
+  }
 }
 function renderOnlineTda(){
   if(!state) return;
@@ -3892,7 +3904,9 @@ function renderOnlineTda(){
 }
 function drawTdaLocal(){
   SFX.click(); SFX.dice();
-  var pool = getTdaPool(tdaMode, tdaGender);
+  var p = tdaLocalPlayers[tdaLocalTurn] || {};
+  var gender = p.gender || 'male';
+  var pool = getTdaPool(tdaMode, gender);
   if(!pool.length){
     $('tda-card-text').textContent = '当前卡片池为空，请先自定义添加';
     $('tda-card-count').textContent = '';
@@ -3903,6 +3917,11 @@ function drawTdaLocal(){
   $('tda-card-text').textContent = pool[idx];
   $('tda-card-count').textContent = '共 ' + pool.length + ' 张 · 已抽到第 ' + (idx + 1) + ' 张';
   $('tda-card').className = 'tda-card' + (tdaMode === 'dare' ? ' dare' : '');
+  // 单机抽完卡后显示「下一位」用于切换玩家
+  if(!onlineMode && tdaLocalPlayers.length > 1){
+    $('btn-tda-next').style.display = 'block';
+    $('btn-tda-next').textContent = '👥 下一位';
+  }
 }
 function drawTdaOnline(){
   if(!state || !state.tda || !onlineMode) return;
@@ -3921,7 +3940,21 @@ function drawTdaOnline(){
     .catch(function(){ showToast('连接失败'); });
 }
 function tdaNext(){
-  if(!onlineMode || !state) return;
+  if(!onlineMode){
+    // 单机：切换到下一位玩家，重置卡片
+    SFX.click();
+    if(!tdaLocalPlayers.length) return;
+    tdaLocalTurn = (tdaLocalTurn + 1) % tdaLocalPlayers.length;
+    tdaMode = (tdaMode === 'dare') ? 'dare' : 'truth';
+    setTdaModeUI();
+    renderTdaStatus();
+    $('tda-card-type').textContent = tdaMode === 'dare' ? '🔥 大冒险' : '💗 真心话';
+    $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
+    $('tda-card-count').textContent = '';
+    $('btn-tda-next').style.display = 'none';
+    return;
+  }
+  if(!state) return;
   SFX.click();
   fetch(serverUrl + '/tda-next', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:myId})})
     .then(function(r){ return r.json(); })
@@ -3983,12 +4016,6 @@ $('tda-mode').addEventListener('click', function(e){
     $('tda-card-text').textContent = '点击下方按钮，抽取一张卡片';
     $('tda-card-count').textContent = '';
   }
-});
-$('tda-gender').addEventListener('click', function(e){
-  var b = e.target.closest('.tda-mode-btn');
-  if(!b) return;
-  tdaGender = b.getAttribute('data-g');
-  setTdaModeUI();
 });
 $('btn-tda-custom-toggle').addEventListener('click', function(){
   SFX.click();
