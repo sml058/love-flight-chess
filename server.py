@@ -23,6 +23,7 @@ state = {
     'players': [],   # {id,name,gender,pos,steps,flying,hearts,shield,skip}
     'turn': 0,
     'phase': 'idle',
+    'rollAt': 0,        # 本轮掷骰开始时间戳，用于 phase 卡住时的自愈
     'winner': None,
     'started': False,   # False=等待大厅，True=游戏进行中
     'hostId': -1,       # 房主（第一个加入的玩家）
@@ -308,14 +309,20 @@ class Handler(BaseHTTPRequestHandler):
 
     def _roll(self, body):
         with state_lock:
-            if state['phase'] != 'idle':
-                self._json(400, {'error': '不是掷骰时机'})
-                return
+            now = time.time()
             pid = body.get('id')
+            # 只有当前轮到（turn 匹配）的玩家能掷骰
             if pid != state['turn'] or pid >= len(state['players']):
                 self._json(400, {'error': '还没轮到你'})
                 return
+            # phase 非 idle 时复位为 idle：覆盖两种稳定场景——
+            # ① 抽到"再掷"奖励卡后前端允许本玩家再掷，但服务器 phase 仍停在 rolling；
+            # ② 上一位 nextturn 丢失导致 phase 卡住（自动自愈）。
+            # 并发安全性仍由上面的 turn 匹配保证，phase 仅作状态标记。
+            if state['phase'] != 'idle':
+                state['phase'] = 'idle'
             state['phase'] = 'rolling'
+            state['rollAt'] = now
             n = random.randint(1, 6)
             broadcast('dice', {'player': pid, 'value': n})
         self._json(200, {'value': n})
