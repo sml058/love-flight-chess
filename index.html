@@ -431,8 +431,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .wheel-container{position:relative;width:240px;height:240px;margin:0 auto 14px}
 .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:24px solid #FF6E9C;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
 .wheel-disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15),inset 0 0 0 4px #fff;transition:transform 2s cubic-bezier(.17,.67,.12,.99)}
-.wheel-segment{position:absolute;top:0;left:50%;width:50%;height:50%;transform-origin:0% 100%;transform:rotate(var(--seg-rotate)) skewY(-60deg);background:var(--seg-color);display:flex;align-items:center;justify-content:center}
-.wheel-segment span{position:absolute;top:14px;left:50%;transform:translateX(-50%) rotate(15deg) skewY(60deg);font-size:9px;font-weight:700;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.wheel-segment{position:absolute;top:0;left:50%;width:50%;height:50%;transform-origin:0% 100%;transform:rotate(var(--seg-rotate)) skewY(-75deg);background:var(--seg-color);display:flex;align-items:center;justify-content:center}
+.wheel-segment span{position:absolute;top:8px;left:50%;transform:translateX(-50%) rotate(7.5deg) skewY(75deg);font-size:7px;font-weight:700;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FF6E9C,#FF8FB3);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,110,156,.4),inset 0 2px 4px rgba(255,255,255,.3);z-index:4}
 .wheel-btn{width:100%;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(120deg,#FF6E9C,#9B7BFF);border:none;border-radius:999px;padding:12px;transition:transform .15s;box-shadow:0 6px 18px rgba(255,110,156,.35)}
 .wheel-btn:active{transform:scale(.96)}
@@ -881,6 +881,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .log-line .bad{color:#D63B3B}
 /* 终点惩罚卡（赢家抽卡惩罚输家） */
 .end-penalty{margin:10px 0 4px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.end-result{
+  font-size:16px;font-weight:800;color:var(--ink);margin:10px 0 2px;
+  letter-spacing:1px;line-height:1.8;
+}
 .btn-final-penalty{font-size:17px;letter-spacing:1px;padding:12px 30px;margin-top:0}
 .final-penalty-text{
   font-size:15px;color:var(--ink);background:#FFF3F8;border:1px dashed #FF9EBC;
@@ -1622,6 +1626,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <div class="hero-illustration" id="end-illustration" style="width:120px;height:120px"></div>
       <h1 class="start-title" style="font-size:clamp(30px,7vw,40px)" id="end-title"></h1>
       <p class="winner-crown" id="end-sub"></p>
+      <p class="end-result" id="end-result"></p>
 
       <div class="vs-row" id="vs-row"></div>
 
@@ -2112,8 +2117,25 @@ function drawFinalPenalty(){
   }
 }
 function showFinalPenalty(text){
+  var safe = String(text || '').replace(/</g, '&lt;');
   var box = $('final-penalty-text');
-  if(box){ box.innerHTML = '💘 终点惩罚：<b>' + String(text).replace(/</g,'&lt;') + '</b>'; }
+  if(box){ box.innerHTML = '💘 终点惩罚：<b>' + safe + '</b>'; }
+  // 弹窗展示（与本地抽卡一致的体验）
+  var modal = $('modal');
+  if(modal){
+    $('modal-icon').textContent = '🎴';
+    $('modal-kicker').textContent = '终点惩罚卡';
+    $('modal-title').textContent = '输家们请执行';
+    $('modal-body').innerHTML = '<div style="font-size:17px;line-height:1.8;color:#5C4A63">' + safe + '</div>';
+    $('modal-note').textContent = '这是赢家抽到的终点惩罚';
+    $('modal-action').textContent = '好的，执行！';
+    var sec = $('modal-secondary');
+    if(sec){ sec.style.display = 'none'; }
+    $('modal-action').onclick = function(){
+      modal.classList.remove('show');
+    };
+    modal.classList.add('show');
+  }
   showToast('终点惩罚：' + text);
 }
 
@@ -3198,15 +3220,22 @@ function resolveCell(p){
 }
 
 /* ---------- 幸运转盘 ---------- */
-var WHEEL_COLORS = ['#FF6E9C','#FFB347','#9B7BFF','#7FB8FF','#FF8FA3','#4FC9A7','#FFD98A','#E8A0C0','#FF9E6E','#B89EFF','#6EC9FF','#FFB8D1'];
-var WHEEL_DEFAULT = ['爱心+3','前进2格','奖励卡','护盾','后退2格','甜蜜任务','再掷一次','停一轮','爱心+5','前进5格','后退5格','幸运星'];
+var WHEEL_COLORS = ['#FF6E9C','#FFB347','#9B7BFF','#7FB8FF','#FF8FA3','#4FC9A7','#FFD98A','#E8A0C0','#FF9E6E','#B89EFF','#6EC9FF','#FFB8D1','#FF6E9C','#FFB347','#9B7BFF','#7FB8FF','#FF8FA3','#4FC9A7','#FFD98A','#E8A0C0','#FF9E6E','#B89EFF','#6EC9FF','#FFB8D1'];
+var WHEEL_DEFAULT = ['爱心+3','前进2格','奖励卡','护盾','后退2格','甜蜜任务','再掷一次','停一轮','爱心+5','前进5格','后退5格','幸运星','爱心+1','前进1格','惩罚卡','爱心+2','后退1格','甜蜜任务','再掷一次','停一轮','爱心+4','前进3格','后退3格','幸运星'];
 var WHEEL_RESULTS = WHEEL_DEFAULT.slice();
-// 加载自定义转盘内容
+// 加载自定义转盘内容（旧 12 份数据自动翻倍升级为 24 份）
 try{
   var savedWheel = localStorage.getItem('love-flight-wheel-custom');
   if(savedWheel){
     var parsed = JSON.parse(savedWheel);
-    if(Array.isArray(parsed) && parsed.length === 12){ WHEEL_RESULTS = parsed; }
+    if(Array.isArray(parsed) && parsed.length){
+      if(parsed.length === 24){ WHEEL_RESULTS = parsed; }
+      else if(parsed.length === 12){
+        var doubled = [];
+        for(var _w = 0; _w < 12; _w++){ doubled.push(parsed[_w], parsed[_w]); }
+        WHEEL_RESULTS = doubled;
+      }
+    }
   }
 }catch(e){}
 var _wheelPlayer = null;
@@ -3216,11 +3245,11 @@ function renderWheel(){
   var disc = $('wheel-disc');
   if(!disc) return;
   disc.innerHTML = '';
-  for(var i = 0; i < 12; i++){
+  for(var i = 0; i < 24; i++){
     var seg = document.createElement('div');
     seg.className = 'wheel-segment';
     seg.style.setProperty('--seg-color', WHEEL_COLORS[i]);
-    seg.style.setProperty('--seg-rotate', (i * 30) + 'deg');
+    seg.style.setProperty('--seg-rotate', (i * 15) + 'deg');
     seg.innerHTML = '<span>' + (WHEEL_RESULTS[i] || ('格'+(i+1))) + '</span>';
     disc.appendChild(seg);
   }
@@ -3229,7 +3258,7 @@ function renderWheelCustomList(){
   var list = $('wheel-custom-list');
   if(!list) return;
   list.innerHTML = '';
-  for(var i = 0; i < 12; i++){
+  for(var i = 0; i < 24; i++){
     var row = document.createElement('div');
     row.className = 'wc-row';
     row.innerHTML = '<span class="wc-num" style="background:'+WHEEL_COLORS[i]+'">'+(i+1)+'</span>' +
@@ -3271,9 +3300,9 @@ function spinWheel(){
   $('wheel-spin').disabled = true;
   $('wheel-spin').textContent = '转动中...';
   SFX.dice();
-  var idx = Math.floor(Math.random() * 12);
-  // 12格，每格30度，扇形中心角度 = idx * 30 + 15
-  var targetAngle = 360 * 5 + (360 - (idx * 30 + 15));
+  var idx = Math.floor(Math.random() * 24);
+  // 24格，每格15度，扇形中心角度 = idx * 15 + 7.5
+  var targetAngle = 360 * 5 + (360 - (idx * 15 + 7.5));
   // 先重置到0度（无动画），再开始转动，确保"再来一次"能正常转
   var disc = $('wheel-disc');
   disc.style.transition = 'none';
@@ -3435,6 +3464,22 @@ function renderEndScreen(winner){
   }
   $('vs-row').innerHTML = vsHtml;
   $('best-score').textContent = '爱情最高纪录：' + loadBest() + ' 爱心';
+  // 胜负提示：单机显示全员胜负；联机按视角显示「你赢了 / 你输了，TA赢了」
+  var resEl = $('end-result');
+  if(resEl){
+    if(onlineMode){
+      var _me = state.players[myId];
+      if(_me === winner){ resEl.textContent = '🎉 你赢了！'; }
+      else { resEl.textContent = '😢 你输了，' + winner.name + ' 赢了'; }
+    }else{
+      var _parts = [];
+      for(var _m = 0; _m < state.players.length; _m++){
+        var _ap = state.players[_m];
+        _parts.push((_ap === winner ? '🏆 ' : '😢 ') + _ap.name + (_ap === winner ? ' 赢了' : ' 输了'));
+      }
+      resEl.textContent = _parts.join('　');
+    }
+  }
   // 终点惩罚卡：联机仅赢家显示；单机共享屏幕直接显示
   var fpBtn = $('btn-final-penalty');
   if(fpBtn){
