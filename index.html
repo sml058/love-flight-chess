@@ -2422,7 +2422,18 @@ function nextTurnSmart(){
   if(onlineMode){
     syncPlayer();
     if(state && state.turn === myId){
-      fetch(serverUrl+'/nextturn',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})}).catch(function(){});
+      var tries = 0;
+      function fireNextTurn(){
+        tries++;
+        fetch(serverUrl+'/nextturn',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+          .then(function(r){ return r.json(); })
+          .then(function(){})
+          .catch(function(){
+            // 网络瞬时抖动导致换轮失败时重试，避免 phase 卡住
+            if(tries < 3){ setTimeout(fireNextTurn, 600); }
+          });
+      }
+      fireNextTurn();
     }
   } else {
     nextTurn();
@@ -4477,21 +4488,43 @@ for(var og = 0; og < onlineGenderBtns.length; og++){
 }
 // 查询房间在线人数
 var _countTimer = null;
+function setJoinBtnMode(n){
+  var btn = $('btn-join');
+  var st = $('online-status');
+  if(!btn) return;
+  if(n < 0){
+    btn.textContent = '加入房间'; btn.disabled = false;
+    if(st){ st.textContent = ''; st.className = 'online-status'; }
+    return;
+  }
+  if(n === 0){
+    btn.textContent = '🛠 创建房间（你是房主）'; btn.disabled = false;
+    if(st){ st.textContent = '当前无人在线，你将创建房间并成为房主'; st.className = 'online-status ok'; }
+  } else if(n >= 4){
+    btn.textContent = '🚫 房间已满'; btn.disabled = true;
+    if(st){ st.textContent = '已有 ' + n + ' 人在线，房间已满，请稍后再试'; st.className = 'online-status err'; }
+  } else {
+    btn.textContent = '🎮 加入房间'; btn.disabled = false;
+    if(st){ st.textContent = '已有 ' + n + ' 人在线，点击加入房间'; st.className = 'online-status'; }
+  }
+}
 function refreshOnlineCount(){
   var el = $('online-count');
   if(!el) return;
   var url = ($('online-server').value||'').trim().replace(/\/+$/,'');
-  if(!url){ el.textContent = '--'; return; }
+  if(!url){ el.textContent = '--'; setJoinBtnMode(-1); return; }
   fetch(url + '/health')
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d && typeof d.players === 'number'){
         el.textContent = d.players;
+        setJoinBtnMode(d.players);
       }else{
         el.textContent = '--';
+        setJoinBtnMode(-1);
       }
     })
-    .catch(function(){ el.textContent = '--'; });
+    .catch(function(){ el.textContent = '--'; setJoinBtnMode(-1); });
 }
 $('btn-restart').addEventListener('click', function(){
   if(onlineMode){ leaveOnline(); }
