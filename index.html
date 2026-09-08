@@ -3434,7 +3434,7 @@ function renderEndScreen(winner){
       + '<div class="vs-num">' + a.hearts + '<small>爱心</small></div></div>';
   }
   $('vs-row').innerHTML = vsHtml;
-  $('best-score').textContent = '爱情最高纪录：' + best + ' 爱心';
+  $('best-score').textContent = '爱情最高纪录：' + loadBest() + ' 爱心';
   // 终点惩罚卡：联机仅赢家显示；单机共享屏幕直接显示
   var fpBtn = $('btn-final-penalty');
   if(fpBtn){
