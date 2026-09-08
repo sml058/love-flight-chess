@@ -888,7 +888,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .again-ready-title{font-size:15px;font-weight:800;color:var(--love);letter-spacing:1px}
 .again-ready-list{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.9;text-align:center}
 .again-ready-hint{font-size:11.5px;color:var(--ink-soft);line-height:1.5;text-align:center}
-.btn-again-ready{margin-top:2px;font-size:16px;letter-spacing:1px;padding:11px 34px}
+.btn-again-ready{margin-top:2px;font-size:16px;letter-spacing:1px;padding:11px 34px;width:auto;align-self:center;margin-left:auto;margin-right:auto}
 .end-result{
   font-size:16px;font-weight:800;color:var(--ink);margin:10px 0 2px;
   letter-spacing:1px;line-height:1.8;
@@ -2877,6 +2877,20 @@ function leaveLobby(){
   state = null;
   switchView('view-start');
 }
+function logCellType(p){
+  if(!CELLS || !CELLS[p.pos]) return;
+  var t = CELLS[p.pos].type;
+  var msgs = {
+    reward: '<b>' + p.name + '</b> 踩到 <span class="ok">奖励格</span>',
+    penalty: '<b>' + p.name + '</b> 踩到 <span class="bad">惩罚格</span>',
+    love: '<b>' + p.name + '</b> 踩到 <span class="ok">甜蜜格</span>',
+    forward: '<b>' + p.name + '</b> 顺风前进 <b>3</b> 格',
+    backward: '<b>' + p.name + '</b> 被吹回 <b>3</b> 格',
+    rest: '<b>' + p.name + '</b> 停一轮',
+    safe: '<b>' + p.name + '</b> 获得爱情护身符'
+  };
+  if(msgs[t]){ addLog(msgs[t]); }
+}
 function setupSSE(){
   if(evtSource){ try{evtSource.close();}catch(e){} }
   evtSource = new EventSource(serverUrl+'/events?pid=' + (myId >= 0 ? myId : -1));
@@ -2896,7 +2910,17 @@ function setupSSE(){
         return;
       }
       if(state){
-        players.forEach(function(p,i){ p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length]; });
+        var prev = state._prevPos || {};
+        players.forEach(function(p,i){
+          p.start=0;p.end=N;p.dir=1;p.color=PLAYER_COLORS[i%PLAYER_COLORS.length];
+          // 联机跟随者足迹：其他玩家落点变化时，记录其踩到的格子类型（奖励/惩罚等），全员足迹同步
+          if(state.started && state.gameType === 'flight' && p.id !== myId
+             && prev[p.id] !== undefined && prev[p.id] !== p.pos && p.pos >= 0 && p.steps > 0){
+            logCellType(p);
+          }
+        });
+        state._prevPos = {};
+        players.forEach(function(p){ state._prevPos[p.id] = p.pos; });
         state.players = players;
         if(state.started && state.gameType === 'rps'){
           renderOnlineRps();
@@ -4797,7 +4821,7 @@ $('btn-ready').addEventListener('click', function(){
       if(d && d.error){ showToast(d.error); }
       else if(state && d.ready){ state.ready = d.ready; renderAgainReady(); }
     })
-    .catch(function(){});
+    .catch(function(){ showToast('无法连接服务器，请确认已部署最新 server.py'); });
 });
 // 联机再来一局：房主点「开始新一局」
 $('btn-start-again').addEventListener('click', function(){
@@ -4806,12 +4830,20 @@ $('btn-start-again').addEventListener('click', function(){
   if(state.hostId !== myId){ showToast('只有房主可以开始'); return; }
   var readyCount = 0;
   for(var i = 0; i < state.players.length; i++){ if(state.ready && state.ready[state.players[i].id]){ readyCount++; } }
-  if(readyCount < state.players.length){ showToast('还有玩家未准备，等他们点「准备好」'); return; }
+  if(readyCount < state.players.length){
+    showToast('还有 ' + (state.players.length - readyCount) + ' 人未准备，稍等他们一下');
+    setTimeout(function(){ doStartAgain(); }, 900);
+  }else{
+    doStartAgain();
+  }
+});
+function doStartAgain(){
+  if(!onlineMode || !state) return;
   fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
     .then(function(r){ return r.json(); })
     .then(function(d){ if(d && d.error){ showToast(d.error); } })
-    .catch(function(){});
-});
+    .catch(function(){ showToast('无法连接服务器，请确认已部署最新 server.py'); });
+}
 $('btn-again').addEventListener('click', function(){
   SFX.resume();
   SFX.click();
