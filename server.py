@@ -181,6 +181,8 @@ class Handler(BaseHTTPRequestHandler):
             self._leave(body)
         elif path == '/reset':
             self._reset()
+        elif path == '/win':
+            self._win(body)
         elif path == '/rps-roll':
             self._rps_roll(body)
         elif path == '/rps-next':
@@ -397,6 +399,21 @@ class Handler(BaseHTTPRequestHandler):
             broadcast('players', state['players'])
             broadcast('turn', 0)
         self._json(200, {})
+
+    def _win(self, body):
+        """联机对局有玩家率先抵达终点：裁定赢家并广播，全员统一进入结束界面。"""
+        with state_lock:
+            pid = body.get('id')
+            if pid is None or pid >= len(state['players']):
+                self._json(400, {'error': '玩家不存在'})
+                return
+            state['winner'] = pid
+            state['started'] = False
+            state['players'][pid]['hearts'] = state['players'][pid].get('hearts', 0) + 5
+            snap = {'winner': pid, 'name': state['players'][pid]['name'],
+                    'players': json.loads(json.dumps(state['players']))}
+        broadcast('ended', snap)
+        self._json(200, snap)
 
     # ---------- 服务器管理入口 ----------
     def _online_pids(self):
