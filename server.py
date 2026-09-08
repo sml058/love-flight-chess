@@ -43,6 +43,7 @@ state = {
         'penalty': '',     # 惩罚内容（房主抽取后广播）
     },
     'penaltyCards': {'male': [], 'female': []},  # 房主自定义的惩罚卡池（{act,text}），空=用默认；仅房主可改
+    'ready': {},          # {pid: True} 结算后「再来一局」的准备状态，房主看到所有人准备后点开始
     'tda': {           # 联机真心话大冒险状态
         'turn': 0,       # 当前轮到抽卡的玩家
         'phase': 'idle', # idle=待抽卡 / show=已抽展示
@@ -185,6 +186,8 @@ class Handler(BaseHTTPRequestHandler):
             self._win(body)
         elif path == '/final-punish':
             self._final_punish(body)
+        elif path == '/ready':
+            self._ready(body)
         elif path == '/rps-roll':
             self._rps_roll(body)
         elif path == '/rps-next':
@@ -304,6 +307,7 @@ class Handler(BaseHTTPRequestHandler):
             }
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
+            state['ready'] = {}
             # 在锁内做深拷贝，锁外再广播（snapshot() 会再次获取同一把锁，不能在此调用）
             snap = json.loads(json.dumps(state))
             players_snap = json.loads(json.dumps(state['players']))
@@ -377,6 +381,8 @@ class Handler(BaseHTTPRequestHandler):
                 return  # 该玩家本就不在房间，无需处理
             if state['hostId'] == pid:
                 state['hostId'] = state['players'][0]['id'] if state['players'] else -1
+            if pid in state['ready']:
+                del state['ready'][pid]
             if state['turn'] >= len(state['players']):
                 state['turn'] = 0
             state['phase'] = 'idle'
@@ -416,6 +422,18 @@ class Handler(BaseHTTPRequestHandler):
                     'players': json.loads(json.dumps(state['players']))}
         broadcast('ended', snap)
         self._json(200, snap)
+
+    def _ready(self, body):
+        """结算后玩家点「准备好」，广播准备状态给全员。"""
+        with state_lock:
+            pid = body.get('id')
+            if pid is None or pid >= len(state['players']):
+                self._json(400, {'error': '玩家不存在'})
+                return
+            state['ready'][pid] = True
+            snap = json.loads(json.dumps(state['ready']))
+        broadcast('ready', {'ready': snap, 'id': pid})
+        self._json(200, {'ready': snap})
 
     def _final_punish(self, body):
         """赢家到终点后抽终点惩罚卡：只有赢家可抽，广播给全员。"""
