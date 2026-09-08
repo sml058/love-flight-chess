@@ -2785,7 +2785,8 @@ function leaveOnline(){
 }
 
 function roll(x, y){
-  if(!state || state.phase !== 'idle') return;
+  if(!state) return;
+  if(!onlineMode && state.phase !== 'idle') return;  // 单机：防动画中重复掷
   if(onlineMode){
     if(state.turn !== myId){ showToast('还没轮到你掷骰'); return; }
     // 联机掷骰：也在触屏位置显示骰子框
