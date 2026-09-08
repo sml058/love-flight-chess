@@ -844,6 +844,31 @@ button:disabled{opacity:.45;cursor:not-allowed}
   width:14px;height:14px;border-radius:4px;
   border:1.5px solid;
 }
+/* 游戏足迹日志 */
+.game-log{
+  margin-top:12px;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,110,156,.14);
+  border-radius:12px;
+  padding:10px 14px;
+  max-height:150px;
+  display:flex;
+  flex-direction:column;
+}
+.game-log-title{
+  font-size:13px;font-weight:800;color:var(--love);
+  margin-bottom:6px;letter-spacing:.5px;
+}
+.game-log-body{
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:3px;
+  font-size:12px;color:var(--ink-soft);
+}
+.log-line{padding:1px 0;line-height:1.5;border-bottom:1px dashed rgba(255,110,156,.08)}
+.log-line:last-child{border-bottom:none}
+.log-line b{color:var(--ink);font-weight:700}
+.log-line .ok{color:#1F8A3D}
+.log-line .bad{color:#D63B3B}
 
 /* 操作区 */
 .control-panel{
@@ -1555,6 +1580,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
     <div class="restart-row">
       <button class="restart-btn" id="btn-restart" type="button">重新开始</button>
+    </div>
+
+    <!-- 游戏足迹日志 -->
+    <div class="game-log" id="game-log">
+      <div class="game-log-title">📜 游戏足迹</div>
+      <div class="game-log-body" id="game-log-body"></div>
     </div>
   </section>
 
@@ -2463,7 +2494,13 @@ function handleOnlineDice(pid, val){
   setRollEnabled(false);
   showDice(val);
   SFX.dice();
-  setTimeout(function(){ movePawn(p, val); }, 350);
+  addLog('<b>' + p.name + '</b> 掷出 <b>' + val + '</b> 点');
+  if(pid === myId){
+    // 掷骰者：本地裁定移动 + 特殊格效果，再经 syncPlayer 上传广播
+    setTimeout(function(){ movePawn(p, val); }, 350);
+  }
+  // 非掷骰者：不做本地移动/特殊格决策，完全跟随掷骰者经服务器广播的位置与结果，
+  // 避免本地模拟与广播冲突导致的"多掷 / 退格"不同步
   // 点数显示完再隐藏骰子
   setTimeout(function(){ hideCenterDice(); }, 1500);
 }
@@ -2694,10 +2731,17 @@ function setupSSE(){
       if(d && d.state){ applyServerState(d.state); }
     }catch(err){}
   });
-  // 联机游戏中有玩家退出 → 全员结束回主页面
+  // 联机结束：有赢家 → 统一展示结束界面；否则为玩家退出 → 回主页面
   evtSource.addEventListener('ended', function(e){
     try{
       var d = JSON.parse(e.data);
+      if(d && d.winner !== undefined){
+        SFX.bgmStop();
+        if(state && d.players){ state.players = d.players; }
+        var winner = (state && state.players && state.players[d.winner]) || null;
+        if(winner){ renderEndScreen(winner); }
+        return;
+      }
       var msg = (d && d.reason) || '有玩家退出了游戏';
       showToast(msg);
       SFX.bgmStop();
@@ -2821,6 +2865,7 @@ function roll(x, y){
       clearInterval(iv);
       dice.classList.remove('rolling');
       showDice(finalN);
+      addLog('<b>' + state.players[state.turn].name + '</b> 掷出 <b>' + finalN + '</b> 点');
       // 显示完点数后延迟1000ms再隐藏骰子
       setTimeout(function(){ hideCenterDice(); }, 1000);
       movePawn(state.players[state.turn], finalN);
@@ -2842,7 +2887,23 @@ function hideCenterDice(){
   if(cd){ cd.classList.remove('show'); }
 }
 
-function movePawn(p, n){
+/* ---------- 游戏足迹日志 ---------- */
+function addLog(msg, cls){
+  var body = $('game-log-body');
+  if(!body) return;
+  var t = document.createElement('div');
+  t.className = 'log-line' + (cls ? ' ' + cls : '');
+  t.innerHTML = msg;
+  body.appendChild(t);
+  while(body.children.length > 80){ body.removeChild(body.firstChild); }
+  body.scrollTop = body.scrollHeight;
+}
+function clearLog(){
+  var body = $('game-log-body');
+  if(body){ body.innerHTML = ''; }
+}
+
+function movePawn(p, n, follow){
   var from = p.pos;
   if(!p.flying){ p.flying = true; from = -1; }
   p.steps = Math.min(p.end, p.steps + n);
@@ -2860,10 +2921,14 @@ function movePawn(p, n){
       clearInterval(iv);
       ripple(p.pos);
       SFX.move();
+      addLog('<b>' + p.name + '</b> 走到第 <b>' + p.steps + '</b> 格');
       if(p.steps >= p.end){
-        setTimeout(function(){ flyHome(p); }, 450);
+        if(!follow){ setTimeout(function(){ flyHome(p); }, 450); }
         return;
       }
+      // 联机跟随模式：特殊格效果（奖励/惩罚/前进后退/再掷）由掷骰者裁定后
+      // 经服务器广播统一，非掷骰者不做本地决策，避免各自随机导致"多掷/退格"不同步
+      if(follow) return;
       var met = false;
       for(var i = 0; i < state.players.length; i++){
         var o = state.players[i];
@@ -2885,33 +2950,40 @@ function resolveCell(p){
     switch(cell.type){
       case 'love':
         p.hearts += 2; showToast(p.name+' 完成甜蜜任务，爱心+2'); render(); syncPlayer();
+        addLog('<b>' + p.name + '</b> 完成甜蜜任务 <span class="ok">爱心 +2</span>');
         setTimeout(nextTurnSmart, 800); break;
       case 'reward':{
         var pool = (REWARD_POOLS[p.gender]&&REWARD_POOLS[p.gender].length)?REWARD_POOLS[p.gender]:REWARD_POOLS.male;
         var card = pick(pool); var r = card.act(p, getFoe(p));
         showToast(p.name+' 抽到奖励：'+card.t); render(); syncPlayer();
-        if(r==='keep'){ state.phase='idle'; setRollEnabled(true); }
+        addLog('<b>' + p.name + '</b> 抽到奖励：' + card.t);
+        if(r==='keep'){ state.phase='idle'; syncPlayer(); setRollEnabled(true); addLog('<b>' + p.name + '</b> 获得 <span class="ok">再掷一次</span>'); }
         else { setTimeout(nextTurnSmart, 800); }
         break;
       }
       case 'penalty':
-        if(p.shield){ p.shield=false; showToast('护身符挡住了惩罚'); render(); syncPlayer(); setTimeout(nextTurnSmart,800); break; }
+        if(p.shield){ p.shield=false; showToast('护身符挡住了惩罚'); render(); syncPlayer(); addLog('<b>' + p.name + '</b> 护身符挡住惩罚'); setTimeout(nextTurnSmart,800); break; }
         var pp = (PENALTY_POOLS[p.gender]&&PENALTY_POOLS[p.gender].length)?PENALTY_POOLS[p.gender]:PENALTY_POOLS.male;
         var pc = pick(pp); pc.act(p, getFoe(p));
         showToast(p.name+' 抽到惩罚：'+pc.t); render(); syncPlayer();
+        addLog('<b>' + p.name + '</b> 抽到惩罚：' + pc.t);
         setTimeout(nextTurnSmart, 800); break;
       case 'forward':
         state.phase='moving'; showToast('顺风助力，向前飞跃3格'); moveBy(p,3); render(); ripple(p.pos); SFX.move();
+        addLog('<b>' + p.name + '</b> 顺风前进 <b>3</b> 格');
         if(p.steps>=p.end){ setTimeout(function(){flyHome(p);},500); } else { syncPlayer(); setTimeout(nextTurnSmart,900); }
         break;
       case 'backward':
         state.phase='moving'; showToast('一阵小风把你吹回3格'); moveBy(p,-3); render(); ripple(p.pos); syncPlayer();
+        addLog('<b>' + p.name + '</b> 被吹回 <b>3</b> 格');
         setTimeout(nextTurnSmart,900); break;
       case 'rest':
         state.phase='moving'; p.skip=true; showToast(pick(REST_TEXTS)); syncPlayer();
+        addLog('<b>' + p.name + '</b> 停一轮');
         setTimeout(nextTurnSmart,1100); break;
       case 'safe':
         state.phase='moving'; p.shield=true; showToast('获得爱情护身符'); render(); syncPlayer();
+        addLog('<b>' + p.name + '</b> 获得爱情护身符');
         setTimeout(nextTurnSmart,1000); break;
       default:
         syncPlayer();
@@ -3194,16 +3266,9 @@ function flyHome(p){
   }
   setTimeout(function(){ win(p); }, 950);
 }
-function win(p){
-  state.phase = 'ended';
-  p.hearts += 5;
-  var best = loadBest();
-  for(var i = 0; i < state.players.length; i++){ best = Math.max(best, state.players[i].hearts); }
-  saveBest(best);
-  render();
-  SFX.win();
-  celebrate();
-
+function renderEndScreen(winner){
+  if(!winner) return;
+  var p = winner;
   $('end-title').textContent = p.name + ' 赢啦';
   $('end-sub').textContent = '率先飞入终点区「永远」，爱情航线完美收官';
   var maxH = 1;
@@ -3219,6 +3284,24 @@ function win(p){
   $('vs-row').innerHTML = vsHtml;
   $('best-score').textContent = '爱情最高纪录：' + best + ' 爱心';
   switchView('view-end');
+}
+function win(p){
+  state.phase = 'ended';
+  p.hearts += 5;
+  var best = loadBest();
+  for(var i = 0; i < state.players.length; i++){ best = Math.max(best, state.players[i].hearts); }
+  saveBest(best);
+  render();
+  SFX.win();
+  celebrate();
+  if(onlineMode){
+    // 联机：由赢家上传，服务器广播 ended 统一给全员展示结束界面（保证一致）
+    if(state.players[myId] === p){
+      fetch(serverUrl+'/win',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})}).catch(function(){});
+    }
+    return;
+  }
+  renderEndScreen(p);
 }
 
 /* ---------- 回合切换 ---------- */
@@ -3400,6 +3483,7 @@ function initGame(list){
   buildBoard();
   applyBoardBg();
   ensurePawns();
+  clearLog();
   showDice(1);
   render();
   setRollEnabled(true);
@@ -4428,7 +4512,14 @@ $('btn-sound').addEventListener('click', function(){
 $('btn-again').addEventListener('click', function(){
   SFX.resume();
   SFX.click();
-  if(onlineMode){ leaveOnline(); }
+  if(onlineMode && state){
+    // 联机：继续联机对局，由房主触发服务器重新开始，全员保持联机
+    if(state.hostId !== myId){ showToast('请房主点「再来一局」开始新一局'); return; }
+    fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.error){ showToast(d.error); } });
+    return;
+  }
   initGame(state.players.map(function(p){ return {name: p.name, gender: p.gender}; }));
 });
 $('btn-online').addEventListener('click', function(){
@@ -4528,17 +4619,19 @@ function refreshOnlineCount(){
     .catch(function(){ el.textContent = '--'; setJoinBtnMode(-1); });
 }
 $('btn-restart').addEventListener('click', function(){
-  if(onlineMode){ leaveOnline(); }
-  passMode = false;
-  $('pass-mask').style.display = 'none';
-});
-window.addEventListener('beforeunload', function(){ leaveOnline(); });
-$('btn-restart').addEventListener('click', function(){
-  SFX.bgmStop();
-  SFX.click();
+  SFX.bgmStop(); SFX.click();
+  if(onlineMode && state){
+    // 联机：继续联机对局，由房主触发服务器重新开始
+    if(state.hostId !== myId){ showToast('请房主点「重新开始」'); return; }
+    fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.error){ showToast(d.error); } });
+    return;
+  }
   state = null;
   switchView('view-start');
 });
+window.addEventListener('beforeunload', function(){ leaveOnline(); });
 var btnRestartEnd = $('btn-restart-end');
 if(btnRestartEnd){ btnRestartEnd.addEventListener('click', function(){
   SFX.bgmStop(); SFX.click(); state = null; switchView('view-start');
