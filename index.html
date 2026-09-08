@@ -2708,8 +2708,8 @@ function applyServerState(data){
     state.tda = data.tda;
     state.penaltyCards = data.penaltyCards;
     applyServerBoard(data);
-    // 游戏已开始但还在等待大厅时，切换到对局
-    if(data.started && $('view-lobby').classList.contains('active')){
+    // 游戏已开始但还在等待大厅 / 结算界面等非对局视图时，重新进入对局（支持联机再来一局）
+    if(data.started && !isInGameView()){
       enterOnlineGame(data);
       return;
     }
@@ -2754,6 +2754,10 @@ function applyServerState(data){
   if(oc3){ oc3.textContent = state.players.length; }
 }
 /* 联机开始后按游戏类型进入对应界面 */
+function isInGameView(){
+  var v = document.querySelector('.view.active');
+  return !!(v && (v.id === 'view-game' || v.id === 'view-rps' || v.id === 'view-tda'));
+}
 function enterOnlineGame(data){
   if(data.gameType === 'rps'){
     state.gameType = 'rps';
