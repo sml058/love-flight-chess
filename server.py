@@ -183,6 +183,8 @@ class Handler(BaseHTTPRequestHandler):
             self._reset()
         elif path == '/win':
             self._win(body)
+        elif path == '/final-punish':
+            self._final_punish(body)
         elif path == '/rps-roll':
             self._rps_roll(body)
         elif path == '/rps-next':
@@ -414,6 +416,19 @@ class Handler(BaseHTTPRequestHandler):
                     'players': json.loads(json.dumps(state['players']))}
         broadcast('ended', snap)
         self._json(200, snap)
+
+    def _final_punish(self, body):
+        """赢家到终点后抽终点惩罚卡：只有赢家可抽，广播给全员。"""
+        with state_lock:
+            if state['winner'] is None or body.get('id') != state['winner']:
+                self._json(400, {'error': '只有赢家可以抽终点惩罚卡'})
+                return
+            text = (body.get('text') or '').strip()
+            if not text:
+                self._json(400, {'error': '惩罚内容为空'})
+                return
+        broadcast('final-punish', {'text': text})
+        self._json(200, {'text': text})
 
     # ---------- 服务器管理入口 ----------
     def _online_pids(self):
