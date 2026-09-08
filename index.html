@@ -881,6 +881,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .log-line .bad{color:#D63B3B}
 /* 终点惩罚卡（赢家抽卡惩罚输家） */
 .end-penalty{margin:10px 0 4px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.again-ready{
+  margin:8px 0 4px;padding:12px 14px;background:#FFF6FA;border:1.5px dashed #FF9EBC;
+  border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:360px;
+}
+.again-ready-title{font-size:15px;font-weight:800;color:var(--love);letter-spacing:1px}
+.again-ready-list{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.9;text-align:center}
+.again-ready-hint{font-size:11.5px;color:var(--ink-soft);line-height:1.5;text-align:center}
+.btn-again-ready{margin-top:2px;font-size:16px;letter-spacing:1px;padding:11px 34px}
 .end-result{
   font-size:16px;font-weight:800;color:var(--ink);margin:10px 0 2px;
   letter-spacing:1px;line-height:1.8;
@@ -1636,6 +1644,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
 
       <p class="start-sub" id="best-score"></p>
+
+      <div class="again-ready" id="again-ready" style="display:none">
+        <div class="again-ready-title">再来一局 · 先准备</div>
+        <div class="again-ready-list" id="again-ready-list"></div>
+        <div class="again-ready-hint" id="again-ready-hint">每位玩家点「准备好」，房主看到全员就绪后点「开始新一局」</div>
+        <button class="btn-primary btn-again-ready" id="btn-ready" type="button" style="display:none">准备好</button>
+        <button class="btn-primary btn-again-ready" id="btn-start-again" type="button" style="display:none">开始新一局</button>
+      </div>
 
       <button class="btn-primary" id="btn-again" type="button">再来一局</button>
       <button class="btn-ghost" id="btn-restart-end" type="button">换人重来</button>
@@ -2691,7 +2707,7 @@ function applyServerBoard(data){
 function applyServerState(data){
   // 处理等待大厅状态
   if(data && data.started === false && onlineMode){
-    state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:false, hostId:data.hostId};
+    state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:false, hostId:data.hostId, ready:data.ready || {}};
     renderLobby();
     var oc = $('online-count');
     if(oc){ oc.textContent = state.players.length; }
@@ -2703,6 +2719,7 @@ function applyServerState(data){
     state.turn = data.turn;
     state.started = data.started;
     state.hostId = data.hostId;
+    state.ready = data.ready || state.ready || {};
     state.gameType = data.gameType || state.gameType;
     state.rps = data.rps;
     state.tda = data.tda;
@@ -2737,7 +2754,7 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, penaltyCards:data.penaltyCards};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, penaltyCards:data.penaltyCards, ready:data.ready || {}};
   onlineMode = true;
   applyServerBoard(data);
   // 若房间未开始，进入等待大厅
@@ -2951,6 +2968,12 @@ function setupSSE(){
     try{
       var d = JSON.parse(e.data);
       if(d && d.text){ showFinalPenalty(d.text); }
+    }catch(err){}
+  });
+  evtSource.addEventListener('ready', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && d.ready){ state.ready = d.ready; renderAgainReady(); }
     }catch(err){}
   });
   evtSource.addEventListener('tda', function(e){
@@ -3451,6 +3474,38 @@ function flyHome(p){
   }
   setTimeout(function(){ win(p); }, 950);
 }
+function renderAgainReady(){
+  if(!state || !state.players) return;
+  var box = $('again-ready');
+  if(!box) return;
+  var isEnd = $('view-end').classList.contains('active');
+  if(!isEnd){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  var ready = state.ready || {};
+  var parts = [];
+  var readyCount = 0;
+  for(var i = 0; i < state.players.length; i++){
+    var ap = state.players[i];
+    if(ready[ap.id]){ readyCount++; }
+    parts.push('<span style="color:' + ap.color + '">' + (ready[ap.id] ? '🟢 ' : '⏳ ') + ap.name + (ready[ap.id] ? ' 已准备' : ' 准备中') + '</span>');
+  }
+  $('again-ready-list').innerHTML = parts.join('　');
+  var isHost = (state.hostId === myId);
+  var meReady = !!ready[myId];
+  var rdBtn = $('btn-ready');
+  var stBtn = $('btn-start-again');
+  if(isHost){
+    rdBtn.style.display = 'none';
+    stBtn.style.display = 'block';
+    $('again-ready-hint').textContent = (readyCount >= state.players.length)
+      ? '全员已准备，点「开始新一局」出发！' : '等待其他玩家准备…（还有 ' + (state.players.length - readyCount) + ' 人未准备）';
+  }else{
+    rdBtn.style.display = meReady ? 'none' : 'block';
+    rdBtn.textContent = meReady ? '已准备好' : '准备好';
+    stBtn.style.display = 'none';
+    $('again-ready-hint').textContent = '点「准备好」告诉房主，房主会开始新一局';
+  }
+}
 function renderEndScreen(winner){
   if(!winner) return;
   var p = winner;
@@ -3492,7 +3547,17 @@ function renderEndScreen(winner){
   }
   var fpText = $('final-penalty-text');
   if(fpText){ fpText.innerHTML = ''; }
+  // 再来一局：联机走「准备 → 房主开始」流程；单机保留原按钮
   switchView('view-end');
+  if(onlineMode){
+    $('btn-again').style.display = 'none';
+    $('btn-restart-end').style.display = 'none';
+    renderAgainReady();
+  }else{
+    $('again-ready').style.display = 'none';
+    $('btn-again').style.display = 'block';
+    $('btn-restart-end').style.display = 'block';
+  }
 }
 function win(p){
   state.phase = 'ended';
@@ -4721,6 +4786,31 @@ $('btn-sound').addEventListener('click', function(){
 $('btn-final-penalty').addEventListener('click', function(){
   try{ SFX.click(); }catch(e){}
   drawFinalPenalty();
+});
+// 联机再来一局：玩家点「准备好」
+$('btn-ready').addEventListener('click', function(){
+  SFX.click();
+  if(!onlineMode || !state) return;
+  fetch(serverUrl+'/ready',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); }
+      else if(state && d.ready){ state.ready = d.ready; renderAgainReady(); }
+    })
+    .catch(function(){});
+});
+// 联机再来一局：房主点「开始新一局」
+$('btn-start-again').addEventListener('click', function(){
+  SFX.click();
+  if(!onlineMode || !state) return;
+  if(state.hostId !== myId){ showToast('只有房主可以开始'); return; }
+  var readyCount = 0;
+  for(var i = 0; i < state.players.length; i++){ if(state.ready && state.ready[state.players[i].id]){ readyCount++; } }
+  if(readyCount < state.players.length){ showToast('还有玩家未准备，等他们点「准备好」'); return; }
+  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.error){ showToast(d.error); } })
+    .catch(function(){});
 });
 $('btn-again').addEventListener('click', function(){
   SFX.resume();
