@@ -130,6 +130,44 @@ button:disabled{opacity:.45;cursor:not-allowed}
   letter-spacing:1px;
 }
 .start-sub b{color:var(--love);font-weight:500}
+/* ============ 游戏选择主界面 ============ */
+.menu-wrap{justify-content:flex-start;padding-top:56px}
+.menu-hero{margin-bottom:8px}
+.menu-logo{font-size:52px;line-height:1;animation:heroFloat 3.6s ease-in-out infinite}
+.menu-label{margin-top:26px;font-size:15px;font-weight:700;color:var(--love);letter-spacing:2px}
+.menu-grid{
+  margin-top:14px;width:100%;max-width:520px;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+}
+.menu-card{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:18px 12px 14px;
+  background:var(--card);
+  border:2px solid var(--line);
+  border-radius:18px;
+  cursor:pointer;
+  transition:transform .15s,border-color .15s,box-shadow .15s;
+  font-family:inherit;
+}
+.menu-card:active{transform:scale(.97)}
+.menu-card.active{
+  border-color:var(--love);
+  box-shadow:0 6px 18px rgba(255,110,156,.25);
+  background:linear-gradient(160deg,#FFF0F6,#F4EEFF);
+}
+.mc-emoji{font-size:34px;line-height:1.2}
+.mc-name{font-size:16px;font-weight:700;color:var(--ink)}
+.mc-desc{font-size:11.5px;color:var(--ink-soft);line-height:1.4}
+.menu-hint{margin-top:16px;font-size:12.5px;color:var(--ink-soft)}
+#btn-menu-next{margin-top:18px}
+/* 配置页头部 */
+.config-head{
+  width:100%;max-width:520px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.btn-config-back{font-size:13px;padding:7px 12px}
+.config-game-title{font-size:16px;font-weight:700;color:var(--love);letter-spacing:1px}
 .board-version{
   margin-top:20px;
   text-align:center;
@@ -472,6 +510,27 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .online-status.err{color:var(--setback)}
 .online-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1px;color:#fff;background:linear-gradient(120deg,#9B7BFF,#7B9BFF);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
 
+/* ============ 射击游戏 ============ */
+.shoot-mode{display:flex;gap:8px;justify-content:center;margin:8px 0}
+.shoot-mode + .shoot-mode{margin-top:-2px}
+.shoot-pair{
+  font-size:13px;font-weight:700;color:var(--boost);background:linear-gradient(90deg,#FFF0F6,#F3E8FF);
+  border:1px dashed rgba(255,110,156,.4);border-radius:12px;padding:6px 12px;text-align:center;margin:6px 30px 2px;
+}
+.shoot-stage{
+  display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;
+}
+#shoot-canvas{
+  width:100%;max-width:360px;height:auto;border-radius:18px;cursor:crosshair;
+  box-shadow:0 10px 30px rgba(74,52,71,.18);background:#FDF7FB;touch-action:manipulation;
+}
+.shoot-status{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:4px;min-height:18px}
+.shoot-info{
+  font-size:15px;font-weight:700;color:var(--ink);background:#FFF3F8;border:1px solid rgba(255,110,156,.25);
+  border-radius:12px;padding:8px 16px;text-align:center;line-height:1.7;min-height:44px;
+}
+.shoot-info b{color:var(--love)}
+.shoot-result{font-size:15px;font-weight:800;color:var(--boost);text-align:center;margin-top:4px;line-height:1.9}
 /* ============ 猜拳对决 ============ */
 .btn-rps-entry{margin-top:10px}
 .rps-wrap{
@@ -532,9 +591,53 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .btn-rps-punish{display:block;margin:14px auto 0}
 .rps-custom-btn{display:block;margin:10px auto 0;font-size:14px;color:var(--love);background:transparent;border:1px dashed rgba(255,110,156,.5);border-radius:999px;padding:8px 18px;cursor:pointer}
 .rps-custom-panel{background:#FFF9FC;border:1px solid #FFD9E6;border-radius:16px;padding:14px;margin-top:12px}
+#shoot-custom-panel{max-height:36vh;overflow-y:auto}
+#shoot-custom-editor{margin-top:4px;clear:both}
+#shoot-custom-editor .cc-text{font-size:14px;width:100%}
+#shoot-custom-panel .mystery-kind-tabs{flex-wrap:wrap}
 .rps-gender-tabs{display:flex;justify-content:center;gap:8px;margin-bottom:10px}
 .rps-gtab{padding:6px 18px;border-radius:999px;border:1.5px solid #FFD9E6;background:#fff;color:var(--ink);font-size:14px;font-weight:700;cursor:pointer}
 .rps-gtab.active{background:var(--love);border-color:var(--love);color:#fff}
+/* ---------- 赛马游戏 ---------- */
+.race-status{font-size:15px;color:var(--ink);font-weight:700;text-align:center;margin:10px 0 6px;min-height:22px}
+.race-stage{margin-top:6px;text-align:center}
+.race-track{max-width:520px;margin:0 auto 12px;padding:10px;background:#FFF9FC;border:1.5px solid #FFD9E6;border-radius:16px}
+.race-lane{position:relative;height:40px;margin:5px 0;background:linear-gradient(90deg,#FFF3F8,#FFF9FC);border-radius:10px;border:1px dashed #FFD9E6}
+.race-finish{position:absolute;right:9%;top:0;bottom:0;width:3px;background:repeating-linear-gradient(180deg,#FF6E9C 0 6px,#fff 6px 12px);border-radius:2px}
+.race-horse{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;font-size:15px;font-weight:800;color:var(--ink);transition:left .03s linear;z-index:2}
+.race-dot{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.18);display:inline-block}
+.race-horse-icon{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.18);border:2px solid #fff;flex:none}
+.race-stage .btn-rps-roll{display:block;margin:16px auto 0}
+.race-horse b{background:#fff;border:1.5px solid #FFD9E6;border-radius:999px;min-width:20px;text-align:center;padding:0 3px;font-size:12px}
+.race-bets{max-width:520px;margin:0 auto 10px}
+.race-bet-row{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;background:#FFF9FC;border:1.5px solid #FFD9E6;border-radius:14px}
+.race-bet-name{color:#fff;font-weight:800;font-size:13px;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.race-picks{display:flex;gap:6px;flex-wrap:wrap}
+.race-pick{width:40px;height:34px;border-radius:10px;border:2px solid var(--pc);background:#fff;color:var(--pc);font-weight:800;font-size:15px;cursor:pointer}
+.race-pick.on{background:var(--pc);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.race-result{font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.9;margin:8px 0}
+.race-round-rank{font-size:13px;color:var(--ink-soft)}
+.race-round-winner{font-size:17px;color:var(--love)}
+.race-final{margin-top:4px;font-size:17px;color:#B07CF7}
+/* ---------- 盲盒奇遇 ---------- */
+.mystery-status{font-size:15px;color:var(--ink);font-weight:700;text-align:center;margin:10px 0 6px;min-height:22px}
+.mystery-stage{margin-top:6px;text-align:center}
+.mystery-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:8px 4px;max-width:420px;margin:0 auto}
+.mystery-box{position:relative;aspect-ratio:1/1.05;border:none;border-radius:16px;background:linear-gradient(145deg,#FFD9E6,#FFB3CC);box-shadow:0 4px 10px rgba(255,110,156,.25);font-size:38px;cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;align-items:center;justify-content:center}
+.mystery-box:active{transform:scale(.94)}
+.mystery-box.opened{background:#FFF3F8;box-shadow:none;cursor:default}
+.mystery-box .mb-tag{position:absolute;bottom:4px;right:6px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border-radius:999px;padding:1px 7px;color:var(--love)}
+.mystery-box .mb-v{position:absolute;top:4px;left:6px;font-size:13px;font-weight:800;color:#fff;background:rgba(255,110,156,.85);border-radius:999px;padding:1px 7px}
+.mystery-open{min-height:66px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;font-weight:800;color:var(--ink);line-height:1.6;padding:8px 14px}
+.mystery-open .mo-card{background:#FFF9FC;border:1.5px solid #FFD9E6;border-radius:16px;padding:10px 18px;box-shadow:0 4px 14px rgba(255,110,156,.15);animation:moPop .35s ease}
+.mystery-open .mo-card b{color:var(--love)}
+@keyframes moPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.mystery-result{font-size:16px;font-weight:800;color:var(--setback);text-align:center;line-height:1.9;margin:8px 0}
+.mystery-kind-tabs{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+.mystery-kind-tabs .rps-gtab{padding:5px 12px;font-size:13px}
+.mystery-ready{margin-top:8px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.mystery-ready .btn-primary{display:block;margin:0 auto 0}
+.mystery-ready-hint{font-size:14px;color:var(--ink);font-weight:700;margin-bottom:8px;line-height:1.6}
 .btn-rps-save{margin:12px auto 0;font-size:16px;letter-spacing:1px;padding:12px 26px}
 /* 联机猜拳：当前对决玩家高亮 */
 .rps-pill-active{box-shadow:0 0 0 2.5px var(--love);transform:scale(1.04)}
@@ -543,6 +646,21 @@ button:disabled{opacity:.45;cursor:not-allowed}
   position:fixed;inset:0;z-index:60;background:rgba(74,52,71,.45);
   display:flex;align-items:center;justify-content:center;padding:24px;
 }
+
+/* ---------- 瑜伽抽卡 ---------- */
+.yoga-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:12px 16px 30px;}
+.yoga-turn{font-size:16px;font-weight:700;color:var(--ink);background:#fff;border:2px solid var(--pink);border-radius:999px;padding:8px 22px;box-shadow:0 3px 10px rgba(232,107,155,.18);}
+.yoga-card{width:min(320px,92%);background:#fff;border-radius:22px;padding:16px 16px 18px;box-shadow:0 6px 24px rgba(232,107,155,.22);display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid #FFD3E3;}
+.yoga-card svg{width:100%;height:auto;max-height:300px;flex:0 0 auto;}
+.yoga-name{font-size:22px;font-weight:800;color:var(--pink);}
+.yoga-en{font-size:13px;color:#B98AA4;letter-spacing:1px;}
+.yoga-sec{font-size:15px;color:#E86B9B;background:#FFF0F6;border-radius:999px;padding:4px 14px;font-weight:700;}
+.yoga-tip{font-size:14px;color:#8A6E7E;line-height:1.55;text-align:center;}
+.yoga-timer{font-size:34px;font-weight:800;color:var(--pink);font-variant-numeric:tabular-nums;min-height:38px;}
+.yoga-empty{color:#C9A8B8;font-size:15px;padding:50px 10px;text-align:center;}
+.yoga-card .yoga-pose-svg{background:linear-gradient(180deg,#FFF5F9,#FFF);border-radius:16px;}
+.yoga-card .yoga-photo{width:100%;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#FFF5F9,#FFF);}
+.yoga-card .yoga-photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:16px;}
 
 /* ============ 真心话大冒险 ============ */
 .tda-mode{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
@@ -1278,13 +1396,73 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
   </section>
 
+  <!-- ========== 视图：游戏选择主界面 ========== -->
+  <section id="view-menu" class="view">
+    <div class="start-wrap menu-wrap">
+      <div class="menu-hero">
+        <div class="menu-logo">💘</div>
+        <h1 class="start-title">恋爱飞行棋</h1>
+        <p class="start-sub">从 <b>初见</b>，一路飞到 <b>永远</b></p>
+      </div>
+      <div class="menu-label">🎮 选择游戏</div>
+      <div class="menu-grid">
+        <button class="menu-card active" type="button" data-g="flight">
+          <span class="mc-emoji">✈️</span>
+          <span class="mc-name">飞行棋</span>
+          <span class="mc-desc">绕航线，比谁先飞到永远</span>
+        </button>
+        <button class="menu-card" type="button" data-g="wheel">
+          <span class="mc-emoji">🎡</span>
+          <span class="mc-name">幸运转盘</span>
+          <span class="mc-desc">转出甜蜜小挑战</span>
+        </button>
+        <button class="menu-card" type="button" data-g="rps">
+          <span class="mc-emoji">✊</span>
+          <span class="mc-name">猜拳对决</span>
+          <span class="mc-desc">输的接受惩罚</span>
+        </button>
+        <button class="menu-card" type="button" data-g="tda">
+          <span class="mc-emoji">🎯</span>
+          <span class="mc-name">真心话大冒险</span>
+          <span class="mc-desc">抽卡聊心里话</span>
+        </button>
+        <button class="menu-card" type="button" data-g="shoot">
+          <span class="mc-emoji">🔫</span>
+          <span class="mc-name">射击游戏</span>
+          <span class="mc-desc">一人一箭，射准靶心</span>
+        </button>
+        <button class="menu-card" type="button" data-g="mystery">
+          <span class="mc-emoji">🎁</span>
+          <span class="mc-name">盲盒奇遇</span>
+          <span class="mc-desc">开盒有惊喜，甜到心里</span>
+        </button>
+        <button class="menu-card" type="button" data-g="race">
+          <span class="mc-emoji">🏇</span>
+          <span class="mc-name">赛马游戏</span>
+          <span class="mc-desc">猜中冠军马，猜错受惩罚</span>
+        </button>
+        <button class="menu-card" type="button" data-g="yoga">
+          <span class="mc-emoji">🧘</span>
+          <span class="mc-name">瑜伽抽卡</span>
+          <span class="mc-desc">抽个姿势，一起舒展</span>
+        </button>
+      </div>
+      <p class="menu-hint">选好想玩的游戏，下一步配置玩家</p>
+      <button class="btn-primary" id="btn-menu-next" type="button">下一步：选择玩家 ▶</button>
+    </div>
+  </section>
+
 <section id="view-start" class="view">
     <div class="start-wrap">
+      <div class="config-head">
+        <button class="btn-ghost btn-config-back" id="btn-config-back" type="button">← 返回选游戏</button>
+        <span class="config-game-title" id="config-game-title">✈️ 飞行棋</span>
+      </div>
       <div class="hero-illustration" id="hero-illustration"></div>
-      <h1 class="start-title">恋爱飞行棋</h1>
-      <p class="start-sub">从 <b>初见</b>，一路飞到 <b>永远</b></p>
+      <h1 class="start-title">玩家配置</h1>
+      <p class="start-sub">选好人数与性别，开始甜蜜对战</p>
 
-      <div class="board-version">
+      <div class="board-version" id="cfg-flight-ver">
         <div class="bv-label">选择棋盘版本</div>
         <div class="bv-btns">
           <button class="bv-btn active" type="button" data-v="50">基础版<br><small>50格</small></button>
@@ -1339,7 +1517,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         </div>
       </div>
 
-      <details class="custom-cards">
+      <details class="custom-cards" id="cfg-flight-cards">
         <summary>奖励 / 惩罚卡 <small>按性别区分，可选</small></summary>
         <div class="cc-group">
           <div class="cc-head"><span class="cc-title">他 · 奖励卡</span><span class="cc-count" id="cc-reward-male-count">4 张</span></div>
@@ -1413,7 +1591,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       </div>
       </div>
 
-      <div class="how-to-play">
+      <div class="how-to-play" id="cfg-flight-how">
         <h3>怎么玩</h3>
         <div class="how-row">
           <span class="how-dot" style="background:var(--p2-soft)"><span class="icon" data-icon="twinHeart" data-size="13"></span></span>
@@ -1429,11 +1607,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
         </div>
       </div>
 
-      <button class="btn-wheel-entry" id="btn-wheel-entry" type="button">🎡 幸运转盘</button>
-      <button class="btn-wheel-entry btn-rps-entry" id="btn-rps-entry" type="button">✊ 猜拳对决</button>
-      <button class="btn-wheel-entry btn-rps-entry" id="btn-tda-entry" type="button">🎯 真心话大冒险</button>
-      <button class="btn-primary" id="btn-start" type="button">开始飞行</button>
+      <button class="btn-primary" id="btn-start" type="button">🚀 开始飞行</button>
+      <div id="cfg-flight-pass">
       <button class="btn-pass" id="btn-pass" type="button">传递模式（2-4人轮流一部手机）</button>
+      </div>
       <div class="online-entry">
         <button class="btn-online" id="btn-online" type="button">联机加入（同 WiFi 多人）</button>
         <div class="online-panel" id="online-panel" style="display:none">
@@ -1467,6 +1644,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <button class="lv-btn active" type="button" data-g="flight">✈️ 飞行棋</button>
           <button class="lv-btn" type="button" data-g="rps">✊ 猜拳</button>
           <button class="lv-btn" type="button" data-g="tda">🎯 真心话大冒险</button>
+          <button class="lv-btn" type="button" data-g="mystery">🎁 盲盒奇遇</button>
         </div>
       </div>
       <div class="lobby-version" id="lobby-version">
@@ -1501,16 +1679,16 @@ button:disabled{opacity:.45;cursor:not-allowed}
         </div>
         <button class="btn-primary btn-rps-punish" id="btn-rps-punish" type="button" style="display:none">🎴 抽取惩罚卡</button>
         <button class="btn-primary btn-rps-next" id="btn-rps-next" type="button" style="display:none">下一轮</button>
-        <button class="rps-custom-btn" id="btn-rps-custom-toggle" type="button" style="display:none">✏️ 自定义惩罚卡（房主） ▼</button>
+        <button class="rps-custom-btn" id="btn-rps-custom-toggle" type="button">✏️ 自定义惩罚卡 ▼</button>
         <div class="rps-custom-panel" id="rps-custom-panel" style="display:none">
-          <div class="wc-title">自定义惩罚卡 · 仅房主可改，保存后同步全员</div>
+          <div class="wc-title">自定义惩罚卡 · 自动保存，下次打开还在</div>
           <div class="rps-gender-tabs" id="rps-gender-tabs">
             <button class="rps-gtab active" type="button" data-g="male">👦 他</button>
             <button class="rps-gtab" type="button" data-g="female">👧 她</button>
           </div>
           <div class="wc-list" id="rps-custom-list"></div>
           <button class="cc-add" type="button" id="rps-custom-add">+ 加一张</button>
-          <button class="btn-primary btn-rps-save" id="rps-custom-save" type="button">💾 保存并同步全员</button>
+          <button class="btn-primary btn-rps-save" id="rps-custom-save" type="button">💾 保存</button>
         </div>
       </div>
     </div>
@@ -1563,6 +1741,133 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <button class="wc-btn wc-save" id="btn-tda-save" type="button">保存</button>
           <button class="wc-btn wc-reset" id="btn-tda-reset" type="button">恢复默认</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：射击游戏 ========== -->
+  <section id="view-shoot" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="shoot-title">🔫 射击游戏</div>
+        <button class="rps-exit" id="btn-shoot-exit" type="button">退出</button>
+      </div>
+      <div class="shoot-pair" id="shoot-pair">💞 自动配对：男玩家射女靶 · 女玩家射男靶</div>
+      <div class="shoot-mode" id="shoot-diff">
+        <button class="tda-mode-btn" type="button" data-d="easy">🐣 轻松</button>
+        <button class="tda-mode-btn active" type="button" data-d="normal">🔥 挑战</button>
+        <button class="tda-mode-btn" type="button" data-d="hard">💀 高手</button>
+      </div>
+      <div class="shoot-status" id="shoot-status">轮流射击人形靶，每人 1 箭，比谁射得准！</div>
+      <div class="shoot-stage">
+        <canvas id="shoot-canvas" width="520" height="620"></canvas>
+        <div class="shoot-info" id="shoot-info"></div>
+        <div class="shoot-result" id="shoot-result"></div>
+        <button class="btn-primary btn-rps-roll" id="btn-shoot-again" type="button" style="display:none">🔁 再来一次</button>
+        <button class="rps-custom-btn" id="btn-shoot-custom-toggle" type="button">✏️ 自定义命中内容 ▼</button>
+        <div class="rps-custom-panel" id="shoot-custom-panel" style="display:none">
+          <div class="wc-title">自定义命中内容 · 输入后自动保存，下次打开还在（{foe} = 对方名字）</div>
+          <div class="rps-gender-tabs" id="shoot-gender-tabs">
+            <button class="rps-gtab active" type="button" data-g="male">👦 他</button>
+            <button class="rps-gtab" type="button" data-g="female">👧 她</button>
+          </div>
+          <div class="mystery-kind-tabs" id="shoot-part-tabs">
+            <button class="rps-gtab active" type="button" data-p="heart">💘 胸口</button>
+            <button class="rps-gtab" type="button" data-p="face">😊 脸颊</button>
+            <button class="rps-gtab" type="button" data-p="body">👕 身体</button>
+            <button class="rps-gtab" type="button" data-p="arm">💪 手臂</button>
+            <button class="rps-gtab" type="button" data-p="leg">🦵 腿部</button>
+          </div>
+          <div id="shoot-custom-editor"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：盲盒奇遇 ========== -->
+  <section id="view-mystery" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="mystery-title">🎁 盲盒奇遇</div>
+        <button class="rps-exit" id="btn-mystery-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="mystery-score"></div>
+      <div class="mystery-status" id="mystery-status">轮流开盲盒，谁的爱心最多谁获胜！</div>
+      <div class="mystery-stage">
+        <div class="mystery-boxes" id="mystery-boxes"></div>
+        <div class="mystery-open" id="mystery-open"></div>
+        <div class="mystery-result" id="mystery-result"></div>
+        <div class="mystery-ready" id="mystery-ready" style="display:none">
+          <div class="mystery-ready-hint" id="mystery-ready-hint"></div>
+          <button class="btn-primary btn-rps-roll" id="btn-mystery-ready" type="button" style="display:none">🙋 准备好</button>
+          <button class="btn-primary btn-rps-roll" id="btn-mystery-start-again" type="button" style="display:none">🚀 开始新一局</button>
+        </div>
+        <button class="btn-primary btn-rps-roll" id="btn-mystery-again" type="button" style="display:none">🔁 再来一局</button>
+        <button class="rps-custom-btn" id="btn-mystery-custom-toggle" type="button">✏️ 自定义盲盒内容 ▼</button>
+        <div class="rps-custom-panel" id="mystery-custom-panel" style="display:none">
+          <div class="wc-title">自定义盲盒内容 · 自动保存，下次打开还在</div>
+          <div class="rps-gender-tabs" id="mystery-gender-tabs">
+            <button class="rps-gtab active" type="button" data-g="male">👦 他</button>
+            <button class="rps-gtab" type="button" data-g="female">👧 她</button>
+          </div>
+          <div class="mystery-kind-tabs" id="mystery-kind-tabs">
+            <button class="rps-gtab active" type="button" data-k="reward">💝 奖励</button>
+            <button class="rps-gtab" type="button" data-k="penalty">😈 惩罚</button>
+            <button class="rps-gtab" type="button" data-k="jackpot">🎊 惊喜</button>
+          </div>
+          <div class="wc-list" id="mystery-custom-list"></div>
+          <button class="cc-add" type="button" id="mystery-custom-add">+ 加一张</button>
+          <button class="btn-primary btn-rps-save" id="mystery-custom-save" type="button">💾 保存</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：赛马游戏 ========== -->
+  <section id="view-race" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="race-title">🏇 赛马大会</div>
+        <button class="rps-exit" id="btn-race-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="race-score"></div>
+      <div class="race-status" id="race-status">第 1/3 轮，每人猜一匹马！</div>
+      <div class="race-stage">
+        <div class="race-track" id="race-track"></div>
+        <div class="race-bets" id="race-bets"></div>
+        <div class="race-result" id="race-result"></div>
+        <button class="btn-primary btn-rps-roll" id="race-go" type="button" disabled>🏇 开跑！</button>
+        <button class="btn-primary btn-rps-roll" id="btn-race-again" type="button" style="display:none">🔁 再来一局</button>
+        <button class="rps-custom-btn" id="btn-race-custom-toggle" type="button">✏️ 自定义惩罚内容 ▼</button>
+        <div class="rps-custom-panel" id="race-custom-panel" style="display:none">
+          <div class="wc-title">自定义赛马惩罚 · 输入即存，下次打开还在</div>
+          <div class="rps-gender-tabs" id="race-gender-tabs">
+            <button class="rps-gtab active" type="button" data-g="male">👦 他</button>
+            <button class="rps-gtab" type="button" data-g="female">👧 她</button>
+          </div>
+          <div class="wc-list" id="race-custom-list"></div>
+          <button class="cc-add" type="button" id="race-custom-add">+ 加一条惩罚</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：瑜伽抽卡 ========== -->
+  <section id="view-yoga" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="yoga-title">🧘 瑜伽姿势抽卡</div>
+        <button class="rps-exit" id="btn-yoga-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="yoga-score"></div>
+      <div class="mystery-status" id="yoga-status">每人轮流抽一张瑜伽姿势卡，抽到谁就谁来做</div>
+      <div class="yoga-stage">
+        <div class="yoga-turn" id="yoga-turn"></div>
+        <div class="yoga-card" id="yoga-card"></div>
+        <div class="yoga-timer" id="yoga-timer"></div>
+        <button class="btn-primary btn-rps-roll" id="btn-yoga-draw" type="button">🃏 抽一张</button>
+        <button class="btn-primary btn-rps-roll" id="btn-yoga-done" type="button" style="display:none">✅ 做完啦，换下一位</button>
+        <button class="btn-primary btn-rps-roll" id="btn-yoga-again" type="button" style="display:none">🔁 再来一局</button>
       </div>
     </div>
   </section>
@@ -1716,6 +2021,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
    ============================================================ */
 (function(){
 "use strict";
+window.onerror=function(m,s,l){ try{ var t=document.getElementById('jsdbg'); if(!t){ t=document.createElement('div'); t.id='jsdbg'; t.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#300;color:#ff0;font-size:13px;padding:6px;white-space:pre-wrap'; document.body.appendChild(t); } t.textContent=m+' @'+(l||''); }catch(e){} };
 
 /* ---------- 图标库（手写内联 SVG，不用 emoji） ---------- */
 var ICONS = {
@@ -1740,7 +2046,8 @@ var BGM_TRACKS = [
   { name: '轻快活泼', notes: [523,587,659,698,784,698,659,587,523,587,659,784,880,784,659,523], speed: 260, type: 'triangle' },
   { name: '温柔舒缓', notes: [392,440,494,523,587,523,494,440,392,440,494,523,587,523,494,392], speed: 420, type: 'sine' },
   { name: '欢快节奏', notes: [523,659,784,1047,784,659,523,659,784,1047,880,784,659,587,523,659], speed: 240, type: 'square' },
-  { name: '梦幻星空', notes: [440,523,659,880,659,523,440,523,587,659,784,880,784,659,587,523], speed: 380, type: 'sine' }
+  { name: '梦幻星空', notes: [440,523,659,880,659,523,440,523,587,659,784,880,784,659,587,523], speed: 380, type: 'sine' },
+  { name: '赛马奔腾', notes: [523,659,784,1047,392,523,659,784,659,784,1047,1319,494,587,784,988], speed: 140, type: 'square' }
 ];
 var SFX = {
   ctx: null,
@@ -1777,10 +2084,28 @@ var SFX = {
     o.type = opts.type || 'sine';
     o.frequency.setValueAtTime(freq, t0);
     if(opts.glide){ o.frequency.exponentialRampToValueAtTime(opts.glide, t0 + dur); }
+    if(opts.vibrato){
+      var lfo = this.ctx.createOscillator();
+      var lg = this.ctx.createGain();
+      lfo.frequency.value = opts.vibrato;
+      lg.gain.value = opts.vibDepth || 4;
+      lfo.connect(lg);
+      lg.connect(o.frequency);
+      lfo.start(t0);
+      lfo.stop(t0 + dur + 0.06);
+    }
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(opts.vol || 0.15, t0 + 0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g);
+    if(opts.lp){
+      var flt = this.ctx.createBiquadFilter();
+      flt.type = 'lowpass';
+      flt.frequency.value = opts.lp;
+      o.connect(flt);
+      flt.connect(g);
+    }else{
+      o.connect(g);
+    }
     g.connect(this.master);
     o.start(t0);
     o.stop(t0 + dur + 0.05);
@@ -1815,6 +2140,14 @@ var SFX = {
     this.tone(330, 0.22, {type:'sawtooth', vol:0.07, delay:0.12});
     this.tone(262, 0.3, {type:'sawtooth', vol:0.07, delay:0.24});
   },
+  shoot: function(){
+    this.tone(180, 0.08, {type:'square', vol:0.1});
+    this.tone(95, 0.16, {type:'sawtooth', vol:0.06, delay:0.02});
+  },
+  hit: function(){
+    this.tone(880, 0.1, {type:'triangle', vol:0.13});
+    this.tone(1320, 0.18, {type:'triangle', vol:0.11, delay:0.06});
+  },
   win: function(){
     var f = [523,659,784,1047,784,1047];
     for(var i = 0; i < f.length; i++){ this.tone(f[i], 0.24, {type:'triangle', vol:0.18, delay:i*0.12}); }
@@ -1827,9 +2160,9 @@ var SFX = {
     this.bgmTimer = setInterval(function(){
       if(!self.ctx || self.muted) return;
       var n = track.notes[self.bgmStep % track.notes.length];
-      self.tone(n, 0.55, {type: track.type, vol:0.07});
-      // 加一个低八度的和声
-      self.tone(n/2, 0.55, {type:'triangle', vol:0.025});
+      self.tone(n, (track.dur || 0.55), {type: track.type, vol:(track.vol || 0.07), vibrato: track.vibrato, vibDepth: track.vibDepth, lp: track.lp});
+      // 加一个低八度的和声（纯二胡快板不加，避免糊）
+      if(!track.plain){ self.tone(n/2, 0.55, {type:'triangle', vol:0.025}); }
       self.bgmStep++;
     }, track.speed);
   },
@@ -1898,6 +2231,8 @@ var BOARD_VERSIONS = {
   150: { N: 150, COLS: 10, ROWS: 15, name: '高级版' }
 };
 var currentBoardVersion = 50;
+var selectedGame = 'flight'; // flight / wheel / rps / tda / shoot / mystery（主界面选择后进入对应游戏）
+var GAME_NAMES = { flight: '飞行棋', wheel: '幸运转盘', rps: '猜拳对决', tda: '真心话大冒险', shoot: '射击游戏', mystery: '盲盒奇遇', race: '赛马游戏', yoga: '瑜伽抽卡' };
 var N = 150;
 var BOARD_COLS = 10;
 var BOARD_ROWS = 15;
@@ -2259,6 +2594,7 @@ function mountCardLists(){
     var t = e.target;
     if(t.classList && t.classList.contains('cc-add')){
       var kind = t.getAttribute('data-kind');
+      if(!kind) return; // 非配置页卡片列表（如猜拳/游戏内面板的加一张），由各自面板绑定处理
       var first = CARD_KINDS[kind].defaults[0];
       $('cc-' + kind + '-list').insertAdjacentHTML('beforeend', cardRowHtml(kind, first[0], ''));
       updateCcCount(kind);
@@ -2725,6 +3061,7 @@ function applyServerState(data){
     state.gameType = data.gameType || state.gameType;
     state.rps = data.rps;
     state.tda = data.tda;
+    state.mystery = data.mystery;
     state.penaltyCards = data.penaltyCards;
     applyServerBoard(data);
     // 游戏已开始但还在等待大厅 / 结算界面等非对局视图时，重新进入对局（支持联机再来一局）
@@ -2742,6 +3079,11 @@ function applyServerState(data){
       if(state.started){ renderOnlineTda(); }
       return;
     }
+    // 联机盲盒奇遇：不渲染飞行棋棋盘
+    if(state.gameType === 'mystery'){
+      if(state.started){ renderOnlineMystery(); }
+      return;
+    }
     render();
     setRollEnabled(state.phase==='idle' && state.turn===myId);
     return;
@@ -2756,7 +3098,7 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, penaltyCards:data.penaltyCards, ready:data.ready || {}};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, mystery:data.mystery, penaltyCards:data.penaltyCards, ready:data.ready || {}};
   onlineMode = true;
   applyServerBoard(data);
   // 若房间未开始，进入等待大厅
@@ -2775,7 +3117,7 @@ function applyServerState(data){
 /* 联机开始后按游戏类型进入对应界面 */
 function isInGameView(){
   var v = document.querySelector('.view.active');
-  return !!(v && (v.id === 'view-game' || v.id === 'view-rps' || v.id === 'view-tda'));
+  return !!(v && (v.id === 'view-game' || v.id === 'view-rps' || v.id === 'view-tda' || v.id === 'view-mystery'));
 }
 function enterOnlineGame(data){
   if(data.gameType === 'rps'){
@@ -2789,6 +3131,13 @@ function enterOnlineGame(data){
     loadTdaPools();
     renderOnlineTda();
     switchView('view-tda');
+    return;
+  }
+  if(data.gameType === 'mystery'){
+    state.gameType = 'mystery';
+    window._mysteryLastRound = 0;
+    renderOnlineMystery();
+    switchView('view-mystery');
     return;
   }
   state.gameType = 'flight';
@@ -2877,7 +3226,7 @@ function leaveLobby(){
   SFX.click();
   leaveOnline();
   state = null;
-  switchView('view-start');
+  switchView('view-menu');
 }
 function postLog(msg){
   if(!onlineMode || !state) return;
@@ -2932,6 +3281,8 @@ function setupSSE(){
           renderOnlineRps();
         }else if(state.started && state.gameType === 'tda'){
           renderOnlineTda();
+        }else if(state.started && state.gameType === 'mystery'){
+          renderOnlineMystery();
         }else{
           render();
         }
@@ -2960,7 +3311,7 @@ function setupSSE(){
       SFX.bgmStop();
       leaveOnline();
       state = null;
-      switchView('view-start');
+      switchView('view-menu');
     }catch(err){}
   });
   evtSource.addEventListener('dice', function(e){
@@ -3003,7 +3354,11 @@ function setupSSE(){
   evtSource.addEventListener('ready', function(e){
     try{
       var d = JSON.parse(e.data);
-      if(state && d.ready){ state.ready = d.ready; renderAgainReady(); }
+      if(state && d.ready){
+        state.ready = d.ready;
+        if(state.gameType === 'mystery' && $('view-mystery').classList.contains('active')){ renderOnlineMysteryReady(); }
+        else { renderAgainReady(); }
+      }
     }catch(err){}
   });
   evtSource.addEventListener('log', function(e){
@@ -3020,6 +3375,18 @@ function setupSSE(){
         if(state.started && state.gameType === 'tda'){
           if(!$('view-tda').classList.contains('active')){ switchView('view-tda'); }
           renderOnlineTda();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('mystery', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.mystery = d;
+        if(state.started && state.gameType === 'mystery'){
+          if(!$('view-mystery').classList.contains('active')){ switchView('view-mystery'); }
+          renderOnlineMystery();
         }
       }
     }catch(err){}
@@ -3648,6 +4015,40 @@ function showPassMask(p){
   $('pass-mask').style.display = 'flex';
 }
 
+/* ---------- 游戏选择主界面：选游戏 → 配置玩家 → 开始 ---------- */
+function enterConfigForGame(){
+  var emoji = { flight: '✈️', wheel: '🎡', rps: '✊', tda: '🎯', shoot: '🔫', mystery: '🎁', race: '🏇', yoga: '🧘' };
+  var gName = GAME_NAMES[selectedGame] || '飞行棋';
+  $('config-game-title').textContent = (emoji[selectedGame] || '✈️') + ' ' + gName;
+  var isF = selectedGame === 'flight';
+  var cfg1 = $('cfg-flight-ver'), cfg2 = $('cfg-flight-cards'), cfg3 = $('cfg-flight-how'), cfg4 = $('cfg-flight-pass');
+  if(cfg1){ cfg1.style.display = isF ? '' : 'none'; }
+  if(cfg2){ cfg2.style.display = isF ? '' : 'none'; }
+  if(cfg3){ cfg3.style.display = isF ? '' : 'none'; }
+  if(cfg4){ cfg4.style.display = isF ? '' : 'none'; }
+  var startTxt = { flight: '🚀 开始飞行', wheel: '🎡 开始转盘', rps: '✊ 开始猜拳', tda: '🎯 开始真心话', shoot: '🔫 开始射击', mystery: '🎁 开启盲盒', race: '🏇 开始赛马', yoga: '🧘 开始瑜伽' };
+  $('btn-start').textContent = startTxt[selectedGame] || '开始游戏';
+}
+var menuCards = document.querySelectorAll('.menu-card');
+for(var mc = 0; mc < menuCards.length; mc++){
+  menuCards[mc].addEventListener('click', function(){
+    SFX.init(); SFX.resume(); SFX.click();
+    selectedGame = this.getAttribute('data-g');
+    for(var i = 0; i < menuCards.length; i++){
+      menuCards[i].classList.toggle('active', menuCards[i] === this);
+    }
+  });
+}
+$('btn-menu-next').addEventListener('click', function(){
+  SFX.click();
+  enterConfigForGame();
+  switchView('view-start');
+});
+$('btn-config-back').addEventListener('click', function(){
+  SFX.click();
+  switchView('view-menu');
+});
+
 /* ---------- 提示 ---------- */
 function showToast(msg){
   toastEl.textContent = msg;
@@ -3709,7 +4110,7 @@ function tryActivate(key){
     SFX.init(); SFX.resume(); SFX.click();
     setTimeout(function(){ SFX.bgmStart(); }, 300);
     showToast('激活成功！欢迎来到恋爱飞行棋');
-    switchView('view-start');
+    switchView('view-menu');
     return true;
   }else{
     showActivateError('激活码无效，请检查后重试');
@@ -3828,6 +4229,20 @@ function openRps(){
   rpsScores = {};
   rpsPlayers.forEach(function(p){ rpsScores[p.name] = 0; });
   renderRpsScore();
+  // 猜拳自定义惩罚卡：本地也显示入口；面板默认收起，标题与保存按钮按模式显示
+  var rct = $('btn-rps-custom-toggle');
+  if(rct){
+    rct.style.display = 'block';
+    rct.textContent = '✏️ 自定义惩罚卡' + (onlineMode ? '（房主）' : '') + ' ▼';
+  }
+  var rcp = $('rps-custom-panel');
+  if(rcp){
+    rcp.style.display = 'none';
+    var rwct = rcp.querySelector('.wc-title');
+    if(rwct){ rwct.textContent = onlineMode ? '自定义惩罚卡 · 仅房主可改，保存后同步全员' : '自定义惩罚卡 · 自动保存，下次打开还在'; }
+  }
+  var rss = $('rps-custom-save');
+  if(rss){ rss.textContent = onlineMode ? '💾 保存并同步全员' : '💾 保存'; }
   startRpsRound();
   switchView('view-rps');
 }
@@ -3912,8 +4327,13 @@ function rpsResult(c1, c2){
 }
 function showRpsPunish(loser){
   rpsLock = true;
-  // 惩罚内容与飞行棋惩罚卡同步（按性别区分，自定义添加的也在池里）
-  var pool = PENALTY_POOLS[loser.gender];
+  // 优先用猜拳界面自定义的惩罚卡（按性别，自动保存）；没有则用配置页惩罚卡池
+  var custom = loadRpsPunish()[loser.gender];
+  var pool = null;
+  if(custom && custom.length){
+    pool = custom.map(function(c){ return {t: c.text, act: makePenaltyAct(c.act)}; });
+  }
+  if(!pool || !pool.length){ pool = PENALTY_POOLS[loser.gender]; }
   if(!pool || !pool.length){ pool = defaultPool('penalty-' + loser.gender); }
   var card = pool[Math.floor(Math.random() * pool.length)];
   var cardText = card.t || '';
@@ -3934,7 +4354,7 @@ function exitRps(){
   SFX.click();
   $('rps-punish').style.display = 'none';
   rpsPair = null; rpsTurn = null; rpsPicks = {}; rpsLock = false;
-  switchView('view-start');
+  switchView('view-menu');
 }
 
 /* ---------- 联机猜拳（服务器驱动） ---------- */
@@ -3981,9 +4401,18 @@ function renderOnlineRps(){
   var punishBox = $('rps-punish');
   // 自定义惩罚卡入口：仅房主可见；面板打开时刷新列表
   var ct = $('btn-rps-custom-toggle');
-  if(ct){ ct.style.display = (state.hostId === myId) ? 'block' : 'none'; }
-  var cp = $('rps-custom-panel');
-  if(cp && cp.style.display !== 'none'){ renderRpsCustomList(); }
+  if(ct){
+    ct.style.display = (state.hostId === myId) ? 'block' : 'none';
+    ct.textContent = '✏️ 自定义惩罚卡（房主） ▼';
+  }
+  var cp2 = $('rps-custom-panel');
+  if(cp2){
+    var wc2 = cp2.querySelector('.wc-title');
+    if(wc2){ wc2.textContent = '自定义惩罚卡 · 仅房主可改，保存后同步全员'; }
+    if(cp2.style.display !== 'none'){ renderRpsCustomList(); }
+  }
+  var ss2 = $('rps-custom-save');
+  if(ss2){ ss2.textContent = '💾 保存并同步全员'; }
   rollBtn.disabled = true;
   nextBtn.style.display = 'none';
   if(punishBox){ punishBox.style.display = 'none'; }
@@ -4037,10 +4466,19 @@ function renderOnlineRps(){
   }
 }
 var rpsCustomGender = 'male';
+var RPS_PUNISH_KEY = 'love-flight-rps-punish';
+function loadRpsPunish(){
+  try{ return JSON.parse(localStorage.getItem(RPS_PUNISH_KEY) || '{}') || {}; }catch(e){ return {}; }
+}
 function renderRpsCustomList(){
   var list = $('rps-custom-list');
   if(!list) return;
-  var rows = (state && state.penaltyCards && state.penaltyCards[rpsCustomGender]) || [];
+  var rows;
+  if(onlineMode){
+    rows = (state && state.penaltyCards && state.penaltyCards[rpsCustomGender]) || [];
+  }else{
+    rows = loadRpsPunish()[rpsCustomGender] || [];
+  }
   if(!rows.length){
     var defs = CARD_KINDS['penalty-' + rpsCustomGender].defaults;
     rows = defs.map(function(d){ return {act: d[0], text: d[1]}; });
@@ -4064,6 +4502,15 @@ function saveRpsCustomCards(){
     var act = rows[i].querySelector('.cc-act').value;
     var text = rows[i].querySelector('.cc-text').value.trim();
     if(text){ out.push({act: act, text: text}); }
+  }
+  if(!onlineMode){
+    var all = loadRpsPunish();
+    all[rpsCustomGender] = out;
+    try{ localStorage.setItem(RPS_PUNISH_KEY, JSON.stringify(all)); }catch(e){}
+    showToast('惩罚卡已保存（自动保存，下次打开还在）');
+    var p2 = $('rps-custom-panel');
+    if(p2){ p2.style.display = 'none'; var t2 = $('btn-rps-custom-toggle'); if(t2){ t2.textContent = '✏️ 自定义惩罚卡 ▼'; } }
+    return;
   }
   fetch(serverUrl+'/rps-cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gender:rpsCustomGender, cards:out})})
     .then(function(r){ return r.json(); })
@@ -4154,6 +4601,13 @@ $('btn-start').addEventListener('click', function(){
   SFX.bgmStart();
   SFX.click();
   passMode = false;
+  if(selectedGame === 'wheel'){ openWheelStandalone(); return; }
+  if(selectedGame === 'rps'){ openRps(); return; }
+  if(selectedGame === 'tda'){ openTda(); return; }
+  if(selectedGame === 'shoot'){ openShootGame(); return; }
+  if(selectedGame === 'mystery'){ openMystery(); return; }
+  if(selectedGame === 'race'){ openRace(); return; }
+  if(selectedGame === 'yoga'){ openYoga(); return; }
   var list = [];
   for(var i = 0; i < playerCount; i++){
     var g = document.querySelector('#gender-' + i + ' .g-btn.active');
@@ -4251,15 +4705,7 @@ $('drawer-bg-music-toggle').addEventListener('click', function(){
   }
 });
 // 独立转盘入口
-$('btn-wheel-entry').addEventListener('click', function(){
-  SFX.init(); SFX.resume(); SFX.click();
-  openWheelStandalone();
-});
-// 猜拳对决入口
-$('btn-rps-entry').addEventListener('click', function(){
-  SFX.init(); SFX.resume();
-  openRps();
-});
+// 猜拳对决入口（经主界面选择后由「开始猜拳」进入）
 // ===== 真心话大冒险 =====
 var TRUTH_MALE_DEFAULT = [
   '你是什么时候开始喜欢我的？',
@@ -4587,7 +5033,7 @@ function commitTdaCustom(){
   saveTdaPool();
   renderTdaCustomList();
 }
-$('btn-tda-entry').addEventListener('click', function(){ openTda(); });
+// 真心话入口（经主界面选择后由「开始真心话」进入）
 $('btn-tda-exit').addEventListener('click', function(){
   SFX.click();
   if(_tdaLocalTimer){ clearInterval(_tdaLocalTimer); _tdaLocalTimer = null; }
@@ -4595,10 +5041,10 @@ $('btn-tda-exit').addEventListener('click', function(){
     showToast('已退出联机');
     leaveOnline();
     state = null;
-    switchView('view-start');
+    switchView('view-menu');
     return;
   }
-  switchView('view-start');
+  switchView('view-menu');
 });
 $('btn-tda-draw').addEventListener('click', function(){
   if(onlineMode){ drawTdaOnline(); return; }
@@ -4684,11 +5130,387 @@ $('btn-rps-exit').addEventListener('click', function(){
     showToast('已退出联机猜拳');
     leaveOnline();
     state = null;
-    switchView('view-start');
+    switchView('view-menu');
     return;
   }
   exitRps();
 });
+
+/* ---------- 射击游戏：人体当射靶（分男女靶） ---------- */
+var shoot = null;
+var shootTimer = null;
+var SWEET_ACTIONS = {
+  heart: '深情拥抱 <b>{foe}</b> 10 秒',
+  face: '亲 <b>{foe}</b> 的脸颊一下',
+  body: '帮 <b>{foe}</b> 揉揉肩',
+  arm: '牵起 <b>{foe}</b> 的手，十指相扣 10 秒',
+  leg: '给 <b>{foe}</b> 按按腿'
+};
+var SWEET_PARTS = {
+  heart: '💘 胸口爱心', face: '😊 脸颊', body: '👕 身体', arm: '💪 手臂', leg: '🦵 腿部'
+};
+function openShootGame(){
+  cancelShootAnim();
+  SFX.init(); SFX.resume(); SFX.click();
+  passMode = false;
+  var list = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    list.push({name: v || '宝贝' + (i + 1), gender: gender});
+  }
+  shoot = {
+    mode: (list[0] && list[0].gender === 'male') ? 'female' : 'male',
+    diff: 'normal',
+    arrowX: 260, arrowY: 290, animT: 0, raf: null,
+    timeLeft: 6,
+    players: list.map(function(p){ return {name: p.name, gender: p.gender, score: 0, shots: []}; }),
+    turn: 0, ammo: 1, done: false
+  };
+  $('shoot-result').textContent = '';
+  $('btn-shoot-again').style.display = 'none';
+  $('shoot-status').textContent = '弓箭来回扫动，看准时机点击发射！';
+  setShootDiffBtns();
+  startShootAnim();
+  startShootTimer();
+  updateShootInfo();
+  switchView('view-shoot');
+}
+function shootFoe(p){
+  for(var i = 0; i < shoot.players.length; i++){
+    var q = shoot.players[i];
+    if(q !== p && q.gender !== p.gender){ return q; }
+  }
+  var idx = shoot.players.indexOf(p);
+  return shoot.players[(idx + 1) % shoot.players.length];
+}
+function setShootDiffBtns(){
+  var bs = document.querySelectorAll('#shoot-diff .tda-mode-btn');
+  for(var i = 0; i < bs.length; i++){
+    bs[i].classList.toggle('active', bs[i].getAttribute('data-d') === shoot.diff);
+  }
+}
+function startShootAnim(){
+  cancelShootAnim();
+  if(!shoot) return;
+  shoot.animT = 0;
+  // 靶固定，弓箭按 Lissajous 轨迹扫动；难度越高扫得越快
+  var sp = shoot.diff === 'easy' ? 0.005 : (shoot.diff === 'normal' ? 0.06 : 0.09);
+  var sp2 = sp * 1.9;
+  function frame(){
+    if(!shoot){ return; }
+    shoot.animT++;
+    shoot.arrowX = Math.round(260 + Math.sin(shoot.animT * sp) * 130);
+    shoot.arrowY = Math.round(290 + Math.sin(shoot.animT * sp2) * 150);
+    drawShootTarget();
+    shoot.raf = requestAnimationFrame(frame);
+  }
+  shoot.raf = requestAnimationFrame(frame);
+}
+function cancelShootAnim(){
+  if(shoot && shoot.raf){ cancelAnimationFrame(shoot.raf); shoot.raf = null; }
+  if(shootTimer){ clearInterval(shootTimer); shootTimer = null; }
+}
+function startShootTimer(){
+  stopShootTimer();
+  if(!shoot || shoot.done) return;
+  if(shoot.diff === 'easy'){ shoot.timeLeft = -1; updateShootInfo(); return; } // 轻松档不限时
+  shoot.timeLeft = shoot.diff === 'normal' ? 6 : 4;
+  updateShootInfo();
+  shootTimer = setInterval(function(){
+    if(!shoot || shoot.done){ stopShootTimer(); return; }
+    shoot.timeLeft--;
+    updateShootInfo();
+    if(shoot.timeLeft <= 0){
+      stopShootTimer();
+      var p = shoot.players[shoot.turn];
+      p.shots.push({x: -999, y: -999, score: 0});
+      shoot.ammo--;
+      SFX.shoot();
+      showToast('⏰ 时间到！脱靶 0 分');
+      afterShoot();
+    }
+  }, 1000);
+}
+function stopShootTimer(){
+  if(shootTimer){ clearInterval(shootTimer); shootTimer = null; }
+}
+var shootPhotos = {};
+(function(){
+  var srcs = { male: 'https://aka.doubaocdn.com/s/KXWFocHUq0', female: 'https://aka.doubaocdn.com/s/KecOqhPEPI' };
+  for(var k in srcs){ var im = new Image(); im.src = srcs[k]; shootPhotos[k] = im; }
+})();
+function drawShootTarget(){
+  var cv = $('shoot-canvas');
+  if(!cv) return;
+  var ctx = cv.getContext('2d');
+  var W = cv.width, H = cv.height;
+  var off = 0; // 靶固定不动
+  ctx.clearRect(0, 0, W, H);
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#FFF0F6');
+  bg.addColorStop(1, '#F3E8FF');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  // 靶环装饰（随靶平移）
+  ctx.strokeStyle = 'rgba(255,110,156,.16)';
+  ctx.lineWidth = 2;
+  for(var r = 1; r <= 3; r++){
+    ctx.beginPath();
+    ctx.arc(260 + off, 340, 40 + r * 50, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  var male = (shoot.mode === 'male');
+  // 真人靶图（优先使用，加载中或失败自动回退卡通）
+  var photo = shootPhotos[male ? 'male' : 'female'];
+  if(photo && photo.complete && photo.naturalWidth > 0){
+    var dw2 = 250, dh2 = 500, dx2 = 135, dy2 = 60;
+    var sw2 = photo.naturalWidth, sh2 = photo.naturalHeight;
+    var sc2 = Math.max(dw2 / sw2, dh2 / sh2);
+    var ssw2 = dw2 / sc2, ssh2 = dh2 / sc2;
+    var ssx2 = (sw2 - ssw2) / 2, ssy2 = (sh2 - ssh2) / 2;
+    ctx.save();
+    roundRect(ctx, dx2, dy2, dw2, dh2, 22); ctx.clip();
+    ctx.drawImage(photo, ssx2, ssy2, ssw2, ssh2, dx2, dy2, dw2, dh2);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 2.5;
+    roundRect(ctx, dx2, dy2, dw2, dh2, 22); ctx.stroke();
+    // 命中部位高亮框（轻提示）
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = 'rgba(255,77,125,.45)'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(260 + off, 150, 52, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(260 + off, 342, 42, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeRect(208 + off, 212, 104, 130);
+    ctx.setLineDash([]);
+  } else {
+  // 头
+  ctx.fillStyle = '#FFDFC9';
+  ctx.beginPath(); ctx.arc(260 + off, 150, 52, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#E8B794'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(260 + off, 150, 52, 0, Math.PI * 2); ctx.stroke();
+  // 发型
+  ctx.fillStyle = male ? '#4A5A6E' : '#B05E7E';
+  if(male){
+    ctx.beginPath(); ctx.arc(260 + off, 152, 52, Math.PI, 0); ctx.fill();
+  }else{
+    ctx.beginPath(); ctx.arc(260 + off, 142, 54, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(208 + off, 150); ctx.quadraticCurveTo(194 + off, 262, 204 + off, 344); ctx.lineTo(232 + off, 344); ctx.quadraticCurveTo(226 + off, 244, 238 + off, 150); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(312 + off, 150); ctx.quadraticCurveTo(326 + off, 262, 316 + off, 344); ctx.lineTo(288 + off, 344); ctx.quadraticCurveTo(294 + off, 244, 282 + off, 150); ctx.closePath(); ctx.fill();
+  }
+  // 眼睛
+  ctx.fillStyle = '#5C4A63';
+  ctx.beginPath(); ctx.arc(244 + off, 148, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(276 + off, 148, 5, 0, Math.PI * 2); ctx.fill();
+  // 嘴
+  ctx.strokeStyle = '#E8809C'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(260 + off, 166, 10, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  // 躯干
+  ctx.fillStyle = male ? '#6E9BFF' : '#FF8FA8';
+  roundRect(ctx, 208 + off, 212, 104, 130, 22); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2;
+  roundRect(ctx, 208 + off, 212, 104, 130, 22); ctx.stroke();
+  // 手臂
+  ctx.strokeStyle = male ? '#6E9BFF' : '#FF8FA8'; ctx.lineWidth = 26; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(222 + off, 250); ctx.lineTo(176 + off, 330); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(298 + off, 250); ctx.lineTo(344 + off, 330); ctx.stroke();
+  // 手
+  ctx.fillStyle = '#FFDFC9';
+  ctx.beginPath(); ctx.arc(176 + off, 332, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(344 + off, 332, 12, 0, Math.PI * 2); ctx.fill();
+  // 腿
+  ctx.fillStyle = male ? '#5B7BB8' : '#D96A8B';
+  roundRect(ctx, 232 + off, 342, 28, 130, 12); ctx.fill();
+  roundRect(ctx, 260 + off, 342, 28, 130, 12); ctx.fill();
+  }
+  // 心形得分中心
+  ctx.fillStyle = '#FF4D7D';
+  drawHeart(ctx, 260 + off, 342, 40);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('10', 260 + off, 344);
+  // 得分标注
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.92)';
+  ctx.fillText('8', 260 + off, 130);
+  ctx.fillText('6', 260 + off, 252);
+  // 弹孔（留在发射瞬间箭尖位置）
+  for(var i = 0; i < shoot.players.length; i++){
+    for(var j = 0; j < shoot.players[i].shots.length; j++){
+      var s = shoot.players[i].shots[j];
+      if(s.x < 0) continue;
+      ctx.fillStyle = 'rgba(60,40,50,.85)';
+      ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.75)';
+      ctx.beginPath(); ctx.arc(s.x - 2, s.y - 2, 2.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // 弓箭（爱神之箭）：始终瞄准靶心，自动扫动
+  if(!shoot.done){
+    var ax = shoot.arrowX || 260, ay = shoot.arrowY || 290;
+    var ang = Math.atan2(342 - ay, 260 - ax);
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(ang);
+    ctx.strokeStyle = '#8B5A2B'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-32, 0); ctx.lineTo(8, 0); ctx.stroke();
+    ctx.fillStyle = '#FF4D7D';
+    ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(7, -7); ctx.lineTo(7, 7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FFB3C7';
+    ctx.beginPath(); ctx.moveTo(-32, 0); ctx.lineTo(-42, -9); ctx.lineTo(-35, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-32, 0); ctx.lineTo(-42, 9); ctx.lineTo(-35, 0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // 箭尖瞄准光点
+    ctx.fillStyle = 'rgba(255,77,125,.35)';
+    ctx.beginPath(); ctx.arc(ax, ay, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,77,125,.9)';
+    ctx.beginPath(); ctx.arc(ax, ay, 3.2, 0, Math.PI * 2); ctx.fill();
+  }
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function drawHeart(ctx, cx, cy, size){
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + size * 0.75);
+  ctx.bezierCurveTo(cx - size, cy - size * 0.15, cx - size * 0.5, cy - size * 0.85, cx, cy - size * 0.25);
+  ctx.bezierCurveTo(cx + size * 0.5, cy - size * 0.85, cx + size, cy - size * 0.15, cx, cy + size * 0.75);
+  ctx.fill();
+}
+function hitPart(x, y){
+  if(Math.hypot(x - 260, y - 342) < 42) return 'heart';   // 心形
+  if(Math.hypot(x - 260, y - 150) < 52) return 'face';    // 头部/脸
+  if(x >= 208 && x <= 312 && y >= 212 && y <= 342) return 'body';  // 躯干
+  if((x >= 164 && x <= 232 && y >= 240 && y <= 342) || (x >= 288 && x <= 356 && y >= 240 && y <= 342)) return 'arm';  // 手臂
+  if(x >= 232 && x <= 288 && y >= 342 && y <= 472) return 'leg';  // 腿
+  return null;
+}
+function partScore(part){
+  return part === 'heart' ? 10 : part === 'face' ? 8 : part === 'body' ? 6 : part === 'arm' ? 4 : 3;
+}
+function updateShootInfo(){
+  if(!shoot) return;
+  if(!shoot.done){
+    var p = shoot.players[shoot.turn];
+    var foe = shootFoe(p);
+    var target = p.gender === 'male' ? '👧 女靶' : '👦 男靶';
+    var diffName = shoot.diff === 'easy' ? '🐣 轻松' : (shoot.diff === 'normal' ? '🔥 挑战' : '💀 高手');
+    var t = (shoot.timeLeft !== undefined && shoot.diff !== 'easy') ? ' · ⏳ <b>' + shoot.timeLeft + '</b> 秒' : '';
+    $('shoot-info').innerHTML = '🎯 <b>' + p.name + '</b> 射 <b>' + target + '</b> · ' + diffName + ' · 剩余 <b>' + shoot.ammo + '</b> 发 · 已得 <b>' + p.score + '</b> 分' + t;
+  }
+}
+function sweetAction(part, shooter, foe, done){
+  stopShootTimer();
+  var g = (shooter.gender === 'female') ? 'female' : 'male';
+  var actTxt = shootActionText(g, part);
+  var modal = $('modal');
+  $('modal-icon').textContent = '💋';
+  $('modal-kicker').textContent = '命中奖励';
+  $('modal-title').textContent = shooter.name + ' 命中 ' + SWEET_PARTS[part] + '！';
+  $('modal-body').innerHTML = '<div style="font-size:15px;line-height:2">' + shooter.name + ' ' + actTxt.replace('{foe}', '<b>' + foe.name + '</b>') + '！</div>';
+  $('modal-note').textContent = '射中了就要执行哦～';
+  $('modal-action').textContent = '💖 收到！去执行';
+  $('modal-secondary').style.display = 'none';
+  modal.classList.add('show');
+  $('modal-action').onclick = function(){
+    modal.classList.remove('show');
+    SFX.click();
+    if(done){ done(); }
+  };
+}
+function shootFire(ev){
+  if(!shoot || shoot.done) return;
+  var p = shoot.players[shoot.turn];
+  // 自动配对：男射女靶，女射男靶（靶固定，按射手性别切换靶型）
+  var want = p.gender === 'male' ? 'female' : 'male';
+  if(shoot.mode !== want){ shoot.mode = want; drawShootTarget(); }
+  // 靶固定，点击 = 发射，命中点即箭尖当前位置
+  var x = shoot.arrowX, y = shoot.arrowY;
+  var part = hitPart(x, y);
+  var score = part ? partScore(part) : 0;
+  p.shots.push({x: x, y: y, score: score});
+  p.score += score;
+  shoot.ammo--;
+  stopShootTimer();
+  if(part){
+    SFX.hit();
+    var foe = shootFoe(p);
+    updateShootInfo();
+    sweetAction(part, p, foe, function(){ afterShoot(); });
+  }else{
+    SFX.shoot();
+    showToast('💨 脱靶了，0 分');
+    updateShootInfo();
+    afterShoot();
+  }
+}
+function afterShoot(){
+  if(!shoot) return;
+  if(shoot.ammo <= 0){
+    setTimeout(function(){
+      if(!shoot) return;
+      if(shoot.turn < shoot.players.length - 1){
+        shoot.turn++; shoot.ammo = 1;
+        var np = shoot.players[shoot.turn];
+        shoot.mode = np.gender === 'male' ? 'female' : 'male';
+        drawShootTarget();
+        showToast('轮到 ' + np.name + ' 射击（射向' + (shoot.mode === 'female' ? '女靶' : '男靶') + '）');
+        startShootTimer();
+        updateShootInfo();
+      }else{
+        shoot.done = true;
+        cancelShootAnim();
+        shootResult();
+      }
+    }, 900);
+  }else{
+    startShootTimer();
+  }
+}
+function shootResult(){
+  var sorted = shoot.players.slice().sort(function(a, b){ return b.score - a.score; });
+  var lines = sorted.map(function(p, i){
+    return (i === 0 ? '🏆 ' : (i === 1 ? '🥈 ' : '🥉 ')) + p.name + '：' + p.score + ' 分';
+  });
+  $('shoot-result').innerHTML = lines.join('　');
+  $('shoot-status').textContent = '射击结束！' + sorted[0].name + ' 获胜 🎉';
+  $('shoot-info').innerHTML = '🏆 冠军：<b>' + sorted[0].name + '</b>（' + sorted[0].score + ' 分）';
+  $('btn-shoot-again').style.display = 'block';
+  SFX.win();
+}
+
+$('btn-shoot-exit').addEventListener('click', function(){
+  SFX.click();
+  cancelShootAnim();
+  shoot = null;
+  switchView('view-menu');
+});
+$('btn-shoot-again').addEventListener('click', function(){ SFX.click(); openShootGame(); });
+$('shoot-canvas').addEventListener('click', shootFire);
+var shootDiffBtns = document.querySelectorAll('#shoot-diff .tda-mode-btn');
+for(var sdb = 0; sdb < shootDiffBtns.length; sdb++){
+  shootDiffBtns[sdb].addEventListener('click', function(){
+    if(!shoot) return;
+    SFX.click();
+    shoot.diff = this.getAttribute('data-d');
+    shoot.players.forEach(function(p){ p.score = 0; p.shots = []; });
+    shoot.turn = 0; shoot.ammo = 1; shoot.done = false;
+    $('shoot-result').textContent = '';
+    $('btn-shoot-again').style.display = 'none';
+    $('shoot-status').textContent = '已切换难度，重新开始！';
+    setShootDiffBtns();
+    startShootAnim();
+    startShootTimer();
+    updateShootInfo();
+  });
+}
 $('btn-rps-punish-ok').addEventListener('click', function(){
   if(onlineMode){
     SFX.click();
@@ -4697,12 +5519,828 @@ $('btn-rps-punish-ok').addEventListener('click', function(){
   }
   closeRpsPunish();
 });
+
+/* ---------- 射击命中内容自定义（本地自动保存） ---------- */
+var SHOOT_KEY = 'love-flight-shoot-custom';
+var SHOOT_DEFAULTS = {
+  male: {
+    heart: '深情拥抱 {foe} 10 秒',
+    face: '亲 {foe} 的脸颊一下',
+    body: '帮 {foe} 揉揉肩',
+    arm: '牵起 {foe} 的手，十指相扣 10 秒',
+    leg: '给 {foe} 按按腿'
+  },
+  female: {
+    heart: '靠进 {foe} 怀里听心跳 10 秒',
+    face: '踮脚亲 {foe} 的脸颊一下',
+    body: '给 {foe} 一个大大的拥抱',
+    arm: '挽住 {foe} 的手臂撒个娇',
+    leg: '给 {foe} 捏捏腿'
+  }
+};
+var SHOOT_PARTS = { heart: '💘 胸口', face: '😊 脸颊', body: '👕 身体', arm: '💪 手臂', leg: '🦵 腿部' };
+var shootCustomGender = 'male', shootCustomPart = 'heart';
+function loadShootCustom(){
+  try{
+    var d = JSON.parse(localStorage.getItem(SHOOT_KEY) || '{}');
+    if(d && d.male && d.female) return d;
+  }catch(e){}
+  return { male: {}, female: {} };
+}
+function saveShootCustom(c){
+  try{ localStorage.setItem(SHOOT_KEY, JSON.stringify(c || loadShootCustom())); }catch(e){}
+}
+function shootActionText(gender, part){
+  var c = loadShootCustom();
+  var t = (c[gender] && c[gender][part] && c[gender][part].trim()) || SHOOT_DEFAULTS[gender][part] || '';
+  return t;
+}
+function renderShootCustomEditor(){
+  var ed = $('shoot-custom-editor');
+  if(!ed) return;
+  var c = loadShootCustom();
+  var cur = c[shootCustomGender] || {};
+  var val = cur[shootCustomPart] || '';
+  var def = SHOOT_DEFAULTS[shootCustomGender][shootCustomPart] || '';
+  ed.innerHTML = '<div style="font-size:13px;color:var(--ink-soft);text-align:center;margin-bottom:8px">' + SHOOT_PARTS[shootCustomPart] + ' · 命中后要做的事（{foe} = 对方名字）</div>'
+    + '<div style="display:flex;gap:8px"><input class="cc-text" id="shoot-custom-input" type="text" maxlength="30" value="' + String(val).replace(/"/g,'&quot;') + '" placeholder="默认：' + String(def).replace(/"/g,'&quot;') + '" style="flex:1">'
+    + '<button class="cc-del" id="shoot-custom-reset" type="button" title="恢复默认">↺</button></div>'
+    + '<div style="font-size:12px;color:var(--ink-soft);text-align:center;margin-top:6px">留空 = 使用默认内容，输入后自动保存到本机</div>';
+  var inp = $('shoot-custom-input');
+  if(inp){
+    inp.addEventListener('input', function(){
+      var c2 = loadShootCustom();
+      if(!c2[shootCustomGender]){ c2[shootCustomGender] = {}; }
+      c2[shootCustomGender][shootCustomPart] = this.value.trim();
+      saveShootCustom(c2);
+    });
+  }
+  var rs = $('shoot-custom-reset');
+  if(rs){
+    rs.addEventListener('click', function(){
+      var c3 = loadShootCustom();
+      if(c3[shootCustomGender]){ delete c3[shootCustomGender][shootCustomPart]; }
+      saveShootCustom(c3);
+      renderShootCustomEditor();
+      SFX.click();
+    });
+  }
+}
+$('btn-shoot-custom-toggle').addEventListener('click', function(){
+  var p = $('shoot-custom-panel');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  this.textContent = '✏️ 自定义命中内容 ' + (open ? '▼' : '▲');
+  if(!open){ renderShootCustomEditor(); }
+  SFX.click();
+});
+var shootGtabs = document.querySelectorAll('#shoot-gender-tabs .rps-gtab');
+for(var sgt = 0; sgt < shootGtabs.length; sgt++){
+  shootGtabs[sgt].addEventListener('click', function(){
+    shootCustomGender = this.getAttribute('data-g');
+    for(var i = 0; i < shootGtabs.length; i++){ shootGtabs[i].classList.toggle('active', shootGtabs[i] === this); }
+    renderShootCustomEditor();
+    SFX.click();
+  });
+}
+var shootPtabs = document.querySelectorAll('#shoot-part-tabs .rps-gtab');
+for(var spt = 0; spt < shootPtabs.length; spt++){
+  shootPtabs[spt].addEventListener('click', function(){
+    shootCustomPart = this.getAttribute('data-p');
+    for(var i = 0; i < shootPtabs.length; i++){ shootPtabs[i].classList.toggle('active', shootPtabs[i] === this); }
+    renderShootCustomEditor();
+    SFX.click();
+  });
+}
+
+/* ---------- 盲盒奇遇 ---------- */
+var mystery = null;
+var MYSTERY_KEY = 'love-flight-mystery-custom';
+var MYSTERY_VALUES = ['+1','+2','+3','+4','+5','-1','-2','-3','-4'];
+var MYSTERY_DEFAULTS = {
+  male: {
+    reward: [['+2','为她唱首情歌'],['+1','讲个笑话逗她笑'],['+2','夸她今天的穿搭'],['+3','陪她看一部爱情电影'],['+2','帮她按摩肩膀'],['+1','说一句最想对她说的话']],
+    penalty: [['-1','承包一天家务'],['-2','背她走十步'],['-1','录一段土味情话给她'],['-2','三天不碰游戏']],
+    jackpot: [['+5','超级大奖：帮她实现一个小愿望'],['-4','惊天惩罚：当众喊三遍「老婆最漂亮」']]
+  },
+  female: {
+    reward: [['+2','给他一个大大的拥抱'],['+3','亲手做一份小甜点'],['+1','夸他今天超帅'],['+2','陪他打一局游戏'],['+3','为他准备一个小惊喜'],['+1','说一句让他心动的话']],
+    penalty: [['-1','给他捶背十分钟'],['-1','学小猫叫三声'],['-2','一周不点奶茶'],['-1','陪他看他爱看的电影']],
+    jackpot: [['+5','超级大奖：给他一场说走就走的约会'],['-4','惊天惩罚：当众喊三遍「老公最帅」']]
+  }
+};
+var MYSTERY_KINDS = { reward: '💝 奖励', penalty: '😈 惩罚', jackpot: '🎊 惊喜' };
+function loadMysteryCustom(){
+  try{ return JSON.parse(localStorage.getItem(MYSTERY_KEY) || '{}') || {}; }catch(e){ return {}; }
+}
+function mysteryPool(gender, kind){
+  var rows = loadMysteryCustom()[gender];
+  if(rows && rows[kind] && rows[kind].length){
+    return rows[kind].map(function(c){ return {v: c.v, text: c.text}; });
+  }
+  return (MYSTERY_DEFAULTS[gender] && MYSTERY_DEFAULTS[gender][kind]) ? MYSTERY_DEFAULTS[gender][kind].map(function(c){ return {v: c[0], text: c[1]}; }) : [];
+}
+function mysteryDraw(gender){
+  var r = Math.random();
+  var kind = r < 0.45 ? 'reward' : (r < 0.8 ? 'penalty' : 'jackpot');
+  var pool = mysteryPool(gender, kind);
+  if(!pool.length){ kind = 'reward'; pool = mysteryPool(gender, 'reward'); }
+  var c = pool[Math.floor(Math.random() * pool.length)];
+  return { kind: kind, text: c.text, v: parseInt(c.v, 10) };
+}
+function openMystery(){
+  SFX.init(); SFX.resume(); SFX.click();
+  var ps = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    ps.push({name: v || '宝贝' + (i+1), gender: gender, color: PLAYER_COLORS[i % 4], hearts: 0, opened: 0});
+  }
+  mystery = { players: ps, turn: 0, round: 0, total: 9, boxes: [], busy: false };
+  for(var b = 0; b < 9; b++){ mystery.boxes.push(null); }
+  $('mystery-result').textContent = '';
+  $('mystery-open').innerHTML = '';
+  $('btn-mystery-again').style.display = 'none';
+  var mct = $('btn-mystery-custom-toggle');
+  if(mct){ mct.style.display = 'block'; mct.textContent = '✏️ 自定义盲盒内容 ▼'; }
+  var mcp = $('mystery-custom-panel');
+  if(mcp){ mcp.style.display = 'none'; }
+  renderMysteryScore();
+  renderMysteryBoxes();
+  updateMysteryStatus();
+  switchView('view-mystery');
+}
+function renderMysteryScore(){
+  var box = $('mystery-score');
+  if(!box) return;
+  box.innerHTML = '';
+  mystery.players.forEach(function(p, i){
+    var el = document.createElement('span');
+    el.className = 'rps-score-pill' + (i === mystery.turn ? ' rps-pill-active' : '');
+    el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span>'
+      + '<span>' + p.name + '</span><span class="rps-wins">' + p.hearts + '❤️</span>';
+    box.appendChild(el);
+  });
+  mountStaticIcons();
+}
+function renderMysteryBoxes(){
+  var grid = $('mystery-boxes');
+  if(!grid) return;
+  grid.innerHTML = '';
+  mystery.boxes.forEach(function(v, i){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mystery-box' + (v ? ' opened' : '');
+    btn.setAttribute('aria-label', v ? '已开盲盒' : '盲盒' + (i+1));
+    if(v){
+      var kEmoji = v.kind === 'reward' ? '💝' : (v.kind === 'penalty' ? '😈' : '🎊');
+      btn.innerHTML = kEmoji + '<span class="mb-v">' + (v.delta >= 0 ? '+' : '') + v.delta + '</span>';
+    }else{
+      btn.innerHTML = '🎁';
+    }
+    if(!v){ btn.addEventListener('click', function(){ openMysteryBox(i); }); }
+    grid.appendChild(btn);
+  });
+}
+function updateMysteryStatus(){
+  var st = $('mystery-status');
+  if(!st) return;
+  if(mystery.round >= mystery.total){
+    st.textContent = '全部开完，结算爱心！';
+    return;
+  }
+  var p = mystery.players[mystery.turn];
+  st.innerHTML = '轮到 <b style="color:' + p.color + '">' + p.name + '</b> 开盒（第 ' + (mystery.round + 1) + '/' + mystery.total + ' 盒）';
+}
+function openMysteryBox(idx){
+  if(!mystery || mystery.busy || mystery.round >= mystery.total) return;
+  if(mystery.boxes[idx]) return;
+  var p = mystery.players[mystery.turn];
+  var d = mysteryDraw(p.gender);
+  mystery.boxes[idx] = { kind: d.kind, delta: d.v, who: p.name };
+  p.hearts += d.v;
+  p.opened++;
+  renderMysteryBoxes();
+  renderMysteryScore();
+  var kEmoji = d.kind === 'reward' ? '💝' : (d.kind === 'penalty' ? '😈' : '🎊');
+  var kName = MYSTERY_KINDS[d.kind];
+  $('mystery-open').innerHTML = '<div class="mo-card">' + kEmoji + ' ' + p.name + ' 开出<b>' + kName + '</b>！<br>' + d.text + ' <b style="color:' + (d.v >= 0 ? '#FF6E9C' : '#8A9BFF') + '">' + (d.v >= 0 ? '+' : '') + d.v + '❤️</b></div>';
+  if(d.v >= 0){ SFX.reward(); mysteryHearts(p, d.v); } else { SFX.penalty(); }
+  mystery.busy = true;
+  mystery.round++;
+  if(mystery.round >= mystery.total){
+    setTimeout(function(){
+      $('mystery-status').textContent = '全部开完，结算爱心！';
+      mysteryResult();
+      mystery.busy = false;
+    }, 1600);
+    return;
+  }
+  mystery.turn = (mystery.turn + 1) % mystery.players.length;
+  setTimeout(function(){
+    updateMysteryStatus();
+    renderMysteryScore();
+    mystery.busy = false;
+  }, 1600);
+}
+function mysteryHearts(p, v){
+  var zone = $('mystery-open');
+  if(!zone) return;
+  var n = Math.min(3, Math.max(1, Math.abs(v)));
+  for(var i = 0; i < n; i++){
+    var h = document.createElement('span');
+    h.className = 'burst-heart';
+    h.innerHTML = ICONS.heartFill;
+    h.style.left = (30 + i * 34) + 'px';
+    h.style.top = (10 + i * 6) + 'px';
+    h.style.animationDelay = (i * 0.12) + 's';
+    zone.appendChild(h);
+    (function(el){ setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 1400); })(h);
+  }
+}
+function mysteryResult(){
+  var sorted = mystery.players.slice().sort(function(a, b){ return b.hearts - a.hearts; });
+  var lines = sorted.map(function(p, i){
+    return (i === 0 ? '🏆 ' : (i === 1 ? '🥈 ' : '🥉 ')) + p.name + '：' + p.hearts + '❤️';
+  });
+  $('mystery-result').innerHTML = lines.join('　');
+  $('mystery-status').textContent = '盲盒开完！' + sorted[0].name + ' 的爱意最浓 🎉';
+  $('btn-mystery-again').style.display = 'block';
+  $('btn-mystery-again').style.margin = '14px auto 0';
+  SFX.win();
+}
+function exitMystery(){
+  SFX.click();
+  if(onlineMode){
+    showToast('已退出联机');
+    leaveOnline();
+    state = null;
+    switchView('view-menu');
+    return;
+  }
+  mystery = null;
+  switchView('view-menu');
+}
+$('btn-mystery-exit').addEventListener('click', exitMystery);
+$('btn-mystery-again').addEventListener('click', function(){
+  SFX.click();
+  if(onlineMode){ onlineMysteryAgain(); } else { openMystery(); }
+});
+
+/* ========== 联机盲盒奇遇 ========== */
+function renderOnlineMystery(){
+  if(!state || !state.mystery || !onlineMode) return;
+  var m = state.mystery;
+  var title = $('mystery-title');
+  if(title) title.textContent = '🎁 联机盲盒';
+  // 玩家爱心 pill（当前轮到开盒的高亮）
+  var box = $('mystery-score');
+  if(box){
+    box.innerHTML = '';
+    state.players.forEach(function(p, i){
+      var isTurn = (m.phase === 'play' && m.order && m.turnIdx < m.order.length && m.order[m.turnIdx] === p.id);
+      var el = document.createElement('span');
+      el.className = 'rps-score-pill' + (isTurn ? ' rps-pill-active' : '');
+      el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span>'
+        + '<span>' + p.name + '</span><span class="rps-wins">' + (m.hearts[String(p.id)] || 0) + '❤️</span>';
+      box.appendChild(el);
+    });
+    mountStaticIcons();
+  }
+  // 9 个盲盒
+  var grid = $('mystery-boxes');
+  if(grid){
+    grid.innerHTML = '';
+    m.boxes.forEach(function(v, i){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mystery-box' + (v ? ' opened' : '');
+      if(v){
+        var kEmoji = v.kind === 'reward' ? '💝' : (v.kind === 'penalty' ? '😈' : '🎊');
+        btn.innerHTML = kEmoji + '<span class="mb-v">' + (v.delta >= 0 ? '+' : '') + v.delta + '</span>';
+      }else{
+        btn.innerHTML = '🎁';
+      }
+      if(!v && m.phase === 'play'){ (function(bi){ btn.addEventListener('click', function(){ onlineMysteryOpen(bi); }); })(i); }
+      grid.appendChild(btn);
+    });
+  }
+  var st = $('mystery-status');
+  if(st){
+    // 新开出的一盒 → 展示内容提示卡 + 音效
+    if(window._mysteryLastRound === undefined){ window._mysteryLastRound = 0; }
+    // 新一局开始（round 回退）：清空上一局提示卡
+    if(m.round < window._mysteryLastRound){
+      window._mysteryLastRound = 0;
+      var _clear = $('mystery-open');
+      if(_clear){ _clear.innerHTML = ''; }
+    }
+    if(m.round > window._mysteryLastRound && m.round > 0){
+      var lastBox = null;
+      for(var bi = 0; bi < m.boxes.length; bi++){ if(m.boxes[bi]){ lastBox = m.boxes[bi]; } }
+      if(lastBox){
+        var opener = null;
+        for(var oi = 0; oi < state.players.length; oi++){ if(state.players[oi].id === lastBox.who){ opener = state.players[oi]; break; } }
+        var kEmoji2 = lastBox.kind === 'reward' ? '💝' : (lastBox.kind === 'penalty' ? '😈' : '🎊');
+        var openZone = $('mystery-open');
+        if(openZone){ openZone.innerHTML = '<div class="mo-card">' + kEmoji2 + ' ' + (opener ? opener.name : '玩家') + ' 开出<b>' + MYSTERY_KINDS[lastBox.kind] + '</b>！<br>' + lastBox.text + ' <b style="color:' + (lastBox.delta >= 0 ? '#FF6E9C' : '#8A9BFF') + '">' + (lastBox.delta >= 0 ? '+' : '') + lastBox.delta + '❤️</b></div>'; }
+        if(lastBox.delta >= 0){ SFX.reward(); } else { SFX.penalty(); }
+      }
+    }
+    window._mysteryLastRound = m.round;
+    if(m.phase === 'end'){
+      var sorted = state.players.slice().sort(function(a, b){ return (m.hearts[String(b.id)] || 0) - (m.hearts[String(a.id)] || 0); });
+      st.textContent = '盲盒开完！' + (sorted[0] ? sorted[0].name + ' 的爱意最浓 🎉' : '');
+      var res = $('mystery-result');
+      if(res){
+        var lines = sorted.map(function(p, i){
+          return (i === 0 ? '🏆 ' : (i === 1 ? '🥈 ' : '🥉 ')) + p.name + '：' + (m.hearts[String(p.id)] || 0) + '❤️';
+        });
+        res.innerHTML = lines.join('　');
+      }
+      SFX.win();
+      renderOnlineMysteryReady();
+    }else{
+      var cur = null;
+      if(m.order && m.turnIdx < m.order.length){
+        for(var j = 0; j < state.players.length; j++){ if(state.players[j].id === m.order[m.turnIdx]){ cur = state.players[j]; break; } }
+      }
+      st.innerHTML = '轮到 <b style="color:' + (cur ? cur.color : '#888') + '">' + (cur ? cur.name : '?') + '</b> 开盒（第 ' + (m.round + 1) + '/' + m.total + ' 盒）';
+      var res2 = $('mystery-result'); if(res2) res2.textContent = '';
+      var ag = $('btn-mystery-again'); if(ag) ag.style.display = 'none';
+      var rd = $('mystery-ready'); if(rd) rd.style.display = 'none';
+    }
+  }
+}
+function onlineMysteryOpen(i){
+  if(!onlineMode || !state || !state.mystery) return;
+  var m = state.mystery;
+  if(m.phase !== 'play'){ showToast('当前不能开盒'); return; }
+  if(!m.order || m.turnIdx >= m.order.length || m.order[m.turnIdx] !== myId){ showToast('还没轮到你开盒'); return; }
+  if(m.boxes[i]){ showToast('这个盲盒已经开过了'); return; }
+  var me = null;
+  for(var j = 0; j < state.players.length; j++){ if(state.players[j].id === myId){ me = state.players[j]; break; } }
+  var d = mysteryDraw(me ? me.gender : 'male');
+  fetch(serverUrl + '/mystery-open', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, boxIdx: i, kind: d.kind, delta: d.v, text: d.text})})
+    .then(function(r){ return r.json(); })
+    .then(function(dd){
+      if(dd && dd.error){ showToast(dd.error); return; }
+      if(dd && dd.mystery){ state.mystery = dd.mystery; renderOnlineMystery(); }
+    })
+    .catch(function(err){ showToast('连接失败：' + ((err && err.message) ? err.message : '网络错误')); });
+}
+function renderOnlineMysteryReady(){
+  var box = $('mystery-ready');
+  if(!box) return;
+  box.style.display = 'block';
+  var ready = state.ready || {};
+  var readyCount = 0;
+  var parts = [];
+  for(var i = 0; i < state.players.length; i++){
+    var ap = state.players[i];
+    if(ready[ap.id]) readyCount++;
+    parts.push('<span style="color:' + ap.color + '">' + (ready[ap.id] ? '🟢 ' : '⏳ ') + ap.name + (ready[ap.id] ? ' 已准备' : ' 准备中') + '</span>');
+  }
+  var hint = $('mystery-ready-hint');
+  var meReady = !!ready[myId];
+  var rb = $('btn-mystery-ready');
+  var sa = $('btn-mystery-start-again');
+  if(state.hostId === myId){
+    rb.style.display = 'none';
+    sa.style.display = 'block';
+    sa.disabled = readyCount < state.players.length;
+    if(hint){ hint.innerHTML = parts.join('　') + '<br>' + (readyCount >= state.players.length ? '全员已准备，点「开始新一局」出发！' : '等待其他玩家准备…（还有 ' + (state.players.length - readyCount) + ' 人未准备）'); }
+  }else{
+    rb.style.display = meReady ? 'none' : 'block';
+    rb.textContent = meReady ? '已准备好' : '🙋 准备好';
+    sa.style.display = 'none';
+    if(hint){ hint.innerHTML = parts.join('　') + '<br>点「准备好」告诉房主，房主会开始新一局'; }
+  }
+}
+function onlineMysteryAgain(){
+  if(!onlineMode || !state) return;
+  SFX.click();
+  fetch(serverUrl + '/ready', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.ready){ state.ready = d.ready; renderOnlineMysteryReady(); }
+    })
+    .catch(function(err){ showToast('连接失败'); });
+}
+$('btn-mystery-ready').addEventListener('click', function(){ SFX.click(); onlineMysteryAgain(); });
+$('btn-mystery-start-again').addEventListener('click', function(){
+  SFX.click();
+  if(!onlineMode || state.hostId !== myId){ return; }
+  fetch(serverUrl + '/start', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, boardVersion: lobbyVersion || 50, gameType: 'mystery'})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.error){ showToast(d.error); return; }
+      if(d && d.state){ applyServerState(d.state); }
+    })
+    .catch(function(err){ showToast('连接失败'); });
+});
+/* ============ 赛马游戏 ============ */
+var RACE_KEY = 'love-flight-race-custom';
+var RACE_DEFAULTS = {
+  male: ['承包一天家务','背她走十步','学猫叫三声','录一段土味情话给她','三天不碰游戏'],
+  female: ['给他捶背十分钟','亲手做一份小甜点','陪他打一局游戏','夸他今天超帅','一周不点奶茶']
+};
+var RACE_HORSES = [
+  {id:1, color:'#FF6B8A'},
+  {id:2, color:'#5B8DEF'},
+  {id:3, color:'#34C77B'},
+  {id:4, color:'#B07CF7'},
+  {id:5, color:'#FFA23E'}
+];
+var race = null;
+var raceCustomGender = 'male';
+function loadRaceCustom(){
+  try{ return JSON.parse(localStorage.getItem(RACE_KEY) || '{}') || {}; }catch(e){ return {}; }
+}
+function racePenaltyPool(g){
+  var arr = loadRaceCustom()[g];
+  if(arr && arr.length){ return arr.filter(function(t){ return t && t.trim(); }); }
+  return (RACE_DEFAULTS[g] || []).slice();
+}
+function raceDrawPenalty(g){
+  var pool = racePenaltyPool(g);
+  if(!pool.length){ return '接受爱的惩罚'; }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function openRace(){
+  SFX.init(); SFX.resume(); SFX.click();
+  if(race && race._clip){ clearInterval(race._clip); race._clip = null; }
+  if(SFX.ctx){
+    SFX.bgmStop();
+    SFX._racePrevBgm = SFX.currentBgm;
+    SFX.currentBgm = 5;
+    SFX.bgmStart();
+  }
+  var ps = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    ps.push({name: v || '宝贝' + (i+1), gender: gender, color: PLAYER_COLORS[i % 4], score: 0});
+  }
+  race = { players: ps, round: 0, total: 3, finished: false, racing: false, ranking: [], anim: null, bets: {} };
+  $('race-result').textContent = '';
+  $('race-go').style.display = 'block';
+  $('race-go').disabled = true;
+  $('race-go').textContent = '🏇 开跑！';
+  $('btn-race-again').style.display = 'none';
+  var cbt = $('btn-race-custom-toggle');
+  if(cbt){ cbt.style.display = 'block'; cbt.textContent = '✏️ 自定义惩罚内容 ▼'; }
+  var cp = $('race-custom-panel');
+  if(cp){ cp.style.display = 'none'; }
+  renderRaceScore();
+  renderRaceTrack();
+  renderRaceBets();
+  updateRaceStatus();
+  switchView('view-race');
+}
+function renderRaceScore(){
+  var el = $('race-score');
+  if(!el || !race) return;
+  el.innerHTML = race.players.map(function(p){
+    return '<span class="rps-score-item" style="background:' + p.color + '">' + p.name + ' ' + p.score + '❤️</span>';
+  }).join('');
+}
+function renderRaceTrack(){
+  var track = $('race-track');
+  if(!track || !race) return;
+  race._horses = RACE_HORSES.map(function(h){
+    return {id: h.id, color: h.color, pos: 0, rank: 0, speed: 0.85 + Math.random() * 0.6};
+  });
+  track.innerHTML = race._horses.map(function(h){
+    return '<div class="race-lane">'
+      + '<span class="race-finish"></span>'
+      + '<div class="race-horse" id="race-h-' + h.id + '" style="left:2%">'
+      + '<span class="race-horse-icon" style="background:' + h.color + '">🐴</span>'
+      + '<b>' + h.id + '</b>号</div></div>';
+  }).join('');
+}
+function renderRaceBets(){
+  var box = $('race-bets');
+  if(!box || !race) return;
+  if(race.finished){ box.innerHTML = ''; return; }
+  box.innerHTML = race.players.map(function(p, i){
+    var cur = race.bets[i] || 0;
+    var btns = RACE_HORSES.map(function(h){
+      var on = cur === h.id ? ' on' : '';
+      return '<button class="race-pick' + on + '" type="button" data-h="' + h.id + '" data-p="' + i + '" style="--pc:' + h.color + '">' + h.id + '</button>';
+    }).join('');
+    return '<div class="race-bet-row"><span class="race-bet-name" style="background:' + p.color + '">' + p.name + '</span><div class="race-picks">' + btns + '</div></div>';
+  }).join('');
+}
+function updateRaceStatus(){
+  if(!race) return;
+  var st = $('race-status');
+  if(!st) return;
+  if(race.finished){ st.textContent = '🏁 比赛结束！得分最高的是冠军'; return; }
+  var guessed = 0;
+  for(var i = 0; i < race.players.length; i++){ if(race.bets[i]) guessed++; }
+  if(guessed >= race.players.length){
+    st.textContent = '第 ' + (race.round+1) + '/' + race.total + ' 轮 · 都猜好啦，点「开跑」！';
+    $('race-go').disabled = false;
+  }else{
+    st.textContent = '第 ' + (race.round+1) + '/' + race.total + ' 轮 · ' + guessed + '/' + race.players.length + ' 人已猜，每人猜一匹';
+    $('race-go').disabled = true;
+  }
+}
+function startRaceRun(){
+  if(!race || race.racing || race.finished) return;
+  race.racing = true;
+  $('race-go').disabled = true;
+  $('race-go').textContent = '🏇 比赛进行中…';
+  if(SFX.ctx && !SFX.muted){
+    var clip = setInterval(function(){ SFX.tone(170 + Math.random()*40, 0.05, {type:'square', vol:0.05}); }, 120);
+    race._clip = clip;
+  }
+  var nextRank = 1;
+  race.ranking = [];
+  race.anim = setInterval(function(){
+    var allDone = true;
+    for(var i = 0; i < race._horses.length; i++){
+      var h = race._horses[i];
+      if(h.rank){ continue; }
+      h.pos += h.speed * (0.6 + Math.random() * 0.9);
+      var el = $('race-h-' + h.id);
+      if(el){ el.style.left = Math.min(h.pos, 88) + '%'; }
+      if(h.pos >= 88){
+        h.rank = nextRank++;
+        race.ranking.push(h.id);
+      }else{
+        allDone = false;
+      }
+    }
+    if(allDone){
+      clearInterval(race.anim);
+      race.anim = null;
+      race.racing = false;
+      raceFinished();
+    }
+  }, 30);
+}
+function raceFinished(){
+  if(race._clip){ clearInterval(race._clip); race._clip = null; }
+  SFX.reward();
+  var winner = race.ranking[0];
+  var losers = [];
+  for(var i = 0; i < race.players.length; i++){
+    var p = race.players[i];
+    if(race.bets[i] === winner){ p.score += 1; }
+    else{ losers.push(p); }
+  }
+  var rankTxt = race.ranking.map(function(id, idx){
+    var h = RACE_HORSES[id-1];
+    return '<span style="color:' + h.color + ';font-weight:800">' + (idx+1) + '号马</span>';
+  }).join(' → ');
+  $('race-result').innerHTML = '<div class="race-round-rank">本跑名次：' + rankTxt + '</div>'
+    + '<div class="race-round-winner">🏆 冠军是 ' + winner + ' 号马！</div>';
+  renderRaceScore();
+  race.round++;
+  var last = race.round >= race.total;
+  var queue = losers.slice();
+  function next(){
+    if(!queue.length){
+      if(last){ raceFinal(); }
+      else{ nextRound(); }
+      return;
+    }
+    var p = queue.shift();
+    showRacePenalty(p, next);
+  }
+  if(queue.length){ next(); }
+  else if(last){ raceFinal(); }
+  else{ nextRound(); }
+}
+function showRacePenalty(p, done){
+  var txt = raceDrawPenalty(p.gender);
+  var modal = $('modal');
+  $('modal-icon').textContent = '😈';
+  $('modal-kicker').textContent = '赛马惩罚';
+  $('modal-title').textContent = p.name + ' 猜错啦！';
+  $('modal-body').innerHTML = '<div style="font-size:15px;line-height:2">' + p.name + ' 要' + txt + '！</div>';
+  $('modal-note').textContent = '猜中冠军马才能逃过惩罚哦～';
+  $('modal-action').textContent = '😭 接受惩罚';
+  $('modal-secondary').style.display = 'none';
+  modal.classList.add('show');
+  $('modal-action').onclick = function(){
+    modal.classList.remove('show');
+    SFX.click();
+    if(done){ done(); }
+  };
+}
+function nextRound(){
+  race.bets = {};
+  race._roundDone = false;
+  renderRaceBets();
+  renderRaceTrack();
+  $('race-result').textContent = '';
+  $('race-go').disabled = true;
+  $('race-go').textContent = '🏇 开跑！';
+  updateRaceStatus();
+}
+function raceFinal(){
+  race.finished = true;
+  var max = -1, champs = [];
+  for(var i = 0; i < race.players.length; i++){
+    var s = race.players[i].score;
+    if(s > max){ max = s; champs = [race.players[i]]; }
+    else if(s === max){ champs.push(race.players[i]); }
+  }
+  var champTxt = champs.map(function(c){ return c.name; }).join('、');
+  $('race-result').innerHTML += '<div class="race-final">🏆 赛马冠军：<b>' + champTxt + '</b>（' + max + ' 分）</div>';
+  $('race-go').style.display = 'none';
+  $('btn-race-again').style.display = 'block';
+  renderRaceScore();
+  updateRaceStatus();
+}
+function renderRaceCustomList(){
+  var list = $('race-custom-list');
+  if(!list) return;
+  var dflt = (RACE_DEFAULTS[raceCustomGender] || []).slice();
+  var arr = loadRaceCustom()[raceCustomGender];
+  if(!arr || !arr.length){ arr = dflt; }
+  else if(arr.length < dflt.length){ arr = arr.concat(dflt.slice(arr.length)); }
+  list.innerHTML = arr.map(function(t, idx){
+    var safe = String(t || '').replace(/"/g, '&quot;');
+    return '<div class="cc-row"><input class="cc-text" type="text" maxlength="30" value="' + safe + '" data-i="' + idx + '">'
+      + '<button class="cc-del" type="button" data-i="' + idx + '" aria-label="删除">×</button></div>';
+  }).join('');
+}
+function saveRaceCustomAll(){
+  var list = $('race-custom-list');
+  if(!list) return;
+  var rows = list.querySelectorAll('.cc-text');
+  var out = [];
+  for(var i = 0; i < rows.length; i++){
+    var v = rows[i].value.trim();
+    if(v){ out.push(v); }
+  }
+  var all = loadRaceCustom();
+  all[raceCustomGender] = out;
+  try{ localStorage.setItem(RACE_KEY, JSON.stringify(all)); }catch(e){}
+}
+$('btn-race-exit').addEventListener('click', function(){
+  SFX.click();
+  if(race && race.anim){ clearInterval(race.anim); race.anim = null; }
+  if(race && race._clip){ clearInterval(race._clip); race._clip = null; }
+  if(SFX.ctx && SFX._racePrevBgm !== undefined && SFX.currentBgm === 5){
+    SFX.bgmStop();
+    SFX.currentBgm = SFX._racePrevBgm;
+    SFX._racePrevBgm = undefined;
+    SFX.bgmStart();
+  }
+  race = null;
+  switchView('view-menu');
+});
+$('race-go').addEventListener('click', function(){
+  SFX.click();
+  if(!race || race.racing || race.finished) return;
+  for(var i = 0; i < race.players.length; i++){ if(!race.bets[i]){ showToast('还有玩家没猜哦'); return; } }
+  startRaceRun();
+});
+$('btn-race-again').addEventListener('click', function(){
+  SFX.click();
+  openRace();
+});
+$('race-bets').addEventListener('click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('button.race-pick') : null;
+  if(!b || !race || race.racing || race.finished || race._roundDone) return;
+  var pi = parseInt(b.getAttribute('data-p'), 10);
+  var hi = parseInt(b.getAttribute('data-h'), 10);
+  race.bets[pi] = hi;
+  renderRaceBets();
+  updateRaceStatus();
+});
+$('btn-race-custom-toggle').addEventListener('click', function(){
+  var p = $('race-custom-panel');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  this.textContent = '✏️ 自定义惩罚内容 ' + (open ? '▼' : '▲');
+  if(!open){ renderRaceCustomList(); }
+});
+$('race-custom-list').addEventListener('input', function(ev){
+  if(ev.target.classList.contains('cc-text')){
+    saveRaceCustomAll();
+  }
+});
+$('race-custom-list').addEventListener('click', function(ev){
+  if(ev.target.classList.contains('cc-del')){
+    var idx = parseInt(ev.target.getAttribute('data-i'), 10);
+    var all = loadRaceCustom();
+    var arr = all[raceCustomGender] || [];
+    arr.splice(idx, 1);
+    all[raceCustomGender] = arr;
+    try{ localStorage.setItem(RACE_KEY, JSON.stringify(all)); }catch(e){}
+    renderRaceCustomList();
+  }
+});
+$('race-custom-add').addEventListener('click', function(){
+  var all = loadRaceCustom();
+  if(!all[raceCustomGender]){ all[raceCustomGender] = []; }
+  all[raceCustomGender].push('再想一条甜蜜惩罚…');
+  try{ localStorage.setItem(RACE_KEY, JSON.stringify(all)); }catch(e){}
+  renderRaceCustomList();
+});
+var raceGtabs = document.querySelectorAll('#race-gender-tabs .rps-gtab');
+for(var rg = 0; rg < raceGtabs.length; rg++){
+  raceGtabs[rg].addEventListener('click', function(){
+    raceCustomGender = this.getAttribute('data-g');
+    for(var j = 0; j < raceGtabs.length; j++){ raceGtabs[j].classList.toggle('active', raceGtabs[j] === this); }
+    renderRaceCustomList();
+  });
+}
+var mysteryCustomGender = 'male';
+var mysteryCustomKind = 'reward';
+function renderMysteryCustomList(){
+  var list = $('mystery-custom-list');
+  if(!list) return;
+  var rows = loadMysteryCustom()[mysteryCustomGender] ? loadMysteryCustom()[mysteryCustomGender][mysteryCustomKind] : [];
+  if(!rows || !rows.length){
+    rows = (MYSTERY_DEFAULTS[mysteryCustomGender] && MYSTERY_DEFAULTS[mysteryCustomGender][mysteryCustomKind]) || [];
+    rows = rows.map(function(c){ return {v: c[0], text: c[1]}; });
+  }
+  var opts = MYSTERY_VALUES.map(function(v){ return '<option value="' + v + '">' + v + '❤️</option>'; }).join('');
+  list.innerHTML = rows.map(function(c){
+    var sel = opts.replace('value="' + c.v + '"', 'value="' + c.v + '" selected');
+    var safe = String(c.text || '').replace(/"/g, '&quot;');
+    return '<div class="cc-row"><select class="cc-act">' + sel + '</select>'
+      + '<input class="cc-text" type="text" maxlength="30" value="' + safe + '">'
+      + '<button class="cc-del" type="button" aria-label="删除">×</button></div>';
+  }).join('');
+}
+function saveMysteryCustom(){
+  var list = $('mystery-custom-list');
+  var rows = list.querySelectorAll('.cc-row');
+  var out = [];
+  for(var i = 0; i < rows.length; i++){
+    var v = rows[i].querySelector('.cc-act').value;
+    var text = rows[i].querySelector('.cc-text').value.trim();
+    if(text){ out.push({v: v, text: text}); }
+  }
+  var all = loadMysteryCustom();
+  if(!all[mysteryCustomGender]){ all[mysteryCustomGender] = {}; }
+  all[mysteryCustomGender][mysteryCustomKind] = out;
+  try{ localStorage.setItem(MYSTERY_KEY, JSON.stringify(all)); }catch(e){}
+  showToast('盲盒内容已保存（自动保存，下次打开还在）');
+  var p = $('mystery-custom-panel');
+  if(p){ p.style.display = 'none'; var t = $('btn-mystery-custom-toggle'); if(t){ t.textContent = '✏️ 自定义盲盒内容 ▼'; } }
+}
+$('btn-mystery-custom-toggle').addEventListener('click', function(){
+  var p = $('mystery-custom-panel');
+  var open = p.style.display !== 'none';
+  p.style.display = open ? 'none' : 'block';
+  this.textContent = '✏️ 自定义盲盒内容 ' + (open ? '▼' : '▲');
+  if(!open){ renderMysteryCustomList(); }
+  SFX.click();
+});
+$('mystery-custom-add').addEventListener('click', function(){
+  var opts = MYSTERY_VALUES.map(function(v){
+    return '<option value="' + v + '"' + (v === '+2' ? ' selected' : '') + '>' + v + '❤️</option>';
+  }).join('');
+  $('mystery-custom-list').insertAdjacentHTML('beforeend',
+    '<div class="cc-row"><select class="cc-act">' + opts + '</select>'
+    + '<input class="cc-text" type="text" maxlength="30" value="">'
+    + '<button class="cc-del" type="button" aria-label="删除">×</button></div>');
+  SFX.click();
+});
+$('mystery-custom-list').addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('cc-del')){
+    var row = e.target.parentNode;
+    row.parentNode.removeChild(row);
+    SFX.click();
+  }
+});
+$('mystery-custom-save').addEventListener('click', function(){ saveMysteryCustom(); SFX.click(); });
+var mysteryGtabs = document.querySelectorAll('#mystery-gender-tabs .rps-gtab');
+for(var mgt = 0; mgt < mysteryGtabs.length; mgt++){
+  mysteryGtabs[mgt].addEventListener('click', function(){
+    mysteryCustomGender = this.getAttribute('data-g');
+    for(var i = 0; i < mysteryGtabs.length; i++){ mysteryGtabs[i].classList.toggle('active', mysteryGtabs[i] === this); }
+    renderMysteryCustomList();
+    SFX.click();
+  });
+}
+var mysteryKtabs = document.querySelectorAll('#mystery-kind-tabs .rps-gtab');
+for(var mkt = 0; mkt < mysteryKtabs.length; mkt++){
+  mysteryKtabs[mkt].addEventListener('click', function(){
+    mysteryCustomKind = this.getAttribute('data-k');
+    for(var i = 0; i < mysteryKtabs.length; i++){ mysteryKtabs[i].classList.toggle('active', mysteryKtabs[i] === this); }
+    renderMysteryCustomList();
+    SFX.click();
+  });
+}
 $('btn-rps-punish').addEventListener('click', function(){ onlineRpsPunish(); });
 $('btn-rps-custom-toggle').addEventListener('click', function(){
   var p = $('rps-custom-panel');
   var open = p.style.display !== 'none';
   p.style.display = open ? 'none' : 'block';
-  this.textContent = '✏️ 自定义惩罚卡（房主） ' + (open ? '▼' : '▲');
+  this.textContent = '✏️ 自定义惩罚卡' + (onlineMode ? '（房主）' : '') + ' ' + (open ? '▼' : '▲');
   if(!open){ renderRpsCustomList(); }
   SFX.click();
 });
@@ -4981,12 +6619,12 @@ $('btn-restart').addEventListener('click', function(){
     return;
   }
   state = null;
-  switchView('view-start');
+  switchView('view-menu');
 });
 window.addEventListener('beforeunload', function(){ leaveOnline(); });
 var btnRestartEnd = $('btn-restart-end');
 if(btnRestartEnd){ btnRestartEnd.addEventListener('click', function(){
-  SFX.bgmStop(); SFX.click(); state = null; switchView('view-start');
+  SFX.bgmStop(); SFX.click(); state = null; switchView('view-menu');
 }); }
 var countBtns = document.querySelectorAll('.count-btn');
 for(var cb = 0; cb < countBtns.length; cb++){
@@ -5025,6 +6663,144 @@ for(var gb = 0; gb < genderBtns.length; gb++){
   });
 }
 
+/* ============ 瑜伽姿势抽卡 ============ */
+var YOGA_COLORS = ['#E86B9B','#8A6FE8','#F5A623','#4FC3A1','#5B8DEF','#F2789F'];
+var YOGA_POSES = [
+  { name: '山式', en: 'Mountain Pose', sec: 30, tip: '站直如松，双脚并拢，深呼吸三次，感受彼此的呼吸节奏', img: 'https://aka.doubaocdn.com/s/8sCXLDNr2F', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13" fill="none"/><path d="M100 55 L100 132"/><path d="M100 132 L92 205"/><path d="M100 132 L108 205"/><path d="M100 72 L68 100"/><path d="M100 72 L132 100"/></g>' },
+  { name: '树式', en: 'Tree Pose', sec: 30, tip: '单腿站立，另一只脚贴小腿，像小树一样稳稳扎根，站不稳可以互相扶着', img: 'https://aka.doubaocdn.com/s/YOryekGEV6', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 128 L100 205"/><path d="M100 128 L122 148 L100 156"/><path d="M100 72 L92 26"/><path d="M100 72 L108 26"/></g>' },
+  { name: '战士一式', en: 'Warrior I', sec: 30, tip: '大步弓步，双手向上合十，目光坚定看向前方，气势如虹', img: 'https://aka.doubaocdn.com/s/hKFeUUg62N', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L142 172"/><path d="M100 118 L58 172"/><path d="M100 70 L160 70"/><path d="M100 70 L40 70"/></g>' },
+  { name: '战士二式', en: 'Warrior II', sec: 30, tip: '侧身弓步，双臂平展如翅膀，眼神顺着前手方向看出去', img: 'https://aka.doubaocdn.com/s/luZaw9JDPE', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L145 176"/><path d="M100 118 L55 176"/><path d="M100 70 L166 70"/><path d="M100 70 L34 70"/></g>' },
+  { name: '三角式', en: 'Triangle Pose', sec: 30, tip: '侧腰舒展，一手触地一手指向天空，两人可以背对背做', img: 'https://aka.doubaocdn.com/s/2TxqTMPa18', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="38" r="13"/><path d="M100 51 L100 112"/><path d="M100 112 L160 178"/><path d="M100 112 L60 178"/><path d="M100 70 L148 38"/><path d="M100 112 L162 178"/></g>' },
+  { name: '下犬式', en: 'Downward Dog', sec: 40, tip: '双手撑地、臀部抬高，身体呈倒V形，像小狗伸懒腰一样舒服', img: 'https://aka.doubaocdn.com/s/VzkmUyuIbB', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="55" cy="152" r="13"/><path d="M100 52 L55 152"/><path d="M100 52 L145 150"/><path d="M100 52 L72 178"/><path d="M100 52 L128 178"/></g>' },
+  { name: '猫牛式', en: 'Cat-Cow', sec: 30, tip: '跪姿双手撑地，吸气塌腰抬头，呼气拱背低头，像小猫一样灵活', img: 'https://aka.doubaocdn.com/s/I9mjBteVhH', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="46" r="13"/><path d="M100 59 L100 122"/><path d="M100 66 L58 104"/><path d="M100 66 L142 104"/><path d="M100 122 L80 180"/><path d="M100 122 L120 180"/></g>' },
+  { name: '婴儿式', en: 'Child Pose', sec: 60, tip: '跪坐后身体前趴，额头贴地，双臂向前伸，全身放松休息', img: 'https://aka.doubaocdn.com/s/Ytc3NxLrXL', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="104" r="13"/><path d="M100 117 L100 178"/><path d="M100 122 L62 88"/><path d="M100 122 L138 88"/><path d="M100 178 L86 210"/><path d="M100 178 L114 210"/></g>' },
+  { name: '眼镜蛇式', en: 'Cobra Pose', sec: 30, tip: '俯卧双手撑地，慢慢抬头挺胸，舒展胸腔，像小蛇抬头', img: 'https://aka.doubaocdn.com/s/K42VFSqyjz', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="58" r="13"/><path d="M100 71 L100 152"/><path d="M100 76 L72 118"/><path d="M100 76 L128 118"/><path d="M100 152 L90 208"/><path d="M100 152 L110 208"/></g>' },
+  { name: '桥式', en: 'Bridge Pose', sec: 30, tip: '仰卧屈膝踩地，臀部向上抬起，肩背贴地，像一座小桥', img: 'https://aka.doubaocdn.com/s/qbmMDK6Ule', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="192" r="13"/><path d="M100 180 L100 142"/><path d="M100 150 L78 206"/><path d="M100 150 L122 206"/><path d="M100 182 L80 204"/><path d="M100 182 L120 204"/></g>' },
+  { name: '蝴蝶式', en: 'Butterfly Pose', sec: 40, tip: '坐姿脚心相对，双手握住脚背，膝盖像蝴蝶翅膀一样上下轻拍', img: 'https://aka.doubaocdn.com/s/ZHmryRCBuu', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="52" r="13"/><path d="M100 65 L100 128"/><path d="M100 128 L76 158"/><path d="M100 128 L124 158"/><path d="M100 78 L72 116"/><path d="M100 78 L128 116"/><circle cx="100" cy="158" r="6" fill="currentColor" stroke="none"/></g>' },
+  { name: '平板支撑', en: 'Plank', sec: 20, tip: '俯撑身体成一条直线，核心收紧，坚持就是胜利，TA 在旁边给你数数', img: 'https://aka.doubaocdn.com/s/mOXZaaN4WK', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="44" r="13"/><path d="M100 57 L118 128"/><path d="M100 60 L82 126"/><path d="M118 128 L106 200"/><path d="M118 128 L132 200"/></g>' },
+  { name: '鸽子式', en: 'Pigeon Pose', sec: 30, tip: '跪姿前腿屈膝贴地，后腿向后伸直，拉伸胯部，慢慢加深', img: 'https://aka.doubaocdn.com/s/Byix3UghgM', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 126"/><path d="M100 126 L84 148 L100 154"/><path d="M100 126 L138 186"/><path d="M100 72 L64 42"/><path d="M100 72 L136 42"/></g>' },
+  { name: '摊尸式', en: 'Corpse Pose', sec: 90, tip: '仰卧全身放松，双臂自然外展，闭上眼睛，静静躺着享受这一刻', img: 'https://aka.doubaocdn.com/s/MrQ52LTOLc', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 70 L66 88"/><path d="M100 70 L134 88"/><path d="M100 128 L84 178"/><path d="M100 128 L116 178"/></g>' },
+  { name: '新月式', en: 'Crescent Lunge', sec: 30, tip: '前腿弓步弯曲，后腿向后伸展，双臂向上合十，微微后仰舒展全身', img: 'https://aka.doubaocdn.com/s/qVbKDVu8Pv', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L88 110"/><path d="M88 110 L52 132"/><path d="M88 110 L70 172"/><path d="M100 53 L118 38"/><path d="M118 38 L142 30"/></g>' },
+  { name: '鸟王式', en: 'Eagle Pose', sec: 25, tip: '单腿站立，另一腿缠绕小腿，双臂交叉缠绕，保持平衡像一只优雅的鸟', img: 'https://aka.doubaocdn.com/s/QZLepyHN6w', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 120"/><path d="M100 120 L100 176"/><path d="M100 88 L66 66"/><path d="M100 88 L134 66"/><path d="M100 88 L86 120"/><path d="M100 88 L114 120"/></g>' },
+  { name: '侧角伸展式', en: 'Extended Side Angle', sec: 30, tip: '侧弓步下沉，下方手撑地，上方手臂贴耳向上伸展，身体成一条斜线', img: 'https://aka.doubaocdn.com/s/MOkQ33oru5', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L86 104"/><path d="M86 104 L52 122"/><path d="M86 104 L70 172"/><path d="M100 53 L120 84"/><path d="M120 84 L148 108"/></g>' },
+  { name: '花环式', en: 'Garland Pose', sec: 30, tip: '双脚并拢蹲下，双手胸前合十，手肘轻抵膝盖内侧，后背挺直', img: 'https://aka.doubaocdn.com/s/7ceNdfrofU', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 112"/><path d="M100 112 L66 152"/><path d="M100 112 L134 152"/><path d="M66 152 L66 178"/><path d="M134 152 L134 178"/><path d="M100 112 L84 94"/><path d="M100 112 L116 94"/><path d="M84 94 L116 94"/></g>' },
+  { name: '骆驼式', en: 'Camel Pose', sec: 25, tip: '双膝跪地，双手向后抓脚跟，胸口上挺，头微微后仰打开胸腔', img: 'https://aka.doubaocdn.com/s/ROGQeMkHVL', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L108 96"/><path d="M108 96 L142 118"/><path d="M108 96 L66 150"/><path d="M142 118 L142 178"/><path d="M66 150 L66 178"/></g>' },
+  { name: '半鱼王式', en: 'Half Lord of the Fishes', sec: 30, tip: '盘腿而坐，一腿跨过另一腿，身体向一侧扭转，手肘抵住膝盖', img: 'https://aka.doubaocdn.com/s/amYoixP9GQ', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L88 100"/><path d="M88 100 L56 138"/><path d="M88 100 L124 120"/><path d="M56 138 L56 178"/><path d="M124 120 L152 140"/><path d="M88 100 L66 92"/></g>' }
+];
+var yoga = null;
+function openYoga(){
+  SFX.init(); SFX.resume(); SFX.click();
+  var ps = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    ps.push({name: v || '宝贝' + (i+1), gender: gender, color: PLAYER_COLORS[i % 4], done: 0});
+  }
+  yoga = { players: ps, turn: 0, timer: null, seconds: 0, round: 0 };
+  yogaResetStage();
+  renderYogaScore();
+  renderYogaTurn();
+  $('yoga-status').textContent = '每人轮流抽一张瑜伽姿势卡，抽到谁就谁来做';
+  switchView('view-yoga');
+}
+function yogaResetStage(){
+  var card = $('yoga-card');
+  if(card){ card.innerHTML = '<div class="yoga-empty">抽一张瑜伽姿势卡，抽到谁就谁来做 💕</div>'; }
+  var tm = $('yoga-timer'); if(tm){ tm.textContent = ''; }
+  var d = $('btn-yoga-draw'); if(d){ d.style.display = ''; }
+  var dn = $('btn-yoga-done'); if(dn){ dn.style.display = 'none'; }
+  var ag = $('btn-yoga-again'); if(ag){ ag.style.display = 'none'; }
+}
+function renderYogaScore(){
+  var el = $('yoga-score');
+  if(!el || !yoga) return;
+  el.innerHTML = yoga.players.map(function(p){
+    return '<span class="rps-score-item" style="background:' + p.color + '">' + p.name + ' ' + p.done + '/1</span>';
+  }).join('');
+}
+function renderYogaTurn(){
+  var t = $('yoga-turn');
+  if(!t || !yoga) return;
+  t.textContent = '🎯 轮到 ' + yoga.players[yoga.turn].name + ' 抽卡';
+}
+function yogaDraw(){
+  if(!yoga) return;
+  if(yoga.timer){ clearInterval(yoga.timer); yoga.timer = null; }
+  var p = yoga.players[yoga.turn];
+  var pos = YOGA_POSES[Math.floor(Math.random() * YOGA_POSES.length)];
+  var col = YOGA_COLORS[Math.floor(Math.random() * YOGA_COLORS.length)];
+  var card = $('yoga-card');
+  var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + pos.svg.replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
+  yoga._lastSvg = svgHtml;
+  var photo = pos.img
+    ? '<div class="yoga-photo"><img src="' + pos.img + '" alt="' + pos.name + '" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
+    : svgHtml;
+  card.innerHTML = photo
+    + '<div class="yoga-name" style="color:' + col + '">' + pos.name + '</div>'
+    + '<div class="yoga-en">' + pos.en + '</div>'
+    + '<div class="yoga-sec">⏱ 保持 ' + pos.sec + ' 秒</div>'
+    + '<div class="yoga-tip">' + pos.tip + '</div>';
+  $('yoga-turn').textContent = '🤸 ' + p.name + ' 来做「' + pos.name + '」';
+  yoga.seconds = pos.sec;
+  $('yoga-timer').textContent = yoga.seconds + 's';
+  yoga.timer = setInterval(function(){
+    yoga.seconds--;
+    $('yoga-timer').textContent = yoga.seconds + 's';
+    if(yoga.seconds <= 0){
+      clearInterval(yoga.timer); yoga.timer = null;
+      SFX.reward();
+      $('yoga-timer').textContent = '🎉 保持完成！';
+    }
+  }, 1000);
+  $('btn-yoga-draw').style.display = 'none';
+  $('btn-yoga-done').style.display = '';
+  SFX.tone(660, 0.12, {type:'triangle', vol:0.14});
+}
+function yogaDone(){
+  if(!yoga) return;
+  if(yoga.timer){ clearInterval(yoga.timer); yoga.timer = null; }
+  yoga.players[yoga.turn].done = 1;
+  var allDone = true;
+  for(var i = 0; i < yoga.players.length; i++){ if(!yoga.players[i].done){ allDone = false; break; } }
+  if(allDone){
+    yoga.round++;
+    $('yoga-status').textContent = '🎊 第 ' + yoga.round + ' 轮完成！大家都舒展完啦，再来一局或退出';
+    $('yoga-turn').textContent = '🎊 本轮全部完成！';
+    $('yoga-card').innerHTML = '<div class="yoga-empty">第 ' + yoga.round + ' 轮完成，全员舒展 💕</div>';
+    $('yoga-timer').textContent = '';
+    $('btn-yoga-draw').style.display = 'none';
+    $('btn-yoga-done').style.display = 'none';
+    $('btn-yoga-again').style.display = '';
+    SFX.reward();
+    return;
+  }
+  do{ yoga.turn = (yoga.turn + 1) % yoga.players.length; }while(yoga.players[yoga.turn].done);
+  renderYogaScore();
+  renderYogaTurn();
+  $('yoga-card').innerHTML = '<div class="yoga-empty">下一位 ' + yoga.players[yoga.turn].name + ' 抽卡 💕</div>';
+  $('yoga-timer').textContent = '';
+  $('btn-yoga-draw').style.display = '';
+  $('btn-yoga-done').style.display = 'none';
+}
+$('btn-yoga-exit').addEventListener('click', function(){
+  SFX.click();
+  if(yoga && yoga.timer){ clearInterval(yoga.timer); yoga.timer = null; }
+  yoga = null;
+  switchView('view-menu');
+});
+$('btn-yoga-draw').addEventListener('click', function(){ SFX.click(); yogaDraw(); });
+$('btn-yoga-done').addEventListener('click', function(){ SFX.click(); yogaDone(); });
+$('btn-yoga-again').addEventListener('click', function(){
+  SFX.click();
+  if(yoga){ for(var i = 0; i < yoga.players.length; i++){ yoga.players[i].done = 0; } yoga.turn = 0; }
+  yogaResetStage();
+  renderYogaScore();
+  renderYogaTurn();
+  $('yoga-status').textContent = '每人轮流抽一张瑜伽姿势卡，抽到谁就谁来做';
+});
+
+
 /* ---------- 初始化 ---------- */
 mountStaticIcons();
 showDice(1);
@@ -5057,7 +6833,7 @@ document.addEventListener('click', _startAudioOnFirstInteract);
 document.addEventListener('touchstart', _startAudioOnFirstInteract);
 if(isActivated()){
   ACTIVATED = true;
-  switchView('view-start');
+  switchView('view-menu');
 }else{
   switchView('view-activate');
 }
