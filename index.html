@@ -6178,6 +6178,12 @@ function renderOnlineShoot(){
   var s = state.shoot;
   var ttl = $('shoot-title');
   if(ttl){ ttl.textContent = '🔫 联机射击'; }
+  // 新一局（服务器重置后）清掉上一局残留的弹孔
+  var fresh = s.phase === 'play' && !s.last && (!s.done || Object.keys(s.done).length === 0);
+  if(fresh && shoot && shoot.players){
+    shoot.players.forEach(function(sp){ if(sp){ sp.shots = []; } });
+    shoot._lastKey = null;
+  }
   // 构建本地射击所需的 players 结构（弹孔渲染用）
   shoot = shoot || {};
   if(!shoot.players || shoot.players.length !== state.players.length){
