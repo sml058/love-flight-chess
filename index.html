@@ -3569,6 +3569,9 @@ function joinOnline(){
 }
 function leaveOnline(){
   if(evtSource){ try{evtSource.close();}catch(e){} evtSource=null; }
+  if(typeof stopOnlineShootAnim === 'function'){ stopOnlineShootAnim(); }
+  if(typeof stopOnlineRaceAnim === 'function'){ stopOnlineRaceAnim(); }
+  if(yoga && yoga._onlineTimer){ clearInterval(yoga._onlineTimer); yoga._onlineTimer = null; }
   if(onlineMode && serverUrl && myId>=0){
     try{ fetch(serverUrl+'/leave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId})}); }catch(e){}
   }
@@ -6162,6 +6165,7 @@ function startOnlineShootAnim(){
   var sp = (shoot.diff === 'hard') ? 0.055 : (shoot.diff === 'easy' ? 0.018 : 0.032);
   var sp2 = sp * 0.6;
   function frame(){
+    if(!shoot){ stopOnlineShootAnim(); return; }
     shoot.animT++;
     shoot.arrowX = Math.round(260 + Math.sin(shoot.animT * sp) * 130);
     shoot.arrowY = Math.round(290 + Math.sin(shoot.animT * sp2) * 150);
@@ -6201,7 +6205,7 @@ function renderOnlineShoot(){
     if(lp){ lp.shots.push({ x: s.last.x, y: s.last.y }); }
   }
   // 命中/脱靶提示（仅射击者本端弹出，与本地一致；其他玩家从状态栏看到结果）
-  if(s.last && s.last.pid === myId && s.phase !== 'end' && (!shoot._lastShown || shoot._lastShown !== s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y))){
+  if(s.last && s.last.pid === myId && (!shoot._lastShown || shoot._lastShown !== s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y))){
     shoot._lastShown = s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y);
     var lastShooter = playerById(s.last.pid);
     if(s.last.part && lastShooter){
