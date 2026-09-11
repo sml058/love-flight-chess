@@ -414,10 +414,10 @@ class Handler(BaseHTTPRequestHandler):
                 'done': {}, 'round': 0, 'total': 2, 'last': None,
             }
             # 初始化射击游戏状态（第一个男玩家射女靶，否则射男靶）
-            first_male = next((p['id'] for p in state['players'] if p['gender'] == 'male'), None)
+            first_p = state['players'][0]
             state['shoot'] = {
                 'phase': 'play', 'turn': 0,
-                'mode': 'female' if first_male is not None else 'male',
+                'mode': 'male' if first_p['gender'] == 'female' else 'female',
                 'scores': {}, 'done': {}, 'last': None,
                 'winner': -1, 'round': 0, 'total': 1,
             }
@@ -1025,6 +1025,8 @@ class Handler(BaseHTTPRequestHandler):
                     s['turn'] = (s['turn'] + 1) % n
                     if not s['done'].get(state['players'][s['turn']]['id']):
                         break
+                np = state['players'][s['turn']]
+                s['mode'] = 'male' if np['gender'] == 'female' else 'female'
             snap = json.loads(json.dumps(state['shoot']))
         broadcast('shoot', snap)
         self._json(200, {'shoot': snap})
