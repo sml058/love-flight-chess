@@ -28,8 +28,17 @@ state = {
     'started': False,   # False=等待大厅，True=游戏进行中
     'hostId': -1,       # 房主（第一个加入的玩家）
     'boardVersion': 50, # 本局棋盘版本（50/100/150）
-    'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳 / tda=真心话大冒险
+    'gameType': 'flight',  # 房间游戏：flight=飞行棋 / rps=猜拳 / tda=真心话大冒险 / mystery=盲盒奇遇
     'cells': [],           # 本局特殊格位置（开局由服务器统一生成，全员一致）
+    'mystery': {       # 联机盲盒奇遇状态
+        'phase': 'wait',   # wait=等待开局 / play=开盒中 / end=结算
+        'order': [],       # [id, id...] 开盒顺序
+        'turnIdx': 0,      # 当前该开盒的玩家在 order 中的下标
+        'boxes': [None] * 9,  # 9 个盲盒：{who, kind, delta, text} 或 None
+        'hearts': {},      # {id: 爱心数}
+        'round': 0,        # 已开盒数
+        'total': 0,        # 本局总开盒数 = 玩家数 * 3
+    },
     'rps': {           # 联机猜拳状态
         'pair': [],        # [idA, idB] 本轮对决的两位玩家
         'picks': {},       # {id: 'rock'|'scissors'|'paper'}
@@ -50,6 +59,47 @@ state = {
         'card': None,    # {type:'truth'|'dare', text:'...'} 当前展示的卡
         'round': 0,      # 已轮数
         'auto': 10,      # 抽卡后自动切换到下一位的秒数
+    },
+    'wheel': {       # 联机幸运转盘状态
+        'phase': 'wait',   # wait=等待开局 / play=可转动 / show=展示结果 / end=结算
+        'turn': 0,         # 当前该转的玩家下标
+        'idx': -1,         # 最近一次转出的格索引 0-23
+        'done': {},        # {pid: True} 本轮已转
+        'round': 0,        # 已完成的轮数
+        'total': 2,        # 总轮数（每人每轮转一次，共2轮）
+        'last': None,      # {pid, name, idx}
+    },
+    'shoot': {       # 联机射击游戏状态
+        'phase': 'wait',   # wait=等待开局 / play=射击中 / end=结算
+        'turn': 0,         # 当前该射的玩家下标
+        'mode': 'female',  # 当前靶性别：第一个男玩家射女靶
+        'scores': {},      # {pid: 总分}
+        'done': {},        # {pid: True} 本轮已射
+        'last': None,      # {pid, part, score, x, y}
+        'winner': -1,
+        'round': 0,        # 已完成的轮数
+        'total': 1,        # 每人 1 箭 = 1 轮
+    },
+    'race': {        # 联机赛马状态
+        'phase': 'wait',   # wait=等待开局 / bet=下注中 / run=开跑 / judge=判定展示 / end=结算
+        'bets': {},        # {pid: 马号1-5}
+        'winner': 0,       # 冠军马号
+        'ranking': [],     # 名次列表 [马号...]
+        'scores': {},      # {pid: 猜中次数}
+        'round': 0,        # 已完成的轮数
+        'total': 3,        # 共 3 轮
+        'losers': [],      # 本轮猜错玩家
+        'penalty': '',     # 房主抽取的惩罚内容
+        'winnerTxt': '',   # 冠军展示文字
+    },
+    'yoga': {        # 联机瑜伽抽卡状态
+        'phase': 'wait',   # wait=等待开局 / draw=待抽卡 / hold=展示中 / end=结算
+        'order': [],       # [pid...] 抽卡顺序
+        'turnIdx': 0,      # 当前该抽的玩家在 order 中的下标
+        'posIdx': -1,      # 最近抽到的姿势索引
+        'done': {},        # {pid: 本轮已完成}
+        'round': 0,        # 已完成的轮数
+        'total': 0,        # 一轮 = 每人抽一张
     },
 }
 state_lock = threading.Lock()
@@ -88,6 +138,15 @@ class Handler(BaseHTTPRequestHandler):
         pass  # 静默日志
 
     # ---- GET ----
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+
     def do_GET(self):
         path = urlparse(self.path).path
         if path in ('/', '/index.html'):
@@ -101,6 +160,9 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
+        elif path == '/state':
+            # 只读：返回当前房间完整状态（用于断线恢复/大厅刷新）
+            self._json(200, {'state': snapshot()})
         else:
             self.send_error(404)
 
@@ -109,6 +171,9 @@ class Handler(BaseHTTPRequestHandler):
             with open(fname, 'rb') as f:
                 data = f.read()
             self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.send_header('Content-Type', ctype)
             self.send_header('Content-Length', str(len(data)))
             self.send_header('Cache-Control', 'no-cache')
@@ -119,6 +184,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def _handle_sse(self):
         self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.send_header('Content-Type', 'text/event-stream')
         self.send_header('Cache-Control', 'no-cache')
         self.send_header('Connection', 'keep-alive')
@@ -188,6 +256,8 @@ class Handler(BaseHTTPRequestHandler):
             self._final_punish(body)
         elif path == '/ready':
             self._ready(body)
+        elif path == '/log':
+            self._log(body)
         elif path == '/rps-roll':
             self._rps_roll(body)
         elif path == '/rps-next':
@@ -198,6 +268,26 @@ class Handler(BaseHTTPRequestHandler):
             self._tda_draw(body)
         elif path == '/tda-next':
             self._tda_next(body)
+        elif path == '/mystery-open':
+            self._mystery_open(body)
+        elif path == '/wheel-spin':
+            self._wheel_spin(body)
+        elif path == '/wheel-next':
+            self._wheel_next(body)
+        elif path == '/shoot-fire':
+            self._shoot_fire(body)
+        elif path == '/race-bet':
+            self._race_bet(body)
+        elif path == '/race-run':
+            self._race_run(body)
+        elif path == '/race-punish':
+            self._race_punish(body)
+        elif path == '/race-next':
+            self._race_next(body)
+        elif path == '/yoga-draw':
+            self._yoga_draw(body)
+        elif path == '/yoga-done':
+            self._yoga_done(body)
         elif path == '/admin/clean':
             self._admin_clean()
         elif path == '/admin/reset':
@@ -210,6 +300,9 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self, code, obj):
         data = json.dumps(obj, ensure_ascii=False).encode('utf-8')
         self.send_response(code)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(data)))
         self.end_headers()
@@ -288,7 +381,7 @@ class Handler(BaseHTTPRequestHandler):
             state['turn'] = 0
             state['winner'] = None
             gt = body.get('gameType')
-            if gt in ('flight', 'rps', 'tda'):
+            if gt in ('flight', 'rps', 'tda', 'mystery', 'wheel', 'shoot', 'race', 'yoga'):
                 state['gameType'] = gt
             bv = body.get('boardVersion')
             if bv in (50, 100, 150):
@@ -304,6 +397,42 @@ class Handler(BaseHTTPRequestHandler):
             # 初始化真心话大冒险状态
             state['tda'] = {
                 'turn': 0, 'phase': 'idle', 'card': None, 'round': 0, 'auto': TDA_AUTO_SECONDS,
+            }
+            # 初始化盲盒奇遇状态
+            state['mystery'] = {
+                'phase': 'play',
+                'order': [p['id'] for p in state['players']],
+                'turnIdx': 0,
+                'boxes': [None] * 9,
+                'hearts': {},
+                'round': 0,
+                'total': 9,
+            }
+            # 初始化幸运转盘状态
+            state['wheel'] = {
+                'phase': 'play', 'turn': 0, 'idx': -1,
+                'done': {}, 'round': 0, 'total': 2, 'last': None,
+            }
+            # 初始化射击游戏状态（第一个男玩家射女靶，否则射男靶）
+            first_male = next((p['id'] for p in state['players'] if p['gender'] == 'male'), None)
+            state['shoot'] = {
+                'phase': 'play', 'turn': 0,
+                'mode': 'female' if first_male is not None else 'male',
+                'scores': {}, 'done': {}, 'last': None,
+                'winner': -1, 'round': 0, 'total': 1,
+            }
+            # 初始化赛马状态
+            state['race'] = {
+                'phase': 'bet', 'bets': {}, 'winner': 0, 'ranking': [],
+                'scores': {}, 'round': 0, 'total': 3,
+                'losers': [], 'penalty': '', 'winnerTxt': '',
+            }
+            # 初始化瑜伽抽卡状态
+            state['yoga'] = {
+                'phase': 'draw',
+                'order': [p['id'] for p in state['players']],
+                'turnIdx': 0, 'posIdx': -1,
+                'done': {}, 'round': 0, 'total': len(state['players']),
             }
             for p in state['players']:
                 p.update(pos=-1, steps=0, flying=False, hearts=0, shield=False, skip=False)
@@ -434,6 +563,19 @@ class Handler(BaseHTTPRequestHandler):
             snap = json.loads(json.dumps(state['ready']))
         broadcast('ready', {'ready': snap, 'id': pid})
         self._json(200, {'ready': snap})
+
+    def _log(self, body):
+        """联机足迹日志广播：掷骰者抽到奖励/惩罚卡后，把卡内容同步给全员，保证足迹一致。"""
+        with state_lock:
+            if not state['players']:
+                self._json(400, {'error': '房间为空'})
+                return
+            msg = (body.get('msg') or '').strip()
+            if not msg:
+                self._json(400, {'error': '日志内容为空'})
+                return
+        broadcast('log', {'msg': msg})
+        self._json(200, {'ok': True})
 
     def _final_punish(self, body):
         """赢家到终点后抽终点惩罚卡：只有赢家可抽，广播给全员。"""
@@ -736,6 +878,287 @@ class Handler(BaseHTTPRequestHandler):
             snap = self._tda_snapshot()
         broadcast('tda', snap)
         self._json(200, {'tda': snap})
+
+    def _mystery_snapshot(self):
+        return json.loads(json.dumps(state['mystery']))
+
+    def _mystery_open(self, body):
+        """当前轮到的玩家开盒：客户端按自己性别抽好内容上报，广播给全员。"""
+        with state_lock:
+            if not state['started'] or state['gameType'] != 'mystery':
+                self._json(400, {'error': '当前不是盲盒对局'})
+                return
+            pid = body.get('id')
+            m = state['mystery']
+            if m['phase'] != 'play':
+                self._json(400, {'error': '当前不能开盒'})
+                return
+            if not m['order'] or m['turnIdx'] >= len(m['order']) or m['order'][m['turnIdx']] != pid:
+                self._json(400, {'error': '还没轮到你开盒'})
+                return
+            bi = body.get('boxIdx')
+            if not isinstance(bi, int) or bi < 0 or bi >= 9:
+                self._json(400, {'error': '盲盒编号无效'})
+                return
+            if m['boxes'][bi] is not None:
+                self._json(400, {'error': '这个盲盒已经开过了'})
+                return
+            kind = body.get('kind')
+            if kind not in ('reward', 'penalty', 'jackpot'):
+                self._json(400, {'error': '内容类型无效'})
+                return
+            try:
+                delta = int(body.get('delta'))
+            except Exception:
+                self._json(400, {'error': '爱心数值无效'})
+                return
+            text = (body.get('text') or '').strip()
+            if not text:
+                self._json(400, {'error': '卡片内容为空'})
+                return
+            m['boxes'][bi] = {'who': pid, 'kind': kind, 'delta': delta, 'text': text}
+            m['hearts'][str(pid)] = m['hearts'].get(str(pid), 0) + delta
+            m['round'] += 1
+            if m['round'] >= m['total']:
+                m['phase'] = 'end'
+            else:
+                m['turnIdx'] = (m['turnIdx'] + 1) % len(m['order'])
+            snap = self._mystery_snapshot()
+        broadcast('mystery', snap)
+        self._json(200, {'mystery': snap})
+
+
+# ---------- 联机幸运转盘 ----------
+
+    def _wheel_snapshot(self):
+        with state_lock:
+            return json.loads(json.dumps(state['wheel']))
+
+    def _wheel_spin(self, body):
+        with state_lock:
+            w = state['wheel']
+            if not state['started'] or state['gameType'] != 'wheel':
+                self._json(400, {'error': '游戏未开始'}); return
+            if w['phase'] != 'play':
+                self._json(400, {'error': '现在不能转'}); return
+            pid = body.get('id')
+            if pid != state['players'][w['turn']]['id']:
+                self._json(400, {'error': '还没轮到你转'}); return
+            idx = random.randint(0, 23)
+            w['idx'] = idx
+            w['done'][pid] = True
+            w['last'] = {'pid': pid, 'name': state['players'][w['turn']]['name'], 'idx': idx}
+            w['phase'] = 'show'
+            snap = json.loads(json.dumps(state['wheel']))
+        broadcast('wheel', snap)
+        self._json(200, {'wheel': snap})
+
+    def _wheel_next(self, body):
+        with state_lock:
+            w = state['wheel']
+            if state['gameType'] != 'wheel' or w['phase'] != 'show':
+                self._json(400, {'error': '状态不对'}); return
+            n = len(state['players'])
+            for _ in range(n):
+                w['turn'] = (w['turn'] + 1) % n
+                if not w['done'].get(state['players'][w['turn']]['id']):
+                    break
+            if all(w['done'].get(p['id']) for p in state['players']):
+                w['round'] += 1
+                if w['round'] >= w['total']:
+                    w['phase'] = 'end'
+                else:
+                    w['done'] = {}
+                    w['turn'] = 0
+                    w['phase'] = 'play'
+            else:
+                w['phase'] = 'play'
+            snap = json.loads(json.dumps(state['wheel']))
+        broadcast('wheel', snap)
+        self._json(200, {'wheel': snap})
+
+
+# ---------- 联机射击游戏 ----------
+
+    def _shoot_hit_part(self, x, y):
+        import math
+        if math.hypot(x - 260, y - 342) < 42: return 'heart'
+        if math.hypot(x - 260, y - 150) < 52: return 'face'
+        if 208 <= x <= 312 and 212 <= y <= 342: return 'body'
+        if (164 <= x <= 232 and 240 <= y <= 342) or (288 <= x <= 356 and 240 <= y <= 342): return 'arm'
+        if 232 <= x <= 288 and 342 <= y <= 472: return 'leg'
+        return None
+
+    def _shoot_part_score(self, part):
+        return {'heart': 10, 'face': 8, 'body': 6, 'arm': 4}.get(part, 3)
+
+    def _shoot_fire(self, body):
+        with state_lock:
+            s = state['shoot']
+            if not state['started'] or state['gameType'] != 'shoot':
+                self._json(400, {'error': '游戏未开始'}); return
+            if s['phase'] != 'play':
+                self._json(400, {'error': '现在不能射击'}); return
+            pid = body.get('id')
+            if pid != state['players'][s['turn']]['id']:
+                self._json(400, {'error': '还没轮到你射'}); return
+            x = float(body.get('x', 260)); y = float(body.get('y', 290))
+            part = self._shoot_hit_part(x, y)
+            score = self._shoot_part_score(part) if part else 0
+            s['scores'][str(pid)] = s['scores'].get(str(pid), 0) + score
+            s['done'][pid] = True
+            s['last'] = {'pid': pid, 'name': state['players'][s['turn']]['name'], 'part': part, 'score': score, 'x': x, 'y': y}
+            # 推进下一位
+            n = len(state['players'])
+            all_done = all(s['done'].get(p['id']) for p in state['players'])
+            if all_done:
+                s['phase'] = 'end'
+                s['round'] += 1
+                best = -1; winner = -1
+                for p in state['players']:
+                    sc = s['scores'].get(str(p['id']), 0)
+                    if sc > best:
+                        best = sc; winner = p['id']
+                s['winner'] = winner
+            else:
+                for _ in range(n):
+                    s['turn'] = (s['turn'] + 1) % n
+                    if not s['done'].get(state['players'][s['turn']]['id']):
+                        break
+            snap = json.loads(json.dumps(state['shoot']))
+        broadcast('shoot', snap)
+        self._json(200, {'shoot': snap})
+
+
+# ---------- 联机赛马 ----------
+
+    def _race_snapshot(self):
+        with state_lock:
+            return json.loads(json.dumps(state['race']))
+
+    def _race_bet(self, body):
+        with state_lock:
+            r = state['race']
+            if not state['started'] or state['gameType'] != 'race':
+                self._json(400, {'error': '游戏未开始'}); return
+            if r['phase'] != 'bet':
+                self._json(400, {'error': '现在不能下注'}); return
+            pid = body.get('id')
+            horse = body.get('horse')
+            if horse not in (1, 2, 3, 4, 5):
+                self._json(400, {'error': '请选择 1-5 号马'}); return
+            r['bets'][pid] = horse
+            snap = json.loads(json.dumps(state['race']))
+        broadcast('race', snap)
+        self._json(200, {'race': snap})
+
+    def _race_run(self, body):
+        with state_lock:
+            r = state['race']
+            if not state['started'] or state['gameType'] != 'race':
+                self._json(400, {'error': '游戏未开始'}); return
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以开跑'}); return
+            if r['phase'] != 'bet':
+                self._json(400, {'error': '现在不能开跑'}); return
+            if len(r['bets']) < len(state['players']):
+                self._json(400, {'error': '还有玩家没下注'}); return
+            horses = list(range(1, 6))
+            random.shuffle(horses)
+            r['ranking'] = horses
+            r['winner'] = horses[0]
+            r['winnerTxt'] = '🏆 冠军是 ' + str(horses[0]) + ' 号马！'
+            r['losers'] = []
+            for p in state['players']:
+                if r['bets'].get(p['id']) == horses[0]:
+                    r['scores'][str(p['id'])] = r['scores'].get(str(p['id']), 0) + 1
+                else:
+                    r['losers'].append(p['id'])
+            r['phase'] = 'judge'
+            snap = json.loads(json.dumps(state['race']))
+        broadcast('race', snap)
+        self._json(200, {'race': snap})
+
+    def _race_punish(self, body):
+        with state_lock:
+            r = state['race']
+            if state['gameType'] != 'race' or r['phase'] != 'judge':
+                self._json(400, {'error': '状态不对'}); return
+            if body.get('id') != state['hostId']:
+                self._json(400, {'error': '只有房主可以抽惩罚'}); return
+            if not r['losers']:
+                r['penalty'] = ''
+            else:
+                gender = state['players'][r['losers'][0]]['gender']
+                cards = state['penaltyCards'].get(gender) or []
+                if cards:
+                    r['penalty'] = random.choice(cards)
+                else:
+                    default_m = ['做 5 个俯卧撑', '给对方讲个笑话', '学猫叫三声', '原地转 5 圈']
+                    default_f = ['做 5 个深蹲', '给对方唱首歌', '学猫叫三声', '原地转 5 圈']
+                    pool = default_f if gender == 'female' else default_m
+                    r['penalty'] = random.choice(pool)
+            snap = json.loads(json.dumps(state['race']))
+        broadcast('race', snap)
+        self._json(200, {'race': snap})
+
+    def _race_next(self, body):
+        with state_lock:
+            r = state['race']
+            if state['gameType'] != 'race' or r['phase'] != 'judge':
+                self._json(400, {'error': '状态不对'}); return
+            r['round'] += 1
+            if r['round'] >= r['total']:
+                r['phase'] = 'end'
+            else:
+                r['bets'] = {}
+                r['penalty'] = ''
+                r['winnerTxt'] = ''
+                r['losers'] = []
+                r['phase'] = 'bet'
+            snap = json.loads(json.dumps(state['race']))
+        broadcast('race', snap)
+        self._json(200, {'race': snap})
+
+
+# ---------- 联机瑜伽抽卡 ----------
+
+    def _yoga_draw(self, body):
+        with state_lock:
+            y = state['yoga']
+            if not state['started'] or state['gameType'] != 'yoga':
+                self._json(400, {'error': '游戏未开始'}); return
+            if y['phase'] != 'draw':
+                self._json(400, {'error': '现在不能抽卡'}); return
+            pid = body.get('id')
+            if pid != y['order'][y['turnIdx']]:
+                self._json(400, {'error': '还没轮到你抽'}); return
+            y['posIdx'] = random.randint(0, 19)
+            y['phase'] = 'hold'
+            snap = json.loads(json.dumps(state['yoga']))
+        broadcast('yoga', snap)
+        self._json(200, {'yoga': snap})
+
+    def _yoga_done(self, body):
+        with state_lock:
+            y = state['yoga']
+            if state['gameType'] != 'yoga' or y['phase'] != 'hold':
+                self._json(400, {'error': '状态不对'}); return
+            pid = body.get('id')
+            y['done'][pid] = True
+            n = len(y['order'])
+            all_done = all(y['done'].get(oid) for oid in y['order'])
+            if all_done:
+                y['round'] += 1
+                y['phase'] = 'end'
+            else:
+                y['turnIdx'] = (y['turnIdx'] + 1) % n
+                while y['done'].get(y['order'][y['turnIdx']]):
+                    y['turnIdx'] = (y['turnIdx'] + 1) % n
+                y['phase'] = 'draw'
+            snap = json.loads(json.dumps(state['yoga']))
+        broadcast('yoga', snap)
+        self._json(200, {'yoga': snap})
 
 
 # ---------- 入口 ----------
