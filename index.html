@@ -552,6 +552,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rps-score{
   display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;
 }
+.wheel-online-stage{
+  background:var(--card);border-radius:24px;padding:22px 16px;
+  box-shadow:0 12px 36px rgba(74,52,71,.1);text-align:center;
+  border:1.5px solid rgba(255,110,156,.14);
+  max-width:440px;margin:0 auto;width:100%;
+}
+.wheel-online-msg{
+  font-size:14px;color:var(--ink-soft);margin-bottom:14px;min-height:20px;
+}
+#wheel-online-status{
+  font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px;
+}
 .rps-score-pill{
   display:flex;align-items:center;gap:6px;background:var(--card);
   border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);
@@ -619,6 +631,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .race-round-rank{font-size:13px;color:var(--ink-soft)}
 .race-round-winner{font-size:17px;color:var(--love)}
 .race-final{margin-top:4px;font-size:17px;color:#B07CF7}
+.race-punish{font-size:15px;font-weight:700;color:#E2574C;text-align:center;margin:10px 0;padding:10px;background:#FFF3F1;border-radius:14px;line-height:1.7}
 /* ---------- 盲盒奇遇 ---------- */
 .mystery-status{font-size:15px;color:var(--ink);font-weight:700;text-align:center;margin:10px 0 6px;min-height:22px}
 .mystery-stage{margin-top:6px;text-align:center}
@@ -1643,8 +1656,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <div class="lv-btns" id="lobby-game-btns">
           <button class="lv-btn active" type="button" data-g="flight">✈️ 飞行棋</button>
           <button class="lv-btn" type="button" data-g="rps">✊ 猜拳</button>
-          <button class="lv-btn" type="button" data-g="tda">🎯 真心话大冒险</button>
-          <button class="lv-btn" type="button" data-g="mystery">🎁 盲盒奇遇</button>
+          <button class="lv-btn" type="button" data-g="tda">🎯 真心话</button>
+          <button class="lv-btn" type="button" data-g="mystery">🎁 盲盒</button>
+          <button class="lv-btn" type="button" data-g="wheel">🎡 转盘</button>
+          <button class="lv-btn" type="button" data-g="shoot">🔫 射击</button>
+          <button class="lv-btn" type="button" data-g="race">🏇 赛马</button>
+          <button class="lv-btn" type="button" data-g="yoga">🧘 瑜伽</button>
         </div>
       </div>
       <div class="lobby-version" id="lobby-version">
@@ -1659,6 +1676,29 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <div class="lobby-hint" id="lobby-hint">等待更多玩家加入...</div>
       <button class="btn-primary btn-lobby-start" id="btn-lobby-start" type="button" style="display:none">🚀 开始游戏</button>
       <button class="btn-ghost" id="btn-lobby-back" type="button">退出房间</button>
+    </div>
+  </section>
+
+  <!-- ========== 视图：联机幸运转盘 ========== -->
+  <section id="view-wheel-online" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="wheel-online-title">🎡 联机幸运转盘</div>
+        <button class="rps-exit" id="btn-wheel-online-exit" type="button">退出</button>
+      </div>
+      <div class="rps-score" id="wheel-online-score"></div>
+      <div class="mystery-status" id="wheel-online-status"></div>
+      <div class="wheel-online-stage">
+        <div class="wheel-online-msg" id="wheel-online-msg">等待开局...</div>
+        <div class="wheel-container">
+          <div class="wheel-pointer"></div>
+          <div class="wheel-disc" id="wheel-online-disc"></div>
+          <div class="wheel-center">GO</div>
+        </div>
+        <button class="wheel-btn" id="btn-wheel-online-spin" type="button" disabled>🎡 转动转盘</button>
+        <div class="wheel-result" id="wheel-online-result"></div>
+        <button class="btn-primary" id="btn-wheel-online-again" type="button" style="display:none">🔁 再来一局</button>
+      </div>
     </div>
   </section>
 
@@ -1836,6 +1876,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <div class="race-track" id="race-track"></div>
         <div class="race-bets" id="race-bets"></div>
         <div class="race-result" id="race-result"></div>
+        <div class="race-punish" id="race-punish" style="display:none"></div>
         <button class="btn-primary btn-rps-roll" id="race-go" type="button" disabled>🏇 开跑！</button>
         <button class="btn-primary btn-rps-roll" id="btn-race-again" type="button" style="display:none">🔁 再来一局</button>
         <button class="rps-custom-btn" id="btn-race-custom-toggle" type="button">✏️ 自定义惩罚内容 ▼</button>
@@ -3062,6 +3103,10 @@ function applyServerState(data){
     state.rps = data.rps;
     state.tda = data.tda;
     state.mystery = data.mystery;
+    state.wheel = data.wheel;
+    state.shoot = data.shoot;
+    state.race = data.race;
+    state.yoga = data.yoga;
     state.penaltyCards = data.penaltyCards;
     applyServerBoard(data);
     // 游戏已开始但还在等待大厅 / 结算界面等非对局视图时，重新进入对局（支持联机再来一局）
@@ -3084,6 +3129,26 @@ function applyServerState(data){
       if(state.started){ renderOnlineMystery(); }
       return;
     }
+    // 联机幸运转盘
+    if(state.gameType === 'wheel'){
+      if(state.started){ renderOnlineWheel(); }
+      return;
+    }
+    // 联机射击游戏
+    if(state.gameType === 'shoot'){
+      if(state.started){ renderOnlineShoot(); }
+      return;
+    }
+    // 联机赛马
+    if(state.gameType === 'race'){
+      if(state.started){ renderOnlineRace(); }
+      return;
+    }
+    // 联机瑜伽抽卡
+    if(state.gameType === 'yoga'){
+      if(state.started){ renderOnlineYoga(); }
+      return;
+    }
     render();
     setRollEnabled(state.phase==='idle' && state.turn===myId);
     return;
@@ -3098,7 +3163,7 @@ function applyServerState(data){
     if(p.shield === undefined) p.shield = false;
     if(p.skip === undefined) p.skip = false;
   });
-  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, mystery:data.mystery, penaltyCards:data.penaltyCards, ready:data.ready || {}};
+  state = {players:data.players, turn:data.turn, phase:data.phase, winner:data.winner, started:data.started, hostId:data.hostId, gameType:data.gameType, rps:data.rps, tda:data.tda, mystery:data.mystery, wheel:data.wheel, shoot:data.shoot, race:data.race, yoga:data.yoga, penaltyCards:data.penaltyCards, ready:data.ready || {}};
   onlineMode = true;
   applyServerBoard(data);
   // 若房间未开始，进入等待大厅
@@ -3117,7 +3182,7 @@ function applyServerState(data){
 /* 联机开始后按游戏类型进入对应界面 */
 function isInGameView(){
   var v = document.querySelector('.view.active');
-  return !!(v && (v.id === 'view-game' || v.id === 'view-rps' || v.id === 'view-tda' || v.id === 'view-mystery'));
+  return !!(v && (v.id === 'view-game' || v.id === 'view-rps' || v.id === 'view-tda' || v.id === 'view-mystery' || v.id === 'view-wheel-online' || v.id === 'view-shoot' || v.id === 'view-race' || v.id === 'view-yoga'));
 }
 function enterOnlineGame(data){
   if(data.gameType === 'rps'){
@@ -3138,6 +3203,30 @@ function enterOnlineGame(data){
     window._mysteryLastRound = 0;
     renderOnlineMystery();
     switchView('view-mystery');
+    return;
+  }
+  if(data.gameType === 'wheel'){
+    state.gameType = 'wheel';
+    renderOnlineWheel();
+    switchView('view-wheel-online');
+    return;
+  }
+  if(data.gameType === 'shoot'){
+    state.gameType = 'shoot';
+    renderOnlineShoot();
+    switchView('view-shoot');
+    return;
+  }
+  if(data.gameType === 'race'){
+    state.gameType = 'race';
+    renderOnlineRace();
+    switchView('view-race');
+    return;
+  }
+  if(data.gameType === 'yoga'){
+    state.gameType = 'yoga';
+    renderOnlineYoga();
+    switchView('view-yoga');
     return;
   }
   state.gameType = 'flight';
@@ -3283,6 +3372,14 @@ function setupSSE(){
           renderOnlineTda();
         }else if(state.started && state.gameType === 'mystery'){
           renderOnlineMystery();
+        }else if(state.started && state.gameType === 'wheel'){
+          renderOnlineWheel();
+        }else if(state.started && state.gameType === 'shoot'){
+          renderOnlineShoot();
+        }else if(state.started && state.gameType === 'race'){
+          renderOnlineRace();
+        }else if(state.started && state.gameType === 'yoga'){
+          renderOnlineYoga();
         }else{
           render();
         }
@@ -3323,6 +3420,10 @@ function setupSSE(){
       if(state){
         state.turn=t; state.phase='idle';
         if(state.gameType === 'rps'){ renderOnlineRps(); return; }
+        if(state.gameType === 'wheel'){ renderOnlineWheel(); return; }
+        if(state.gameType === 'shoot'){ renderOnlineShoot(); return; }
+        if(state.gameType === 'race'){ renderOnlineRace(); return; }
+        if(state.gameType === 'yoga'){ renderOnlineYoga(); return; }
         setRollEnabled(state.turn===myId); render();
       }
     }catch(err){}
@@ -3387,6 +3488,54 @@ function setupSSE(){
         if(state.started && state.gameType === 'mystery'){
           if(!$('view-mystery').classList.contains('active')){ switchView('view-mystery'); }
           renderOnlineMystery();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('wheel', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.wheel = d;
+        if(state.started && state.gameType === 'wheel'){
+          if(!$('view-wheel-online').classList.contains('active')){ switchView('view-wheel-online'); }
+          renderOnlineWheel();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('shoot', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.shoot = d;
+        if(state.started && state.gameType === 'shoot'){
+          if(!$('view-shoot').classList.contains('active')){ switchView('view-shoot'); }
+          renderOnlineShoot();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('race', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.race = d;
+        if(state.started && state.gameType === 'race'){
+          if(!$('view-race').classList.contains('active')){ switchView('view-race'); }
+          renderOnlineRace();
+        }
+      }
+    }catch(err){}
+  });
+  evtSource.addEventListener('yoga', function(e){
+    try{
+      var d = JSON.parse(e.data);
+      if(state && onlineMode){
+        state.yoga = d;
+        if(state.started && state.gameType === 'yoga'){
+          if(!$('view-yoga').classList.contains('active')){ switchView('view-yoga'); }
+          renderOnlineYoga();
         }
       }
     }catch(err){}
@@ -5487,13 +5636,20 @@ function shootResult(){
 }
 
 $('btn-shoot-exit').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'shoot'){ leaveOnline(); return; }
   SFX.click();
   cancelShootAnim();
   shoot = null;
   switchView('view-menu');
 });
-$('btn-shoot-again').addEventListener('click', function(){ SFX.click(); openShootGame(); });
-$('shoot-canvas').addEventListener('click', shootFire);
+$('btn-shoot-again').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'shoot'){ onlineAgain(); return; }
+  SFX.click(); openShootGame();
+});
+$('shoot-canvas').addEventListener('click', function(ev){
+  if(onlineMode && state && state.gameType === 'shoot'){ return; }
+  shootFire(ev);
+});
 var shootDiffBtns = document.querySelectorAll('#shoot-diff .tda-mode-btn');
 for(var sdb = 0; sdb < shootDiffBtns.length; sdb++){
   shootDiffBtns[sdb].addEventListener('click', function(){
@@ -5890,6 +6046,459 @@ function onlineMysteryOpen(i){
     })
     .catch(function(err){ showToast('连接失败：' + ((err && err.message) ? err.message : '网络错误')); });
 }
+
+/* ---------- 联机幸运转盘 ---------- */
+var _wheelOnlineBuilt = false;
+function renderOnlineWheelDisc(){
+  var disc = $('wheel-online-disc');
+  if(!disc) return;
+  disc.innerHTML = '';
+  for(var wi = 0; wi < 24; wi++){
+    var seg = document.createElement('div');
+    seg.className = 'wheel-segment';
+    seg.style.setProperty('--seg-color', WHEEL_COLORS[wi]);
+    seg.style.setProperty('--seg-rotate', (wi * 15) + 'deg');
+    seg.innerHTML = '<span>' + (WHEEL_RESULTS[wi] || ('格' + (wi + 1))) + '</span>';
+    disc.appendChild(seg);
+  }
+}
+function spinOnlineWheelTo(idx){
+  var disc = $('wheel-online-disc');
+  if(!disc) return;
+  var targetAngle = 360 * 5 + (360 - (idx * 15 + 7.5));
+  disc.style.transition = 'none';
+  disc.style.transform = 'rotate(0deg)';
+  disc.offsetHeight;
+  disc.style.transition = '';
+  disc.style.transform = 'rotate(' + targetAngle + 'deg)';
+}
+function renderOnlineWheel(){
+  if(!state || !state.wheel || !onlineMode) return;
+  var w = state.wheel;
+  var ttl = $('wheel-online-title');
+  if(ttl){ ttl.textContent = '🎡 联机幸运转盘'; }
+  var spinBtn0 = $('btn-wheel-online-spin');
+  if(spinBtn0){
+    spinBtn0.onclick = function(){
+      if(!onlineMode || !state || !state.wheel) return;
+      if(state.wheel.phase !== 'play' || state.players[state.wheel.turn].id !== myId){ showToast('还没轮到你'); return; }
+      fetch(serverUrl + '/wheel-spin', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if(d && d.error){ showToast(d.error); } })
+        .catch(function(){ showToast('网络错误'); });
+    };
+  }
+  var exitBtn0 = $('btn-wheel-online-exit');
+  if(exitBtn0){
+    exitBtn0.onclick = function(){
+      if(onlineMode){ leaveOnline(); return; }
+      switchView('view-menu');
+    };
+  }
+  if(!_wheelOnlineBuilt){
+    _wheelOnlineBuilt = true;
+    renderOnlineWheelDisc();
+  }
+  var box = $('wheel-online-score');
+  if(box){
+    box.innerHTML = '';
+    state.players.forEach(function(p){
+      var done = !!(w.done && w.done[p.id]);
+      var el = document.createElement('div');
+      el.className = 'rps-score-pill' + (done ? ' rps-pill-active' : '');
+      el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span><span>' + p.name + '</span><span>' + (done ? ' ✅' : ' ⏳') + '</span>';
+      box.appendChild(el);
+    });
+    mountStaticIcons();
+  }
+  var st = $('wheel-online-status');
+  var msg = $('wheel-online-msg');
+  var spinBtn = $('btn-wheel-online-spin');
+  var againBtn = $('btn-wheel-online-again');
+  if(againBtn){ againBtn.style.display = 'none'; }
+  if(!spinBtn){ return; }
+  spinBtn.style.display = 'block';
+  if(w.phase === 'play'){
+    var cur = state.players[w.turn];
+    var isMe = cur && cur.id === myId;
+    if(st){ st.innerHTML = '第 <b>' + (w.round + 1) + '/' + w.total + '</b> 轮 · 轮到 <b>' + (cur ? cur.name : '?') + '</b> 转动'; }
+    spinBtn.disabled = !isMe;
+    spinBtn.textContent = isMe ? '🎡 转动转盘' : '等待 ' + (cur ? cur.name : '') + ' 转动…';
+    if(msg){ msg.textContent = isMe ? '轮到你啦，点下方按钮转动转盘！' : '请稍候，轮到你时按钮会亮起～'; }
+  }else if(w.phase === 'show'){
+    var lp = null;
+    if(w.last){ lp = playerById(w.last.pid); }
+    var txt = (w.idx >= 0 && WHEEL_RESULTS[w.idx]) ? WHEEL_RESULTS[w.idx] : ('格' + ((w.idx || 0) + 1));
+    if(st){ st.innerHTML = (lp ? '<b>' + lp.name + '</b>' : '玩家') + ' 转到 <b>' + txt + '</b>'; }
+    spinBtn.disabled = true;
+    spinBtn.textContent = '结果展示中…';
+    if(msg){ msg.textContent = '马上自动换下一位'; }
+    if(w.idx >= 0){ spinOnlineWheelTo(w.idx); }
+    clearTimeout(window._wheelNextT);
+    window._wheelNextT = setTimeout(function(){
+      if(onlineMode && state && state.wheel && state.wheel.phase === 'show'){
+        fetch(serverUrl + '/wheel-next', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})}).catch(function(){});
+      }
+    }, 2600);
+  }else if(w.phase === 'end'){
+    if(st){ st.innerHTML = '🎉 本局转盘结束！'; }
+    spinBtn.style.display = 'none';
+    if(msg){ msg.textContent = '每人已转 ' + w.total + ' 次，收获满满～'; }
+    if(againBtn){
+      againBtn.style.display = 'block';
+      againBtn.onclick = function(){ onlineAgain(); };
+    }
+  }
+}
+
+/* ---------- 联机射击游戏 ---------- */
+var _onlineShootLoop = null;
+function startOnlineShootAnim(){
+  stopOnlineShootAnim();
+  if(!shoot){ shoot = {}; }
+  shoot.animT = 0;
+  shoot.arrowX = 260; shoot.arrowY = 290;
+  shoot.diff = shoot.diff || 'normal';
+  var sp = (shoot.diff === 'hard') ? 0.055 : (shoot.diff === 'easy' ? 0.018 : 0.032);
+  var sp2 = sp * 0.6;
+  function frame(){
+    shoot.animT++;
+    shoot.arrowX = Math.round(260 + Math.sin(shoot.animT * sp) * 130);
+    shoot.arrowY = Math.round(290 + Math.sin(shoot.animT * sp2) * 150);
+    drawShootTarget();
+    _onlineShootLoop = requestAnimationFrame(frame);
+  }
+  _onlineShootLoop = requestAnimationFrame(frame);
+}
+function stopOnlineShootAnim(){
+  if(_onlineShootLoop){ cancelAnimationFrame(_onlineShootLoop); _onlineShootLoop = null; }
+}
+function renderOnlineShoot(){
+  if(!state || !state.shoot || !onlineMode) return;
+  var s = state.shoot;
+  var ttl = $('shoot-title');
+  if(ttl){ ttl.textContent = '🔫 联机射击'; }
+  // 构建本地射击所需的 players 结构（弹孔渲染用）
+  shoot = shoot || {};
+  if(!shoot.players || shoot.players.length !== state.players.length){
+    shoot.players = state.players.map(function(p){
+      return { name: p.name, gender: p.gender, score: (s.scores[String(p.id)] || 0), shots: [], id: p.id, color: p.color };
+    });
+  }
+  state.players.forEach(function(p, pi){
+    var sp = shoot.players[pi];
+    if(sp){ sp.score = s.scores[String(p.id)] || 0; }
+  });
+  if(s.last && s.last.x !== undefined && (!shoot._lastKey || shoot._lastKey !== s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y))){
+    shoot._lastKey = s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y);
+    var lp = shoot.players[s.last.pid];
+    if(lp){ lp.shots.push({ x: s.last.x, y: s.last.y }); }
+  }
+  var box = $('shoot-pair');
+  if(box){
+    box.innerHTML = '';
+    var parts = [];
+    state.players.forEach(function(p){
+      parts.push('<span style="color:' + p.color + '">' + p.name + '：' + (s.scores[String(p.id)] || 0) + '分</span>');
+    });
+    box.innerHTML = '💞 ' + parts.join('　');
+  }
+  var st = $('shoot-status');
+  var info = $('shoot-info');
+  var result = $('shoot-result');
+  var againBtn = $('btn-shoot-again');
+  if(againBtn){ againBtn.style.display = 'none'; }
+  if(result){ result.innerHTML = ''; }
+  if(s.phase === 'play'){
+    var cur = state.players[s.turn];
+    var isMe = cur && cur.id === myId;
+    var target = (s.mode === 'female') ? '👧 女靶' : '👦 男靶';
+    if(st){ st.innerHTML = '轮到 <b>' + (cur ? cur.name : '?') + '</b> 射击（射向 ' + target + '）'; }
+    if(info){ info.innerHTML = isMe ? '🎯 弓箭来回扫动，看准时机点击画面发射！' : '等待 <b>' + (cur ? cur.name : '') + '</b> 发射…'; }
+    shoot = shoot || {};
+    if(shoot.mode !== s.mode){ shoot.mode = s.mode; }
+    if(isMe){
+      startOnlineShootAnim();
+      $('shoot-canvas').onclick = function(){
+        if(!onlineMode || !state || !state.shoot) return;
+        if(state.shoot.phase !== 'play' || state.shoot.turn !== myId){ showToast('还没轮到你'); return; }
+        if(!shoot) return;
+        var x = shoot.arrowX, y = shoot.arrowY;
+        fetch(serverUrl + '/shoot-fire', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, x: x, y: y})})
+          .then(function(r){ return r.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }else{
+      stopOnlineShootAnim();
+      if(shoot){ shoot.mode = s.mode; }
+      drawShootTarget();
+      $('shoot-canvas').onclick = null;
+    }
+  }else if(s.phase === 'end'){
+    stopOnlineShootAnim();
+    if(shoot){ shoot.mode = s.mode; }
+    drawShootTarget();
+    $('shoot-canvas').onclick = null;
+    var winner = playerById(s.winner);
+    if(st){ st.textContent = '射击结束！'; }
+    if(result){
+      var lines = state.players.slice().sort(function(a,b){ return (s.scores[String(b.id)]||0) - (s.scores[String(a.id)]||0); })
+        .map(function(p, i){ return (i === 0 ? '🏆 ' : (i === 1 ? '🥈 ' : '🥉 ')) + p.name + '：' + (s.scores[String(p.id)] || 0) + ' 分'; });
+      result.innerHTML = lines.join('　') + (winner ? '<div style="margin-top:6px">🏆 冠军：<b>' + winner.name + '</b></div>' : '');
+    }
+    if(againBtn){
+      againBtn.style.display = 'block';
+      againBtn.onclick = function(){ onlineAgain(); };
+    }
+  }
+}
+
+/* ---------- 联机赛马 ---------- */
+function renderOnlineRace(){
+  if(!state || !state.race || !onlineMode) return;
+  var r = state.race;
+  var ttl = $('race-title');
+  if(ttl){ ttl.textContent = '🏇 联机赛马'; }
+  var box = $('race-score');
+  if(box){
+    box.innerHTML = '';
+    state.players.forEach(function(p){
+      var el = document.createElement('div');
+      el.className = 'rps-score-pill';
+      el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span><span>' + p.name + '</span><span>' + (r.scores[String(p.id)] || 0) + '胜</span>';
+      box.appendChild(el);
+    });
+    mountStaticIcons();
+  }
+  var st = $('race-status');
+  var result = $('race-result');
+  var goBtn = $('race-go');
+  var againBtn = $('btn-race-again');
+  var track = $('race-track');
+  var betsBox = $('race-bets');
+  var isHost = (state.hostId === myId);
+  if(againBtn){ againBtn.style.display = 'none'; }
+  if(goBtn){ goBtn.style.display = 'none'; }
+  if(result){ result.innerHTML = ''; }
+  if(track){ track.innerHTML = ''; }
+  if(betsBox){ betsBox.innerHTML = ''; }
+  if(r.phase === 'bet'){
+    if(st){ st.innerHTML = '第 <b>' + (r.round + 1) + '/' + r.total + '</b> 轮 · 每人猜一匹马！'; }
+    if(betsBox){
+      var hBtns = RACE_HORSES.map(function(h){
+        var myBet = (myId !== undefined) && r.bets[myId] === h.id;
+        var disabled = !!(r.bets[myId]);
+        return '<button class="race-pick" type="button" data-h="' + h.id + '" style="--hcolor:' + h.color + '"' + (disabled ? ' disabled' : '') + '>' + (myBet ? '✅ ' : '🐎 ') + h.id + '号马</button>';
+      }).join('');
+      betsBox.innerHTML = '<div class="race-bet-hint">' + (r.bets[myId] ? '你已下注 <b>' + r.bets[myId] + ' 号马</b>' : '点击选择你要押的马') + '</div>' + hBtns;
+      betsBox.onclick = function(ev){
+        var b = ev.target.closest ? ev.target.closest('button.race-pick') : null;
+        if(!b) return;
+        var h = parseInt(b.getAttribute('data-h'), 10);
+        fetch(serverUrl + '/race-bet', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, horse: h})})
+          .then(function(res){ return res.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }
+    if(goBtn){
+      goBtn.style.display = isHost ? 'block' : 'none';
+      var allBet = state.players.every(function(p){ return r.bets[p.id]; });
+      goBtn.disabled = !allBet;
+      goBtn.textContent = allBet ? '🏇 开跑！' : '等所有人下注…';
+      goBtn.onclick = function(){
+        fetch(serverUrl + '/race-run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+          .then(function(res){ return res.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }
+  }else if(r.phase === 'judge'){
+    if(st){ st.innerHTML = '比赛结果：' + r.ranking.map(function(id){ return id + '号马'; }).join(' → '); }
+    if(result){
+      result.innerHTML = '<div class="race-round-rank">名次：' + r.ranking.map(function(id){
+        var h = RACE_HORSES[id-1];
+        return '<span style="color:' + h.color + ';font-weight:800">' + id + '号马</span>';
+      }).join(' → ') + '</div><div class="race-round-winner">' + (r.winnerTxt || ('🏆 冠军是 ' + r.winner + ' 号马！')) + '</div>';
+    }
+    if(track){
+      track.innerHTML = RACE_HORSES.map(function(h){ return '<div class="race-lane"><div class="race-horse" id="rh-' + h.id + '" style="background:' + h.color + ';left:0">' + h.id + '</div></div>'; }).join('');
+      r.ranking.forEach(function(hid, idx){
+        setTimeout(function(){
+          var el = $('rh-' + hid);
+          if(el){ el.style.transition = 'left .5s ease'; el.style.left = (92 - idx * 6) + '%'; }
+        }, 300 + idx * 420);
+      });
+    }
+    if(r.losers && r.losers.length){
+      if(isHost && !r.penalty){
+        var pb = $('race-punish');
+        if(pb){
+          pb.style.display = 'block';
+          pb.innerHTML = '<button class="btn-primary" id="btn-race-punish-draw" type="button">🎴 抽惩罚卡（房主）</button>';
+          var pbd = $('btn-race-punish-draw');
+          if(pbd){
+            pbd.onclick = function(){
+              fetch(serverUrl + '/race-punish', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+                .then(function(res){ return res.json(); })
+                .then(function(d){ if(d && d.error){ showToast(d.error); } })
+                .catch(function(){ showToast('网络错误'); });
+            };
+          }
+        }
+      }else if(r.penalty){
+        var loser = playerById(r.losers[0]);
+        var pb2 = $('race-punish');
+        if(pb2){
+          pb2.style.display = 'block';
+          pb2.innerHTML = '😈 <b>' + (loser ? loser.name : '输家') + '</b> 要：' + r.penalty;
+        }
+      }
+    }else{
+      var pb3 = $('race-punish');
+      if(pb3){ pb3.style.display = 'none'; }
+    }
+    if(goBtn){
+      goBtn.style.display = isHost ? 'block' : 'none';
+      goBtn.disabled = false;
+      goBtn.textContent = (r.round + 1 >= r.total) ? '🏁 查看最终结果' : '🏇 下一轮';
+      goBtn.onclick = function(){
+        fetch(serverUrl + '/race-next', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+          .then(function(res){ return res.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }
+  }else if(r.phase === 'end'){
+    if(st){ st.innerHTML = '🎉 赛马大会结束！'; }
+    if(result){
+      var sorted = state.players.slice().sort(function(a,b){ return (r.scores[String(b.id)]||0) - (r.scores[String(a.id)]||0); });
+      var lines = sorted.map(function(p, i){ return (i === 0 ? '🏆 ' : '') + p.name + '：' + (r.scores[String(p.id)] || 0) + '胜'; });
+      result.innerHTML = lines.join('　');
+    }
+    if(againBtn){
+      againBtn.style.display = 'block';
+      againBtn.onclick = function(){ onlineAgain(); };
+    }
+  }
+}
+
+/* ---------- 联机瑜伽抽卡 ---------- */
+function renderOnlineYoga(){
+  if(!state || !state.yoga || !onlineMode) return;
+  var y = state.yoga;
+  var ttl = $('yoga-title');
+  if(ttl){ ttl.textContent = '🧘 联机瑜伽抽卡'; }
+  var box = $('yoga-score');
+  if(box){
+    box.innerHTML = '';
+    state.players.forEach(function(p){
+      var done = !!(y.done && y.done[p.id]);
+      var el = document.createElement('div');
+      el.className = 'rps-score-pill' + (done ? ' rps-pill-active' : '');
+      el.innerHTML = '<span class="icon" data-icon="pawn" data-size="15" style="color:' + p.color + '"></span><span>' + p.name + '</span><span>' + (done ? ' ✅' : ' ⏳') + '</span>';
+      box.appendChild(el);
+    });
+    mountStaticIcons();
+  }
+  var st = $('yoga-status');
+  var turnEl = $('yoga-turn');
+  var drawBtn = $('btn-yoga-draw');
+  var doneBtn = $('btn-yoga-done');
+  var againBtn = $('btn-yoga-again');
+  if(againBtn){ againBtn.style.display = 'none'; }
+  if(drawBtn){ drawBtn.style.display = 'none'; }
+  if(doneBtn){ doneBtn.style.display = 'none'; }
+  if(y.phase === 'draw'){
+    var cur = playerById(y.order[y.turnIdx]);
+    var isMe = cur && cur.id === myId;
+    if(st){ st.innerHTML = '每人轮流抽一张瑜伽姿势卡'; }
+    if(turnEl){ turnEl.innerHTML = '🤸 轮到 <b>' + (cur ? cur.name : '?') + '</b> 抽卡'; }
+    if(drawBtn){
+      drawBtn.style.display = 'block';
+      drawBtn.disabled = !isMe;
+      drawBtn.textContent = isMe ? '🃏 抽一张' : '等待 ' + (cur ? cur.name : '') + ' 抽卡…';
+      drawBtn.onclick = function(){
+        if(!onlineMode || !state || !state.yoga) return;
+        if(state.yoga.phase !== 'draw' || state.yoga.order[state.yoga.turnIdx] !== myId){ showToast('还没轮到你'); return; }
+        fetch(serverUrl + '/yoga-draw', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+          .then(function(r2){ return r2.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }
+  }else if(y.phase === 'hold'){
+    var cur2 = playerById(y.order[y.turnIdx]);
+    var isMe2 = cur2 && cur2.id === myId;
+    var pos = (y.posIdx >= 0 && YOGA_POSES[y.posIdx]) ? YOGA_POSES[y.posIdx] : null;
+    if(st){ st.innerHTML = '姿势展示中，做完点「做完啦」'; }
+    if(turnEl){ turnEl.innerHTML = '🤸 <b>' + (cur2 ? cur2.name : '') + '</b> 来做「' + (pos ? pos.name : '') + '」'; }
+    if(pos){ showOnlineYogaPose(pos); }
+    if(doneBtn){
+      doneBtn.style.display = 'block';
+      doneBtn.disabled = !isMe2;
+      doneBtn.textContent = isMe2 ? '✅ 做完啦，换下一位' : '等待 ' + (cur2 ? cur2.name : '') + ' 完成…';
+      doneBtn.onclick = function(){
+        if(!onlineMode || !state || !state.yoga) return;
+        if(state.yoga.phase !== 'hold') return;
+        fetch(serverUrl + '/yoga-done', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+          .then(function(r3){ return r3.json(); })
+          .then(function(d){ if(d && d.error){ showToast(d.error); } })
+          .catch(function(){ showToast('网络错误'); });
+      };
+    }
+  }else if(y.phase === 'end'){
+    if(st){ st.innerHTML = '🎉 本轮瑜伽完成！'; }
+    if(turnEl){ turnEl.innerHTML = '全员都做完啦，舒展放松～'; }
+    var card = $('yoga-card');
+    if(card){ card.innerHTML = '<div style="text-align:center;padding:40px 10px;color:var(--ink-soft)">🧘 每个人抽到的姿势都做完啦<br>再来一局，看看下次抽到什么</div>'; }
+    var timer = $('yoga-timer');
+    if(timer){ timer.textContent = ''; }
+    if(againBtn){
+      againBtn.style.display = 'block';
+      againBtn.onclick = function(){ onlineAgain(); };
+    }
+  }
+}
+function showOnlineYogaPose(pos){
+  if(!pos) return;
+  var card = $('yoga-card');
+  var col = '#FF6E9C';
+  var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + pos.svg.replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
+  var photo = pos.img
+    ? '<div class="yoga-photo"><img src="' + pos.img + '" alt="' + pos.name + '" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
+    : svgHtml;
+  if(!yoga){ yoga = { _lastSvg: svgHtml }; }
+  yoga._lastSvg = svgHtml;
+  card.innerHTML = photo
+    + '<div class="yoga-name" style="color:' + col + '">' + pos.name + '</div>'
+    + '<div class="yoga-en">' + pos.en + '</div>'
+    + '<div class="yoga-sec">⏱ 保持 ' + pos.sec + ' 秒</div>'
+    + '<div class="yoga-tip">' + pos.tip + '</div>';
+  var timer = $('yoga-timer');
+  if(timer){
+    if(yoga._onlineTimer){ clearInterval(yoga._onlineTimer); }
+    var left = pos.sec;
+    timer.textContent = left + 's';
+    yoga._onlineTimer = setInterval(function(){
+      left--;
+      timer.textContent = Math.max(left, 0) + 's';
+      if(left <= 0){ clearInterval(yoga._onlineTimer); }
+    }, 1000);
+  }
+}
+
+/* ---------- 联机通用：再来一局（房主开新局） ---------- */
+function onlineAgain(){
+  if(!onlineMode || !state) return;
+  SFX.click();
+  if(state.hostId !== myId){ showToast('请房主点「再来一局」开始新一局'); return; }
+  fetch(serverUrl + '/start', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, gameType: (state.gameType || 'flight'), boardVersion: (state.boardVersion || 50)})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.error){ showToast(d.error); } })
+    .catch(function(){ showToast('无法连接服务器，请确认已部署最新 server.py'); });
+}
 function renderOnlineMysteryReady(){
   var box = $('mystery-ready');
   if(!box) return;
@@ -6186,6 +6795,7 @@ function saveRaceCustomAll(){
   try{ localStorage.setItem(RACE_KEY, JSON.stringify(all)); }catch(e){}
 }
 $('btn-race-exit').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'race'){ leaveOnline(); return; }
   SFX.click();
   if(race && race.anim){ clearInterval(race.anim); race.anim = null; }
   if(race && race._clip){ clearInterval(race._clip); race._clip = null; }
@@ -6205,6 +6815,7 @@ $('race-go').addEventListener('click', function(){
   startRaceRun();
 });
 $('btn-race-again').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'race'){ onlineAgain(); return; }
   SFX.click();
   openRace();
 });
@@ -6494,7 +7105,7 @@ $('btn-start-again').addEventListener('click', function(){
 });
 function doStartAgain(){
   if(!onlineMode || !state) return;
-  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
+  fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:(state.gameType || 'flight'), boardVersion:(state.boardVersion||50)})})
     .then(function(r){ return r.json(); })
     .then(function(d){ if(d && d.error){ showToast(d.error); } })
     .catch(function(){ showToast('无法连接服务器，请确认已部署最新 server.py'); });
@@ -6505,7 +7116,7 @@ $('btn-again').addEventListener('click', function(){
   if(onlineMode && state){
     // 联机：继续联机对局，由房主触发服务器重新开始，全员保持联机
     if(state.hostId !== myId){ showToast('请房主点「再来一局」开始新一局'); return; }
-    fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:'flight', boardVersion:(state.boardVersion||50)})})
+    fetch(serverUrl+'/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:myId, gameType:(state.gameType || 'flight'), boardVersion:(state.boardVersion||50)})})
       .then(function(r){ return r.json(); })
       .then(function(d){ if(d && d.error){ showToast(d.error); } });
     return;
@@ -6784,14 +7395,22 @@ function yogaDone(){
   $('btn-yoga-done').style.display = 'none';
 }
 $('btn-yoga-exit').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'yoga'){ leaveOnline(); return; }
   SFX.click();
   if(yoga && yoga.timer){ clearInterval(yoga.timer); yoga.timer = null; }
   yoga = null;
   switchView('view-menu');
 });
-$('btn-yoga-draw').addEventListener('click', function(){ SFX.click(); yogaDraw(); });
-$('btn-yoga-done').addEventListener('click', function(){ SFX.click(); yogaDone(); });
+$('btn-yoga-draw').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'yoga'){ return; }
+  SFX.click(); yogaDraw();
+});
+$('btn-yoga-done').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'yoga'){ return; }
+  SFX.click(); yogaDone();
+});
 $('btn-yoga-again').addEventListener('click', function(){
+  if(onlineMode && state && state.gameType === 'yoga'){ onlineAgain(); return; }
   SFX.click();
   if(yoga){ for(var i = 0; i < yoga.players.length; i++){ yoga.players[i].done = 0; } yoga.turn = 0; }
   yogaResetStage();
