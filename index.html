@@ -6200,6 +6200,21 @@ function renderOnlineShoot(){
     var lp = shoot.players[s.last.pid];
     if(lp){ lp.shots.push({ x: s.last.x, y: s.last.y }); }
   }
+  // 命中/脱靶提示（仅射击者本端弹出，与本地一致；其他玩家从状态栏看到结果）
+  if(s.last && s.last.pid === myId && s.phase !== 'end' && (!shoot._lastShown || shoot._lastShown !== s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y))){
+    shoot._lastShown = s.last.pid + ':' + Math.round(s.last.x) + ':' + Math.round(s.last.y);
+    var lastShooter = playerById(s.last.pid);
+    if(s.last.part && lastShooter){
+      var tg = (lastShooter.gender === 'male') ? 'female' : 'male';
+      var foeP = null;
+      for(var fi = 0; fi < state.players.length; fi++){
+        if(state.players[fi].gender === tg){ foeP = state.players[fi]; break; }
+      }
+      if(foeP){ sweetAction(s.last.part, lastShooter, foeP, null); }
+    } else if(!s.last.part){
+      showToast('💨 脱靶了，0 分');
+    }
+  }
   var box = $('shoot-pair');
   if(box){
     box.innerHTML = '';
