@@ -673,7 +673,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .yoga-empty{color:#C9A8B8;font-size:15px;padding:50px 10px;text-align:center;}
 .yoga-card .yoga-pose-svg{background:linear-gradient(180deg,#FFF5F9,#FFF);border-radius:16px;}
 .yoga-card .yoga-photo{width:100%;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#FFF5F9,#FFF);}
-.yoga-card .yoga-photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:16px;}
+.yoga-card .yoga-photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center top;border-radius:16px;cursor:zoom-in;}#fullview-overlay{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(18,10,18,.85);backdrop-filter:blur(4px);padding:14px;}
+.fullview-box{position:relative;max-width:92vw;max-height:86vh;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.fullview-box img{max-width:92vw;max-height:82vh;width:auto;height:auto;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.45);background:#fff;}
+.fullview-name{color:#fff;font-size:15px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.5);}
+.fullview-close{position:absolute;top:-6px;right:-6px;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:#e8538a;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:2;}
+.fullview-close:active{transform:scale(.92);}
 
 /* ============ 真心话大冒险 ============ */
 .tda-mode{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
@@ -832,6 +837,45 @@ button:disabled{opacity:.45;cursor:not-allowed}
   0%,100%{ box-shadow:0 0 0 4px rgba(255,110,156,.22),0 0 18px rgba(200,160,255,.5); }
   50%{ box-shadow:0 0 0 7px rgba(255,110,156,.38),0 0 30px rgba(200,160,255,.9); }
 }
+.board-cute .cell{
+  border-radius:15px;
+  border:2px solid rgba(255,143,176,.32);
+  box-shadow:0 3px 10px rgba(255,110,156,.14), inset 0 -3px 0 rgba(255,143,176,.10), inset 0 2px 0 rgba(255,255,255,.85);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+    linear-gradient(160deg, #FFF4F8 0%, #FFEEF4 100%);
+}
+.board-cute .cell-num{ color:#FF6E9C; font-weight:800; background:rgba(255,110,156,.14); border-radius:9px; padding:1px 4px; letter-spacing:.5px; font-size:clamp(8px,1.6vw,11px); }
+.board-cute .cell-icon{ filter:drop-shadow(0 2px 1px rgba(255,110,156,.3)); transform:scale(1.12); transition:transform .2s; }
+.board-cute .cell-icon svg{ display:block; }
+.board-cute .cell-dir{ filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)); }
+.board-cute .cell::after{ content:""; position:absolute; top:4px; right:5px; width:7px; height:7px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff 0%, rgba(255,143,176,.9) 60%, rgba(255,143,176,.35) 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.7); }
+.board-cute .cell::before{ content:""; position:absolute; bottom:4px; left:5px; width:5px; height:5px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff 0%, rgba(127,216,192,.9) 60%, rgba(127,216,192,.35) 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.7); }
+.board-cute .cell-love{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #FFD9E5 0%, #FFC2D6 100%) !important; border-color:rgba(255,110,156,.45) !important; }
+.board-cute .cell-reward{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #FFF0D9 0%, #FFE2BC 100%) !important; }
+.board-cute .cell-penalty{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #FFE9F2 0%, #FFD3E4 100%) !important; }
+.board-cute .cell-fwd{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #FFF6D9 0%, #FFEDB8 100%) !important; }
+.board-cute .cell-bwd{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #FFE2EF 0%, #FFD0E4 100%) !important; }
+.board-cute .cell-rest{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #E4F2FF 0%, #CDE6FF 100%) !important; }
+.board-cute .cell-safe{ background:
+  radial-gradient(circle at 50% 22%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 46%),
+  linear-gradient(160deg, #E4F9F1 0%, #C8F0E1 100%) !important; }
 .cell{
   position:relative;
   aspect-ratio:1/1;
@@ -1133,6 +1177,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .center-dice.off{opacity:.35}
 .dice-big{width:64px;height:64px;border-radius:16px}
 .cd-hint{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:1px;white-space:nowrap}
+/* 棋盘主题皮肤 */
+.board-themes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.board-theme-btn{height:50px;border-radius:10px;border:2px solid transparent;cursor:pointer;font-size:11px;font-weight:600;color:#666;transition:all .15s;display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;flex-direction:column;gap:2px}
+.board-theme-btn .th-emoji{font-size:16px}
+.board-theme-btn:hover{transform:scale(1.04)}
+.board-theme-btn.active{border-color:#9B7BFF;box-shadow:0 0 0 3px rgba(155,123,255,.2)}
 /* 马卡龙背景预设 */
 .bg-presets{
   display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
@@ -1573,6 +1623,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <button class="drawer-toggle" id="drawer-bg-music-toggle" type="button">🎨 背景与音乐 ▼</button>
       <div class="drawer-panel" id="drawer-bg-music" style="display:none">
       <div class="board-bg-opt">
+        <div class="bg-opt-head">棋盘主题</div>
+        <div class="board-themes" id="board-themes">
+          <button class="board-theme-btn active" type="button" data-th="default" style="background:linear-gradient(135deg,#FFF6F8,#FDEFF7)"><span class="th-emoji">🌸</span>粉樱</button>
+          <button class="board-theme-btn" type="button" data-th="mint" style="background:linear-gradient(135deg,#E0F7EF,#F0FFF8)"><span class="th-emoji">🌿</span>薄荷清新</button>
+          <button class="board-theme-btn" type="button" data-th="lavender" style="background:linear-gradient(135deg,#EDE5FF,#F7F3FF)"><span class="th-emoji">🔮</span>梦幻紫</button>
+          <button class="board-theme-btn" type="button" data-th="apricot" style="background:linear-gradient(135deg,#FFF4E0,#FFFDF5)"><span class="th-emoji">🌅</span>暖阳杏</button>
+          <button class="board-theme-btn" type="button" data-th="sky" style="background:linear-gradient(135deg,#E0F0FF,#F4FBFF)"><span class="th-emoji">🩵</span>天空蓝</button>
+          <button class="board-theme-btn" type="button" data-th="rose" style="background:linear-gradient(135deg,#FFE5EC,#FFF5F8)"><span class="th-emoji">🌹</span>蜜桃粉</button>
+          <button class="board-theme-btn" type="button" data-th="cute" style="background:linear-gradient(135deg,#FFE9F1,#FFF6EC)"><span class="th-emoji">🧁</span>可爱风</button>
+        </div>
+        <p class="bg-opt-note">整套棋盘皮肤（格子配色+背景），选完自动保存，下次打开还在</p>
         <div class="bg-opt-head">棋盘背景</div>
         <div class="bg-presets">
           <button class="bg-preset" type="button" data-bg="default" style="background:linear-gradient(135deg,#FFF6F8,#FFFDFB)">默认</button>
@@ -1906,7 +1967,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <div class="yoga-turn" id="yoga-turn"></div>
         <div class="yoga-card" id="yoga-card"></div>
         <div class="yoga-timer" id="yoga-timer"></div>
-        <button class="btn-primary btn-rps-roll" id="btn-yoga-draw" type="button">🃏 抽一张</button>
+        <button class="btn-primary btn-rps-roll" id="btn-yoga-outfit" type="button" style="margin-right:6px" onclick="toggleYogaOutfit()">🧘 衣着：瑜伽服</button> <button class="btn-primary btn-rps-roll" id="btn-yoga-draw" type="button">🃏 抽一张</button>
         <button class="btn-primary btn-rps-roll" id="btn-yoga-done" type="button" style="display:none">✅ 做完啦，换下一位</button>
         <button class="btn-primary btn-rps-roll" id="btn-yoga-again" type="button" style="display:none">🔁 再来一局</button>
       </div>
@@ -2057,6 +2118,26 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
 
 <script>
+
+
+var yogaOutfit = (function(){ try{ return localStorage.getItem('love-yoga-outfit') || 'yoga'; }catch(e){ return 'yoga'; } })();
+var YOGA_TIGHT_IMGS = {'山式':'https://aka.doubaocdn.com/s/lFjB7939tV','树式':'https://aka.doubaocdn.com/s/bjHZg8Xhdv','战士一式':'https://aka.doubaocdn.com/s/RdU7lU36Hq','战士二式':'https://aka.doubaocdn.com/s/OYTUsjgFB7','三角式':'https://aka.doubaocdn.com/s/e78FJLmfjj','下犬式':'https://aka.doubaocdn.com/s/Ccex2Uudm7','猫牛式':'https://aka.doubaocdn.com/s/zB1VosIqZ0','婴儿式':'https://aka.doubaocdn.com/s/Mlf32jnGta','眼镜蛇式':'https://aka.doubaocdn.com/s/B1GB2YQEwH','桥式':'https://aka.doubaocdn.com/s/5MCYDd56QE','蝴蝶式':'https://aka.doubaocdn.com/s/TVLRULyMPx','平板支撑':'https://aka.doubaocdn.com/s/POu0CyhJFC','鸽子式':'https://aka.doubaocdn.com/s/H6U6EBvUFU','摊尸式':'https://aka.doubaocdn.com/s/AR0vXvIjsz','新月式':'https://aka.doubaocdn.com/s/UFkdaEUL56','鸟王式':'https://aka.doubaocdn.com/s/bdwCFBu1Mm','侧角伸展式':'https://aka.doubaocdn.com/s/ZKsUnnjOSV','花环式':'https://aka.doubaocdn.com/s/GlLbwHu2DE','骆驼式':'https://aka.doubaocdn.com/s/Pa0gKcoeU9','半鱼王式':'https://aka.doubaocdn.com/s/6DoRwPFJty'};
+var YOGA_SWIM_IMGS = {'山式':'https://aka.doubaocdn.com/s/aISq62u6Yr','树式':'https://aka.doubaocdn.com/s/vagX5nVmpP','战士一式':'https://aka.doubaocdn.com/s/7TINF5rApH','战士二式':'https://aka.doubaocdn.com/s/KdLI4kX66F','三角式':'https://aka.doubaocdn.com/s/VGgACaVgft','下犬式':'https://aka.doubaocdn.com/s/8AyjUgOXgi','猫牛式':'https://aka.doubaocdn.com/s/lmt8A9b6rW','婴儿式':'https://aka.doubaocdn.com/s/muZbJmioi7','眼镜蛇式':'https://aka.doubaocdn.com/s/uk1q613fPX','桥式':'https://aka.doubaocdn.com/s/tLbgBhf0cr','蝴蝶式':'https://aka.doubaocdn.com/s/3Wen2XVHrk','平板支撑':'https://aka.doubaocdn.com/s/ReArp6FoAm','鸽子式':'https://aka.doubaocdn.com/s/NCnpbRBFGp','摊尸式':'https://aka.doubaocdn.com/s/917MMrMwz9','新月式':'https://aka.doubaocdn.com/s/YEXSQrIsgZ','鸟王式':'https://aka.doubaocdn.com/s/HU4SoxtWqB','侧角伸展式':'https://aka.doubaocdn.com/s/gREpXi0Lke','花环式':'https://aka.doubaocdn.com/s/VuMKLmC3Zd','骆驼式':'https://aka.doubaocdn.com/s/lsEVa5Hwki','半鱼王式':'https://aka.doubaocdn.com/s/vVKHqXp0iv'};
+function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
+function setYogaOutfitBtn(){ var b = document.getElementById('btn-yoga-outfit'); if(b) b.textContent = (yogaOutfit==='tight') ? '🧘 衣着：超短吊带款' : (yogaOutfit==='swim') ? '🧘 衣着：泳衣款' : '🧘 衣着：瑜伽服款'; }
+function toggleYogaOutfit(){
+  yogaOutfit = (yogaOutfit==='tight') ? 'swim' : (yogaOutfit==='swim') ? 'yoga' : 'tight';
+  try{ localStorage.setItem('love-yoga-outfit', yogaOutfit); }catch(e){}
+  setYogaOutfitBtn();
+  var img = document.querySelector('#yoga-card .yoga-photo img');
+  if(img && window.__lastYogaPos){ var nu = yogaImgUrl(window.__lastYogaPos); if(nu) img.src = nu; }
+  if(typeof showToast==='function') showToast((yogaOutfit==='tight') ? '已切换为超短吊带款' : (yogaOutfit==='swim') ? '已切换为泳衣款' : '已切换为瑜伽服款');
+}
+try{ setYogaOutfitBtn(); }catch(e){}
+/* 全图查看器 */
+window.openFullView=function(src,alt){ if(!src)return; var o=document.getElementById('fullview-overlay'); if(!o){ o=document.createElement('div'); o.id='fullview-overlay'; o.innerHTML='<div class="fullview-box"><button class="fullview-close" onclick="closeFullView(event)">✕</button><img id="fullview-img" src="" alt=""><div class="fullview-name" id="fullview-name"></div></div>'; o.addEventListener('click',function(e){ if(e.target===o) closeFullView(); }); document.body.appendChild(o);} document.getElementById('fullview-img').src=src; var n=document.getElementById('fullview-name'); if(n)n.textContent=alt||''; o.style.display='flex'; };
+window.closeFullView=function(ev){ if(ev)ev.stopPropagation(); var o=document.getElementById('fullview-overlay'); if(o)o.style.display='none'; };
+
 /* ============================================================
    恋爱飞行棋 · 游戏逻辑
    ============================================================ */
@@ -2859,6 +2940,75 @@ function applyBoardBg(){
   grid.style.backgroundPosition = 'center';
 }
 
+/* ---------- 棋盘主题（整套皮肤：格子配色 + 背景） ---------- */
+var BOARD_THEMES = {
+  'default': { name:'粉樱', bg:null, vars:{} },
+  'cute': { name:'可爱风', bg:'linear-gradient(135deg,#FFE9F1,#FFF6EC)', vars:{
+      '--p1':'#FF8FB0','--p1-soft':'#FFEDF2','--p2':'#7FB0FF','--p2-soft':'#EAF2FF',
+      '--p3':'#FF9FC7','--p3-soft':'#FFEDF5','--p4':'#7FD8C0','--p4-soft':'#E4F8F1',
+      '--fwd':'#FFCE6B','--fwd-soft':'#FFF6E0','--bwd':'#FF8FB0','--bwd-soft':'#FFEDF1',
+      '--love':'#FF8FB0','--boost':'#FFB36B','--boost-soft':'#FFF0DE',
+      '--setback':'#FF8FB0','--setback-soft':'#FFEDF2','--rest':'#8FBFFF','--rest-soft':'#EAF4FF',
+      '--safe':'#7FD8C0','--safe-soft':'#E4F8F1' } },
+  'mint': { name:'薄荷清新', bg:'linear-gradient(135deg,#E0F7EF,#F0FFF8)', vars:{
+      '--p1':'#2FB98A','--p1-soft':'#E2F8EF','--p2':'#5E9BFF','--p2-soft':'#EAF2FF',
+      '--p3':'#34C7A0','--p3-soft':'#E4F8F1','--p4':'#4FC9A7','--p4-soft':'#E2F8F1',
+      '--fwd':'#E3C04A','--fwd-soft':'#FFF6E0','--bwd':'#FF8FA3','--bwd-soft':'#FFEDF1',
+      '--love':'#2FB98A','--boost':'#34C7A0','--boost-soft':'#E4F8F1',
+      '--setback':'#FFA45B','--setback-soft':'#FFF0E2','--rest':'#5EB8FF','--rest-soft':'#EAF4FF',
+      '--safe':'#2FB98A','--safe-soft':'#E4F8F1' } },
+  'lavender': { name:'梦幻紫', bg:'linear-gradient(135deg,#EDE5FF,#F7F3FF)', vars:{
+      '--p1':'#9B7BFF','--p1-soft':'#F1EAFF','--p2':'#7FB0FF','--p2-soft':'#EAF2FF',
+      '--p3':'#B08CF2','--p3-soft':'#F1EAFF','--p4':'#4FC9A7','--p4-soft':'#E2F8F1',
+      '--fwd':'#E6C25A','--fwd-soft':'#FFF6E0','--bwd':'#FF9BB5','--bwd-soft':'#FFEDF1',
+      '--love':'#9B7BFF','--boost':'#A78BFA','--boost-soft':'#F1EAFF',
+      '--setback':'#FF9BB5','--setback-soft':'#FFF0E2','--rest':'#7FB0FF','--rest-soft':'#EAF4FF',
+      '--safe':'#4FC9A7','--safe-soft':'#E4F8F1' } },
+  'apricot': { name:'暖阳杏', bg:'linear-gradient(135deg,#FFF4E0,#FFFDF5)', vars:{
+      '--p1':'#FF9F68','--p1-soft':'#FFEFE4','--p2':'#5E9BFF','--p2-soft':'#EAF2FF',
+      '--p3':'#FFB05A','--p3-soft':'#FFF0DE','--p4':'#4FC9A7','--p4-soft':'#E2F8F1',
+      '--fwd':'#FFC25A','--fwd-soft':'#FFF6E0','--bwd':'#FF8FA3','--bwd-soft':'#FFEDF1',
+      '--love':'#FF9F68','--boost':'#FFB05A','--boost-soft':'#FFF0DE',
+      '--setback':'#FF7B8A','--setback-soft':'#FFF0E2','--rest':'#6FB7FF','--rest-soft':'#EAF4FF',
+      '--safe':'#4FC9A7','--safe-soft':'#E4F8F1' } },
+  'sky': { name:'天空蓝', bg:'linear-gradient(135deg,#E0F0FF,#F4FBFF)', vars:{
+      '--p1':'#5EB0FF','--p1-soft':'#E8F3FF','--p2':'#7FB0FF','--p2-soft':'#EAF2FF',
+      '--p3':'#7FA8FF','--p3-soft':'#EDF1FF','--p4':'#4FC9A7','--p4-soft':'#E2F8F1',
+      '--fwd':'#FFC94D','--fwd-soft':'#FFF6E0','--bwd':'#FF8FA3','--bwd-soft':'#FFEDF1',
+      '--love':'#5EB0FF','--boost':'#7FA8FF','--boost-soft':'#EDF1FF',
+      '--setback':'#FF9BB0','--setback-soft':'#FFF0E2','--rest':'#6FB7FF','--rest-soft':'#EAF4FF',
+      '--safe':'#4FC9A7','--safe-soft':'#E4F8F1' } },
+  'rose': { name:'蜜桃粉', bg:'linear-gradient(135deg,#FFE5EC,#FFF5F8)', vars:{
+      '--p1':'#FF6E9C','--p1-soft':'#FFE9F1','--p2':'#5E9BFF','--p2-soft':'#EAF2FF',
+      '--p3':'#FF8FB0','--p3-soft':'#FFEDF2','--p4':'#4FC9A7','--p4-soft':'#E2F8F1',
+      '--fwd':'#FFC94D','--fwd-soft':'#FFF6E0','--bwd':'#FF8FA3','--bwd-soft':'#FFEDF1',
+      '--love':'#FF6E9C','--boost':'#FF8FB0','--boost-soft':'#FFEDF2',
+      '--setback':'#FFA45B','--setback-soft':'#FFF0E2','--rest':'#7FB8FF','--rest-soft':'#EAF4FF',
+      '--safe':'#4FC9A7','--safe-soft':'#E4F8F1' } }
+};
+function currentBoardThemeId(){
+  try{ var t = localStorage.getItem('love-flight-board-theme'); if(t && BOARD_THEMES[t]) return t; }catch(e){}
+  return 'default';
+}
+function applyBoardTheme(){
+  var grid = $('board-grid'); if(!grid) return;
+  var id = currentBoardThemeId();
+  var th = BOARD_THEMES[id];
+  var btns = document.querySelectorAll('.board-theme-btn');
+  for(var i = 0; i < btns.length; i++){ btns[i].classList.toggle('active', btns[i].getAttribute('data-th') === id); }
+  grid.classList.toggle('board-cute', id === 'cute');
+  if(!th || id === 'default'){
+    Object.keys(BOARD_THEMES['default'].vars).forEach(function(k){ grid.style.removeProperty(k); });
+    grid.style.removeProperty('backgroundImage');
+    applyBoardBg();
+    return;
+  }
+  Object.keys(th.vars).forEach(function(k){ grid.style.setProperty(k, th.vars[k]); });
+  grid.style.backgroundImage = th.bg;
+  grid.style.backgroundSize = 'cover';
+  grid.style.backgroundPosition = 'center';
+}
+
 /* ---------- 棋子 ---------- */
 function pawnSVG(color, gender){
   // 小男孩：蘑菇头 + 呆毛 + 小领结 + 圆头身体
@@ -2905,6 +3055,7 @@ function ensurePawns(){
 
 /* ---------- 渲染 ---------- */
 function render(){
+  if(!state || !state.players) return;
   // 同格错位：先统计每格棋子数，再为同格棋子分配错位样式
   var cellCount = {};
   state.players.forEach(function(p){
@@ -3237,7 +3388,7 @@ function enterOnlineGame(data){
   renderScorePills();
   buildBoard();
   ensurePawns();
-  applyBoardBg();
+  applyBoardTheme();
   switchView('view-game');
   render();
   setRollEnabled(state.phase==='idle' && state.turn===myId);
@@ -3654,6 +3805,7 @@ function clearLog(){
 }
 
 function movePawn(p, n, follow){
+  if(!state || !state.players) return;
   var from = p.pos;
   if(!p.flying){ p.flying = true; from = -1; }
   p.steps = Math.min(p.end, p.steps + n);
@@ -4020,6 +4172,7 @@ function openCard(p, cards, kicker){
 
 /* ---------- 胜利结算 ---------- */
 function flyHome(p){
+  if(!state || !state.players) return;
   state.phase = 'moving';
   var pawn = $('pawn-' + state.players.indexOf(p));
   var homeEl = $('zone-finish');
@@ -4140,6 +4293,7 @@ function win(p){
 
 /* ---------- 回合切换 ---------- */
 function nextTurn(){
+  if(!state || !state.players){ return; }
   var n = state.players.length;
   for(var k = 1; k <= n; k++){
     state.turn = (state.turn + 1) % n;
@@ -4349,7 +4503,7 @@ function initGame(list){
   };
   renderScorePills();
   buildBoard();
-  applyBoardBg();
+  applyBoardTheme();
   ensurePawns();
   clearLog();
   showDice(1);
@@ -5390,7 +5544,7 @@ function stopShootTimer(){
 }
 var shootPhotos = {};
 (function(){
-  var srcs = { male: 'https://aka.doubaocdn.com/s/KXWFocHUq0', female: 'https://aka.doubaocdn.com/s/KecOqhPEPI' };
+  var srcs = { male: 'https://aka.doubaocdn.com/s/Vu3tvzGQbv', female: 'https://aka.doubaocdn.com/s/ejZCVK8vgj' };
   for(var k in srcs){ var im = new Image(); im.src = srcs[k]; shootPhotos[k] = im; }
 })();
 function drawShootTarget(){
@@ -5890,6 +6044,7 @@ function openMysteryBox(idx){
   mystery.round++;
   if(mystery.round >= mystery.total){
     setTimeout(function(){
+      if(!mystery) return;
       $('mystery-status').textContent = '全部开完，结算爱心！';
       mysteryResult();
       mystery.busy = false;
@@ -5898,6 +6053,7 @@ function openMysteryBox(idx){
   }
   mystery.turn = (mystery.turn + 1) % mystery.players.length;
   setTimeout(function(){
+    if(!mystery) return;
     updateMysteryStatus();
     renderMysteryScore();
     mystery.busy = false;
@@ -6491,8 +6647,7 @@ function showOnlineYogaPose(pos){
   var card = $('yoga-card');
   var col = '#FF6E9C';
   var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + pos.svg.replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
-  var photo = pos.img
-    ? '<div class="yoga-photo"><img src="' + pos.img + '" alt="' + pos.name + '" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
+  window.__lastYogaPos = pos; var photo = yogaImgUrl(pos) ? '<div class=\"yoga-photo\"><img src=\"' + yogaImgUrl(pos) + '\" alt="' + pos.name + '" onclick="openFullView(this.src,this.alt)" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
     : svgHtml;
   if(!yoga){ yoga = { _lastSvg: svgHtml }; }
   yoga._lastSvg = svgHtml;
@@ -7044,6 +7199,20 @@ for(var bp = 0; bp < bgPresetBtns.length; bp++){
     showToast('背景已更换并自动保存');
   });
 }
+// 棋盘主题选择
+var themeBtns = document.querySelectorAll('.board-theme-btn');
+for(var tb = 0; tb < themeBtns.length; tb++){
+  themeBtns[tb].addEventListener('click', function(){
+    var th = this.getAttribute('data-th');
+    for(var i = 0; i < themeBtns.length; i++){
+      themeBtns[i].classList.toggle('active', themeBtns[i].getAttribute('data-th') === th);
+    }
+    try{ localStorage.setItem('love-flight-board-theme', th); }catch(e){}
+    applyBoardTheme();
+    SFX.click();
+    showToast('已切换棋盘主题「' + (BOARD_THEMES[th] ? BOARD_THEMES[th].name : th) + '」');
+  });
+}
 // 背景音乐选择
 var bgmBtns = document.querySelectorAll('.bgm-btn');
 for(var bm = 0; bm < bgmBtns.length; bm++){
@@ -7302,26 +7471,26 @@ for(var gb = 0; gb < genderBtns.length; gb++){
 /* ============ 瑜伽姿势抽卡 ============ */
 var YOGA_COLORS = ['#E86B9B','#8A6FE8','#F5A623','#4FC3A1','#5B8DEF','#F2789F'];
 var YOGA_POSES = [
-  { name: '山式', en: 'Mountain Pose', sec: 30, tip: '站直如松，双脚并拢，深呼吸三次，感受彼此的呼吸节奏', img: 'https://aka.doubaocdn.com/s/8sCXLDNr2F', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13" fill="none"/><path d="M100 55 L100 132"/><path d="M100 132 L92 205"/><path d="M100 132 L108 205"/><path d="M100 72 L68 100"/><path d="M100 72 L132 100"/></g>' },
-  { name: '树式', en: 'Tree Pose', sec: 30, tip: '单腿站立，另一只脚贴小腿，像小树一样稳稳扎根，站不稳可以互相扶着', img: 'https://aka.doubaocdn.com/s/YOryekGEV6', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 128 L100 205"/><path d="M100 128 L122 148 L100 156"/><path d="M100 72 L92 26"/><path d="M100 72 L108 26"/></g>' },
-  { name: '战士一式', en: 'Warrior I', sec: 30, tip: '大步弓步，双手向上合十，目光坚定看向前方，气势如虹', img: 'https://aka.doubaocdn.com/s/hKFeUUg62N', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L142 172"/><path d="M100 118 L58 172"/><path d="M100 70 L160 70"/><path d="M100 70 L40 70"/></g>' },
-  { name: '战士二式', en: 'Warrior II', sec: 30, tip: '侧身弓步，双臂平展如翅膀，眼神顺着前手方向看出去', img: 'https://aka.doubaocdn.com/s/luZaw9JDPE', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L145 176"/><path d="M100 118 L55 176"/><path d="M100 70 L166 70"/><path d="M100 70 L34 70"/></g>' },
-  { name: '三角式', en: 'Triangle Pose', sec: 30, tip: '侧腰舒展，一手触地一手指向天空，两人可以背对背做', img: 'https://aka.doubaocdn.com/s/2TxqTMPa18', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="38" r="13"/><path d="M100 51 L100 112"/><path d="M100 112 L160 178"/><path d="M100 112 L60 178"/><path d="M100 70 L148 38"/><path d="M100 112 L162 178"/></g>' },
-  { name: '下犬式', en: 'Downward Dog', sec: 40, tip: '双手撑地、臀部抬高，身体呈倒V形，像小狗伸懒腰一样舒服', img: 'https://aka.doubaocdn.com/s/VzkmUyuIbB', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="55" cy="152" r="13"/><path d="M100 52 L55 152"/><path d="M100 52 L145 150"/><path d="M100 52 L72 178"/><path d="M100 52 L128 178"/></g>' },
-  { name: '猫牛式', en: 'Cat-Cow', sec: 30, tip: '跪姿双手撑地，吸气塌腰抬头，呼气拱背低头，像小猫一样灵活', img: 'https://aka.doubaocdn.com/s/I9mjBteVhH', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="46" r="13"/><path d="M100 59 L100 122"/><path d="M100 66 L58 104"/><path d="M100 66 L142 104"/><path d="M100 122 L80 180"/><path d="M100 122 L120 180"/></g>' },
-  { name: '婴儿式', en: 'Child Pose', sec: 60, tip: '跪坐后身体前趴，额头贴地，双臂向前伸，全身放松休息', img: 'https://aka.doubaocdn.com/s/Ytc3NxLrXL', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="104" r="13"/><path d="M100 117 L100 178"/><path d="M100 122 L62 88"/><path d="M100 122 L138 88"/><path d="M100 178 L86 210"/><path d="M100 178 L114 210"/></g>' },
-  { name: '眼镜蛇式', en: 'Cobra Pose', sec: 30, tip: '俯卧双手撑地，慢慢抬头挺胸，舒展胸腔，像小蛇抬头', img: 'https://aka.doubaocdn.com/s/K42VFSqyjz', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="58" r="13"/><path d="M100 71 L100 152"/><path d="M100 76 L72 118"/><path d="M100 76 L128 118"/><path d="M100 152 L90 208"/><path d="M100 152 L110 208"/></g>' },
-  { name: '桥式', en: 'Bridge Pose', sec: 30, tip: '仰卧屈膝踩地，臀部向上抬起，肩背贴地，像一座小桥', img: 'https://aka.doubaocdn.com/s/qbmMDK6Ule', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="192" r="13"/><path d="M100 180 L100 142"/><path d="M100 150 L78 206"/><path d="M100 150 L122 206"/><path d="M100 182 L80 204"/><path d="M100 182 L120 204"/></g>' },
-  { name: '蝴蝶式', en: 'Butterfly Pose', sec: 40, tip: '坐姿脚心相对，双手握住脚背，膝盖像蝴蝶翅膀一样上下轻拍', img: 'https://aka.doubaocdn.com/s/ZHmryRCBuu', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="52" r="13"/><path d="M100 65 L100 128"/><path d="M100 128 L76 158"/><path d="M100 128 L124 158"/><path d="M100 78 L72 116"/><path d="M100 78 L128 116"/><circle cx="100" cy="158" r="6" fill="currentColor" stroke="none"/></g>' },
-  { name: '平板支撑', en: 'Plank', sec: 20, tip: '俯撑身体成一条直线，核心收紧，坚持就是胜利，TA 在旁边给你数数', img: 'https://aka.doubaocdn.com/s/mOXZaaN4WK', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="44" r="13"/><path d="M100 57 L118 128"/><path d="M100 60 L82 126"/><path d="M118 128 L106 200"/><path d="M118 128 L132 200"/></g>' },
-  { name: '鸽子式', en: 'Pigeon Pose', sec: 30, tip: '跪姿前腿屈膝贴地，后腿向后伸直，拉伸胯部，慢慢加深', img: 'https://aka.doubaocdn.com/s/Byix3UghgM', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 126"/><path d="M100 126 L84 148 L100 154"/><path d="M100 126 L138 186"/><path d="M100 72 L64 42"/><path d="M100 72 L136 42"/></g>' },
-  { name: '摊尸式', en: 'Corpse Pose', sec: 90, tip: '仰卧全身放松，双臂自然外展，闭上眼睛，静静躺着享受这一刻', img: 'https://aka.doubaocdn.com/s/MrQ52LTOLc', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 70 L66 88"/><path d="M100 70 L134 88"/><path d="M100 128 L84 178"/><path d="M100 128 L116 178"/></g>' },
-  { name: '新月式', en: 'Crescent Lunge', sec: 30, tip: '前腿弓步弯曲，后腿向后伸展，双臂向上合十，微微后仰舒展全身', img: 'https://aka.doubaocdn.com/s/qVbKDVu8Pv', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L88 110"/><path d="M88 110 L52 132"/><path d="M88 110 L70 172"/><path d="M100 53 L118 38"/><path d="M118 38 L142 30"/></g>' },
-  { name: '鸟王式', en: 'Eagle Pose', sec: 25, tip: '单腿站立，另一腿缠绕小腿，双臂交叉缠绕，保持平衡像一只优雅的鸟', img: 'https://aka.doubaocdn.com/s/QZLepyHN6w', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 120"/><path d="M100 120 L100 176"/><path d="M100 88 L66 66"/><path d="M100 88 L134 66"/><path d="M100 88 L86 120"/><path d="M100 88 L114 120"/></g>' },
-  { name: '侧角伸展式', en: 'Extended Side Angle', sec: 30, tip: '侧弓步下沉，下方手撑地，上方手臂贴耳向上伸展，身体成一条斜线', img: 'https://aka.doubaocdn.com/s/MOkQ33oru5', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L86 104"/><path d="M86 104 L52 122"/><path d="M86 104 L70 172"/><path d="M100 53 L120 84"/><path d="M120 84 L148 108"/></g>' },
-  { name: '花环式', en: 'Garland Pose', sec: 30, tip: '双脚并拢蹲下，双手胸前合十，手肘轻抵膝盖内侧，后背挺直', img: 'https://aka.doubaocdn.com/s/7ceNdfrofU', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 112"/><path d="M100 112 L66 152"/><path d="M100 112 L134 152"/><path d="M66 152 L66 178"/><path d="M134 152 L134 178"/><path d="M100 112 L84 94"/><path d="M100 112 L116 94"/><path d="M84 94 L116 94"/></g>' },
-  { name: '骆驼式', en: 'Camel Pose', sec: 25, tip: '双膝跪地，双手向后抓脚跟，胸口上挺，头微微后仰打开胸腔', img: 'https://aka.doubaocdn.com/s/ROGQeMkHVL', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L108 96"/><path d="M108 96 L142 118"/><path d="M108 96 L66 150"/><path d="M142 118 L142 178"/><path d="M66 150 L66 178"/></g>' },
-  { name: '半鱼王式', en: 'Half Lord of the Fishes', sec: 30, tip: '盘腿而坐，一腿跨过另一腿，身体向一侧扭转，手肘抵住膝盖', img: 'https://aka.doubaocdn.com/s/amYoixP9GQ', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L88 100"/><path d="M88 100 L56 138"/><path d="M88 100 L124 120"/><path d="M56 138 L56 178"/><path d="M124 120 L152 140"/><path d="M88 100 L66 92"/></g>' }
+  { name: '山式', en: 'Mountain Pose', sec: 30, tip: '站直如松，双脚并拢，深呼吸三次，感受彼此的呼吸节奏', img: 'https://aka.doubaocdn.com/s/zPpmICwOuY', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13" fill="none"/><path d="M100 55 L100 132"/><path d="M100 132 L92 205"/><path d="M100 132 L108 205"/><path d="M100 72 L68 100"/><path d="M100 72 L132 100"/></g>' },
+  { name: '树式', en: 'Tree Pose', sec: 30, tip: '单腿站立，另一只脚贴小腿，像小树一样稳稳扎根，站不稳可以互相扶着', img: 'https://aka.doubaocdn.com/s/1hsJhVW6sI', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 128 L100 205"/><path d="M100 128 L122 148 L100 156"/><path d="M100 72 L92 26"/><path d="M100 72 L108 26"/></g>' },
+  { name: '战士一式', en: 'Warrior I', sec: 30, tip: '大步弓步，双手向上合十，目光坚定看向前方，气势如虹', img: 'https://aka.doubaocdn.com/s/QIUQMXj0xg', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L142 172"/><path d="M100 118 L58 172"/><path d="M100 70 L160 70"/><path d="M100 70 L40 70"/></g>' },
+  { name: '战士二式', en: 'Warrior II', sec: 30, tip: '侧身弓步，双臂平展如翅膀，眼神顺着前手方向看出去', img: 'https://aka.doubaocdn.com/s/I9ZFKUOU0w', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 118"/><path d="M100 118 L145 176"/><path d="M100 118 L55 176"/><path d="M100 70 L166 70"/><path d="M100 70 L34 70"/></g>' },
+  { name: '三角式', en: 'Triangle Pose', sec: 30, tip: '侧腰舒展，一手触地一手指向天空，两人可以背对背做', img: 'https://aka.doubaocdn.com/s/VGgACaVgft', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="38" r="13"/><path d="M100 51 L100 112"/><path d="M100 112 L160 178"/><path d="M100 112 L60 178"/><path d="M100 70 L148 38"/><path d="M100 112 L162 178"/></g>' },
+  { name: '下犬式', en: 'Downward Dog', sec: 40, tip: '双手撑地、臀部抬高，身体呈倒V形，像小狗伸懒腰一样舒服', img: 'https://aka.doubaocdn.com/s/eGCxaOxBLG', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="55" cy="152" r="13"/><path d="M100 52 L55 152"/><path d="M100 52 L145 150"/><path d="M100 52 L72 178"/><path d="M100 52 L128 178"/></g>' },
+  { name: '猫牛式', en: 'Cat-Cow', sec: 30, tip: '跪姿双手撑地，吸气塌腰抬头，呼气拱背低头，像小猫一样灵活', img: 'https://aka.doubaocdn.com/s/M5YMvd4gBU', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="46" r="13"/><path d="M100 59 L100 122"/><path d="M100 66 L58 104"/><path d="M100 66 L142 104"/><path d="M100 122 L80 180"/><path d="M100 122 L120 180"/></g>' },
+  { name: '婴儿式', en: 'Child Pose', sec: 60, tip: '跪坐后身体前趴，额头贴地，双臂向前伸，全身放松休息', img: 'https://aka.doubaocdn.com/s/6W2ZA6GsKP', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="104" r="13"/><path d="M100 117 L100 178"/><path d="M100 122 L62 88"/><path d="M100 122 L138 88"/><path d="M100 178 L86 210"/><path d="M100 178 L114 210"/></g>' },
+  { name: '眼镜蛇式', en: 'Cobra Pose', sec: 30, tip: '俯卧双手撑地，慢慢抬头挺胸，舒展胸腔，像小蛇抬头', img: 'https://aka.doubaocdn.com/s/NMbu2FkWqj', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="58" r="13"/><path d="M100 71 L100 152"/><path d="M100 76 L72 118"/><path d="M100 76 L128 118"/><path d="M100 152 L90 208"/><path d="M100 152 L110 208"/></g>' },
+  { name: '桥式', en: 'Bridge Pose', sec: 30, tip: '仰卧屈膝踩地，臀部向上抬起，肩背贴地，像一座小桥', img: 'https://aka.doubaocdn.com/s/P6KOgnigoW', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="192" r="13"/><path d="M100 180 L100 142"/><path d="M100 150 L78 206"/><path d="M100 150 L122 206"/><path d="M100 182 L80 204"/><path d="M100 182 L120 204"/></g>' },
+  { name: '蝴蝶式', en: 'Butterfly Pose', sec: 40, tip: '坐姿脚心相对，双手握住脚背，膝盖像蝴蝶翅膀一样上下轻拍', img: 'https://aka.doubaocdn.com/s/feK8cSICWp', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="52" r="13"/><path d="M100 65 L100 128"/><path d="M100 128 L76 158"/><path d="M100 128 L124 158"/><path d="M100 78 L72 116"/><path d="M100 78 L128 116"/><circle cx="100" cy="158" r="6" fill="currentColor" stroke="none"/></g>' },
+  { name: '平板支撑', en: 'Plank', sec: 20, tip: '俯撑身体成一条直线，核心收紧，坚持就是胜利，TA 在旁边给你数数', img: 'https://aka.doubaocdn.com/s/nZUgz71C40', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="44" r="13"/><path d="M100 57 L118 128"/><path d="M100 60 L82 126"/><path d="M118 128 L106 200"/><path d="M118 128 L132 200"/></g>' },
+  { name: '鸽子式', en: 'Pigeon Pose', sec: 30, tip: '跪姿前腿屈膝贴地，后腿向后伸直，拉伸胯部，慢慢加深', img: 'https://aka.doubaocdn.com/s/X1SMjPPsZb', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 126"/><path d="M100 126 L84 148 L100 154"/><path d="M100 126 L138 186"/><path d="M100 72 L64 42"/><path d="M100 72 L136 42"/></g>' },
+  { name: '摊尸式', en: 'Corpse Pose', sec: 90, tip: '仰卧全身放松，双臂自然外展，闭上眼睛，静静躺着享受这一刻', img: 'https://aka.doubaocdn.com/s/ZLoa8rIjsO', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 70 L66 88"/><path d="M100 70 L134 88"/><path d="M100 128 L84 178"/><path d="M100 128 L116 178"/></g>' },
+  { name: '新月式', en: 'Crescent Lunge', sec: 30, tip: '前腿弓步弯曲，后腿向后伸展，双臂向上合十，微微后仰舒展全身', img: 'https://aka.doubaocdn.com/s/oU6yfKlSLS', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L88 110"/><path d="M88 110 L52 132"/><path d="M88 110 L70 172"/><path d="M100 53 L118 38"/><path d="M118 38 L142 30"/></g>' },
+  { name: '鸟王式', en: 'Eagle Pose', sec: 25, tip: '单腿站立，另一腿缠绕小腿，双臂交叉缠绕，保持平衡像一只优雅的鸟', img: 'https://aka.doubaocdn.com/s/fh7qCfKqzL', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 120"/><path d="M100 120 L100 176"/><path d="M100 88 L66 66"/><path d="M100 88 L134 66"/><path d="M100 88 L86 120"/><path d="M100 88 L114 120"/></g>' },
+  { name: '侧角伸展式', en: 'Extended Side Angle', sec: 30, tip: '侧弓步下沉，下方手撑地，上方手臂贴耳向上伸展，身体成一条斜线', img: 'https://aka.doubaocdn.com/s/OkO6CfHpLy', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L86 104"/><path d="M86 104 L52 122"/><path d="M86 104 L70 172"/><path d="M100 53 L120 84"/><path d="M120 84 L148 108"/></g>' },
+  { name: '花环式', en: 'Garland Pose', sec: 30, tip: '双脚并拢蹲下，双手胸前合十，手肘轻抵膝盖内侧，后背挺直', img: 'https://aka.doubaocdn.com/s/2g3JDE9QS4', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 112"/><path d="M100 112 L66 152"/><path d="M100 112 L134 152"/><path d="M66 152 L66 178"/><path d="M134 152 L134 178"/><path d="M100 112 L84 94"/><path d="M100 112 L116 94"/><path d="M84 94 L116 94"/></g>' },
+  { name: '骆驼式', en: 'Camel Pose', sec: 25, tip: '双膝跪地，双手向后抓脚跟，胸口上挺，头微微后仰打开胸腔', img: 'https://aka.doubaocdn.com/s/x7p22VkUxt', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L108 96"/><path d="M108 96 L142 118"/><path d="M108 96 L66 150"/><path d="M142 118 L142 178"/><path d="M66 150 L66 178"/></g>' },
+  { name: '半鱼王式', en: 'Half Lord of the Fishes', sec: 30, tip: '盘腿而坐，一腿跨过另一腿，身体向一侧扭转，手肘抵住膝盖', img: 'https://aka.doubaocdn.com/s/NfjgPnGlYx', svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L88 100"/><path d="M88 100 L56 138"/><path d="M88 100 L124 120"/><path d="M56 138 L56 178"/><path d="M124 120 L152 140"/><path d="M88 100 L66 92"/></g>' }
 ];
 var yoga = null;
 function openYoga(){
@@ -7369,8 +7538,7 @@ function yogaDraw(){
   var card = $('yoga-card');
   var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + pos.svg.replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
   yoga._lastSvg = svgHtml;
-  var photo = pos.img
-    ? '<div class="yoga-photo"><img src="' + pos.img + '" alt="' + pos.name + '" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
+  window.__lastYogaPos = pos; var photo = yogaImgUrl(pos) ? '<div class=\"yoga-photo\"><img src=\"' + yogaImgUrl(pos) + '\" alt="' + pos.name + '" onclick="openFullView(this.src,this.alt)" loading="lazy" onerror="if(yoga&&yoga._lastSvg){this.outerHTML=yoga._lastSvg}"></div>'
     : svgHtml;
   card.innerHTML = photo
     + '<div class="yoga-name" style="color:' + col + '">' + pos.name + '</div>'
@@ -7381,6 +7549,7 @@ function yogaDraw(){
   yoga.seconds = pos.sec;
   $('yoga-timer').textContent = yoga.seconds + 's';
   yoga.timer = setInterval(function(){
+    if(!yoga){ clearInterval(this); return; }
     yoga.seconds--;
     $('yoga-timer').textContent = yoga.seconds + 's';
     if(yoga.seconds <= 0){
@@ -7486,3 +7655,4 @@ if(isActivated()){
 </script>
 </body>
 </html>
+<!-- （注：内容由AI生成） -->
