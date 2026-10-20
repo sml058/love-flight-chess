@@ -7416,20 +7416,26 @@ function drawHeart(ctx, cx, cy, size){
   ctx.fill();
 }
 /* ---------- 自定义靶点数据（自动保存本机） ---------- */
-var SP_KEY = 'love-flight-shoot-points-v3';
+var SP_KEY = 'love-flight-shoot-points-v4';
 var SP_CACHE = null;
 function spDefaultPoints(){
-  var mk = function(){
-    return [
-      { name: '💘 胸口', x: 270, y: 413, r: 49, score: 10, kind: 'heart', reward: '' },
-      { name: '😊 脸颊', x: 270, y: 323, r: 56, score: 8,  kind: 'face',  reward: '' },
-      { name: '👕 身体', x: 270, y: 499, r: 51, score: 6,  kind: 'body',  reward: '' },
-      { name: '💪 左臂', x: 235, y: 485, r: 29, score: 4,  kind: 'arm',   reward: '' },
-      { name: '💪 右臂', x: 305, y: 485, r: 29, score: 4,  kind: 'arm',   reward: '' },
-      { name: '🦵 腿部', x: 270, y: 637, r: 51, score: 3,  kind: 'leg',   reward: '' }
+  var female = [
+      { name: '💘 胸口', x: 270, y: 285, r: 46, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 270, y: 158, r: 42, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 270, y: 438, r: 46, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 211, y: 395, r: 26, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 329, y: 395, r: 26, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 270, y: 582, r: 48, score: 3,  kind: 'leg',   reward: '' }
     ].map(spNormPt);
-  };
-  return { male: mk(), female: mk() };
+  var male = [
+      { name: '💘 胸口', x: 270, y: 282, r: 46, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 270, y: 156, r: 42, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 270, y: 409, r: 46, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 183, y: 375, r: 26, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 357, y: 375, r: 26, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 270, y: 602, r: 48, score: 3,  kind: 'leg',   reward: '' }
+    ].map(spNormPt);
+  return { male: male, female: female };
 }
 function spNormPt(p, i){
   p = p || {};
