@@ -7217,7 +7217,16 @@ var SHOOT_IMG_BUILTIN = {
   male: "./img/shoot-male.webp",
   femaleC: "./img/shoot-femaleC.webp",
   maleB: "./img/shoot-maleB.webp",
+  femaleD: "./img/shoot-femaleD.webp",
+  femaleE: "./img/shoot-femaleE.webp",
+  femaleF: "./img/shoot-femaleF.webp",
 };
+var SHOOT_FEMALE_KEYS = ['a', 'b', 'c', 'd', 'e', 'f'];
+var SHOOT_FEMALE_LABELS = { a: '泳衣款', b: '瑜伽款', c: '黑泳款', d: '泳衣·全身', e: '瑜伽·全身', f: '黑泳·全身' };
+function shootFemaleImg(key){
+  var map = { a: 'femaleA', b: 'femaleB', c: 'femaleC', d: 'femaleD', e: 'femaleE', f: 'femaleF' };
+  return SHOOT_IMG_BUILTIN[map[key]] || SHOOT_IMG_BUILTIN.femaleA;
+}
 function spImgChoice(){
   try{ var c = JSON.parse(localStorage.getItem('love-flight-shoot-img') || '{}'); return c && typeof c === 'object' ? c : {}; }catch(e){ return {}; }
 }
@@ -7227,7 +7236,7 @@ function spSaveImgChoice(c){
 }
 function spLoadShootPhotos(){
   var c = spImgChoice();
-  var fu = (c.female === 'c') ? SHOOT_IMG_BUILTIN.femaleC : (c.female === 'b') ? SHOOT_IMG_BUILTIN.femaleB : SHOOT_IMG_BUILTIN.femaleA;
+  var fu = shootFemaleImg(c.female);
   if(c.female && c.female.slice(0, 5) === 'data:'){ fu = c.female; }
   var mu = (c.male === 'mb') ? SHOOT_IMG_BUILTIN.maleB : ((c.male && c.male.slice(0, 5) === 'data:') ? c.male : SHOOT_IMG_BUILTIN.male);
   // 外置图：先显示内置卡通靶（瞬时可见），真人靶图加载完成后自动替换
@@ -7416,24 +7425,34 @@ function drawHeart(ctx, cx, cy, size){
   ctx.fill();
 }
 /* ---------- 自定义靶点数据（自动保存本机） ---------- */
-var SP_KEY = 'love-flight-shoot-points-v4';
+var SP_KEY = 'love-flight-shoot-points-v5';
 var SP_CACHE = null;
 function spDefaultPoints(){
-  var female = [
+  // 全身透明版（d/e/f）人物占满靶框，点位整体偏上；旧版（a/b/c）人物居中
+  var fk = (function(){ try{ return (JSON.parse(localStorage.getItem('love-flight-shoot-img') || '{}').female) || 'a'; }catch(e){ return 'a'; } })();
+  var fullBody = (fk === 'd' || fk === 'e' || fk === 'f');
+  var female = fullBody ? [
       { name: '💘 胸口', x: 270, y: 285, r: 46, score: 10, kind: 'heart', reward: '' },
       { name: '😊 脸颊', x: 270, y: 158, r: 42, score: 8,  kind: 'face',  reward: '' },
       { name: '👕 身体', x: 270, y: 438, r: 46, score: 6,  kind: 'body',  reward: '' },
       { name: '💪 左臂', x: 211, y: 395, r: 26, score: 4,  kind: 'arm',   reward: '' },
       { name: '💪 右臂', x: 329, y: 395, r: 26, score: 4,  kind: 'arm',   reward: '' },
       { name: '🦵 腿部', x: 270, y: 582, r: 48, score: 3,  kind: 'leg',   reward: '' }
+    ].map(spNormPt) : [
+      { name: '💘 胸口', x: 270, y: 407, r: 42, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 270, y: 330, r: 38, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 270, y: 485, r: 42, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 223, y: 456, r: 24, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 320, y: 456, r: 24, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 270, y: 577, r: 42, score: 3,  kind: 'leg',   reward: '' }
     ].map(spNormPt);
   var male = [
-      { name: '💘 胸口', x: 270, y: 282, r: 46, score: 10, kind: 'heart', reward: '' },
-      { name: '😊 脸颊', x: 270, y: 156, r: 42, score: 8,  kind: 'face',  reward: '' },
-      { name: '👕 身体', x: 270, y: 409, r: 46, score: 6,  kind: 'body',  reward: '' },
-      { name: '💪 左臂', x: 183, y: 375, r: 26, score: 4,  kind: 'arm',   reward: '' },
-      { name: '💪 右臂', x: 357, y: 375, r: 26, score: 4,  kind: 'arm',   reward: '' },
-      { name: '🦵 腿部', x: 270, y: 602, r: 48, score: 3,  kind: 'leg',   reward: '' }
+      { name: '💘 胸口', x: 270, y: 402, r: 42, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 270, y: 325, r: 38, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 270, y: 480, r: 42, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 213, y: 456, r: 24, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 315, y: 456, r: 24, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 270, y: 587, r: 42, score: 3,  kind: 'leg',   reward: '' }
     ].map(spNormPt);
   return { male: male, female: female };
 }
@@ -7833,8 +7852,14 @@ function spComposeCustom(file, cb){
 }
 function spPickBuiltin(k, v){
   var c = spImgChoice();
+  var prev = c[k];
   c[k] = v;
   spSaveImgChoice(c);
+  // 换靶图后旧点位必然不匹配，重置为按新图自适应的默认点位
+  if(k === 'female' && prev !== v){
+    try{ localStorage.removeItem(SP_KEY); }catch(e){}
+    SP_CACHE = null;
+  }
   spLoadShootPhotos();
   spRenderImgPanel();
   SFX.click();
@@ -7906,9 +7931,9 @@ function spRenderImgPanel(){
     }
     return d;
   }
-  fWrap.appendChild(mkTile(SHOOT_IMG_BUILTIN.femaleA, !femaleCustom && c.female !== 'b', '泳衣款', function(){ spPickBuiltin('female', 'a'); }));
-  fWrap.appendChild(mkTile(SHOOT_IMG_BUILTIN.femaleB, !femaleCustom && c.female === 'b', '瑜伽款', function(){ spPickBuiltin('female', 'b'); }));
-  fWrap.appendChild(mkTile(SHOOT_IMG_BUILTIN.femaleC, !femaleCustom && c.female === 'c', '黑泳款', function(){ spPickBuiltin('female', 'c'); }));
+  SHOOT_FEMALE_KEYS.forEach(function(k){
+    fWrap.appendChild(mkTile(shootFemaleImg(k), !femaleCustom && c.female === k, SHOOT_FEMALE_LABELS[k], function(){ spPickBuiltin('female', k); }));
+  });
   fWrap.appendChild(mkTile(femaleCustom, !!femaleCustom, femaleCustom ? '自定义' : '＋上传', function(){ spPickFile('female'); }, !!femaleCustom, 'female'));
   mWrap.appendChild(mkTile(SHOOT_IMG_BUILTIN.male, !maleCustom && c.male !== 'mb', '默认', function(){ var cc = spImgChoice(); cc.male = null; spSaveImgChoice(cc); spLoadShootPhotos(); spRenderImgPanel(); SFX.click(); }));
   mWrap.appendChild(mkTile(SHOOT_IMG_BUILTIN.maleB, !maleCustom && c.male === 'mb', '白裤款', function(){ spPickBuiltin('male', 'mb'); }));
