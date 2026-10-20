@@ -2810,6 +2810,7 @@ var YOGA_TIGHT_IMGS = {
   '仰卧上举腿式': "./img/yoga-tight-仰卧上举腿式.webp",
   '站立前屈式': "./img/yoga-tight-站立前屈式.webp",
   '坐角式': "./img/yoga-tight-坐角式.webp",
+  '侧卧举腿式': "./img/yoga-tight-侧卧举腿式.webp",
 };
 var YOGA_SWIM_IMGS = {
   '山式': "./img/yoga-swim-山式.webp",
@@ -2837,6 +2838,7 @@ var YOGA_SWIM_IMGS = {
   '仰卧上举腿式': "./img/yoga-swim-仰卧上举腿式.webp",
   '站立前屈式': "./img/yoga-swim-站立前屈式.webp",
   '坐角式': "./img/yoga-swim-坐角式.webp",
+  '侧卧举腿式': "./img/yoga-swim-侧卧举腿式.webp",
 };
 function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
 
@@ -9817,7 +9819,8 @@ var YOGA_POSES = [
   { name: '快乐婴儿式', en: 'Happy Baby Pose', sec: 40, tip: '仰躺抱住双脚，膝盖向腋窝方向下沉，像小婴儿一样左右摇晃放松', img: "./img/yp-快乐婴儿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="60" r="13"/><path d="M78 78 L70 128"/><path d="M122 78 L130 128"/><path d="M70 128 L48 100"/><path d="M130 128 L152 100"/><path d="M78 78 L122 78"/><path d="M70 128 L130 128"/></g>' },
  { name: '仰卧上举腿式', en: 'Urdhva Prasarita Padasana', sec: 35, tip: '仰躺后双腿并拢伸直举向天花板，双手扶住小腿帮助稳定，感受腿后侧的舒展', img: "./img/yp-仰卧上举腿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="52" r="13"/><path d="M84 70 L64 96"/><path d="M116 70 L136 96"/><path d="M88 68 L74 130"/><path d="M112 68 L126 130"/><path d="M64 96 L40 88"/><path d="M136 96 L160 88"/><path d="M74 130 L126 130"/><path d="M74 130 L60 190"/><path d="M126 130 L140 190"/></g>' },
  { name: '站立前屈式', en: 'Ardha Uttanasana', sec: 30, tip: '站立屈髋上半身前倾，双手扶膝或扶髋，背部尽量放平，拉伸腿后侧与下背', img: "./img/yp-站立前屈式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="128" cy="86" r="13"/><path d="M116 98 L64 118"/><path d="M64 118 L96 160"/><path d="M64 118 L56 168"/><path d="M96 160 L92 224"/><path d="M120 108 L118 160"/><path d="M118 160 L118 224"/><path d="M92 224 L130 224"/><path d="M118 224 L142 224"/></g>' },
- { name: '坐角式', en: 'Upavistha Konasana', sec: 40, tip: '坐姿双腿向两侧打开伸直，腰背挺直，双手轻放体前，感受大腿内侧的舒展，别硬压', img: "./img/yp-坐角式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="56" r="13"/><path d="M100 70 L100 140"/><path d="M92 78 L44 128"/><path d="M44 128 L28 172"/><path d="M108 78 L156 128"/><path d="M156 128 L172 172"/><path d="M100 140 L84 150"/><path d="M100 140 L116 150"/></g>' }
+ { name: '坐角式', en: 'Upavistha Konasana', sec: 40, tip: '坐姿双腿向两侧打开伸直，腰背挺直，双手轻放体前，感受大腿内侧的舒展，别硬压', img: "./img/yp-坐角式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="56" r="13"/><path d="M100 70 L100 140"/><path d="M92 78 L44 128"/><path d="M44 128 L28 172"/><path d="M108 78 L156 128"/><path d="M156 128 L172 172"/><path d="M100 140 L84 150"/><path d="M100 140 L116 150"/></g>' },
+ { name: '侧卧举腿式', en: 'Anantasana', sec: 30, tip: '侧躺撑头，上方的腿缓慢举向天花板再慢慢放下，做 5~8 次后换边，收紧腰腹别塌腰', img: "./img/yp-侧卧举腿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="118" cy="66" r="13"/><path d="M105 78 L70 96"/><path d="M70 96 L60 170"/><path d="M70 96 L36 160"/><path d="M60 170 L100 170"/><path d="M100 170 L96 224"/><path d="M112 88 L138 40"/><path d="M138 40 L146 92"/></g>' }
 ];
 /* 自定义姿势卡图片（按名称存取，本地即存） */
 function loadYogaCustomImgs(){
