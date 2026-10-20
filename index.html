@@ -1954,6 +1954,23 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 :focus-visible{outline:3px solid var(--boost);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
+
+/* ==== 玩家配置行：手机宽度适配 ==== */
+.player-input{min-width:0;box-sizing:border-box;flex:1 1 120px}
+.input-row{min-width:0}
+.input-row .icon{flex:none}
+@media (max-width:430px){
+  .player-inputs{max-width:100%;padding:0 6px;box-sizing:border-box}
+  .input-row{gap:7px}
+  .input-row .icon{width:36px;height:36px}
+  .player-input{padding:11px 12px;font-size:15px;border-radius:14px}
+  .gender-switch{padding:2px;border-radius:12px}
+  .gender-switch .g-btn{min-height:32px;height:32px;padding:0 8px;font-size:12px;border-radius:10px;gap:2px}
+}
+@media (max-width:360px){
+  .input-row .icon{width:30px;height:30px}
+  .gender-switch .g-btn{padding:0 6px;font-size:11.5px}
+}
 </style>
 </head>
 <body data-page-node-id="8VSGYv5YTGX4UY4adnlT8C">
