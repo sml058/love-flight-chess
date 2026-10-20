@@ -137,6 +137,30 @@ def _save_upload_index(items):
     os.replace(tmp, UPLOAD_INDEX)
 
 
+def _list_builtin_files():
+    """扫描 img/ 目录下的内置图片（不含 user/ 子目录），供图库页查看。"""
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img')
+    mimes = {'.webp', '.png', '.jpg', '.jpeg', '.gif', '.svg'}
+    out = []
+    try:
+        for fn in sorted(os.listdir(root)):
+            p = os.path.join(root, fn)
+            if not os.path.isfile(p):
+                continue
+            ext = os.path.splitext(fn)[1].lower()
+            if ext not in mimes:
+                continue
+            try:
+                stt = os.stat(p)
+            except OSError:
+                continue
+            out.append({'name': fn, 'url': '/img/' + fn, 'size': stt.st_size,
+                        'ts': int(stt.st_mtime)})
+    except OSError:
+        pass
+    return out
+
+
 def _list_upload_files():
     _ensure_upload_dir()
     out = []
@@ -798,9 +822,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         items = _list_upload_files()
         meta = {i['name']: i for i in _load_upload_index()}
+        builtin = _list_builtin_files()
         html = ['<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                '<title>恋爱飞行棋 · 用户上传图库</title><style>'
+                '<title>恋爱飞行棋 · 图片管理</title><style>'
                 'body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;max-width:960px;margin:0 auto;padding:16px}'
                 'h1{font-size:20px;color:#FF5E8A} .sub{font-size:13px;color:#A890A0;margin-bottom:14px}'
                 '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}'
@@ -815,9 +840,9 @@ class Handler(BaseHTTPRequestHandler):
                 '</style></head><body>']
         yoga_n = sum(1 for i in items if i['name'].startswith('yoga-'))
         bg_n = len(items) - yoga_n
-        html.append(f'<h1>🖼 用户上传图库</h1>')
-        html.append(f'<div class="sub">共 {len(items)} 张（姿势卡图 {yoga_n} · 背景图 {bg_n}） · '
-                    f'<a href="/admin">→ 房间管理</a></div>')
+        html.append(f'<h1>🖼 图片管理</h1>')
+        html.append(f'<div class="sub">用户上传 {len(items)} 张（姿势卡图 {yoga_n} · 背景图 {bg_n}） · '
+                    f'内置图片 {len(builtin)} 张 · <a href="/admin">→ 房间管理</a></div>')
         if not items:
             html.append('<div class="empty">还没有用户上传图片</div>')
         else:
@@ -834,6 +859,32 @@ class Handler(BaseHTTPRequestHandler):
                     f'<span class="kb {kind}">{"姿势卡" if kind=="yoga" else "背景"} · {tstr}</span>'
                     f'<div class="nm">{label or nm}</div>'
                     f'<button class="del" onclick="delImg(\'{nm}\')">删除</button>'
+                    f'</div>')
+            html.append('</div>')
+        # ---- 内置图片区块 ----
+        def _cat(fn):
+            if fn.startswith('yp-'): return '瑜伽服'
+            if fn.startswith('yoga-tight-'): return '超短款'
+            if fn.startswith('yoga-swim-'): return '泳衣款'
+            if fn.startswith('couple-'): return '夫妻姿势'
+            if fn.startswith('shoot-'): return '射击靶'
+            return '其他'
+        cats = {}
+        for it in builtin:
+            cats.setdefault(_cat(it['name']), []).append(it)
+        html.append('<h1 style="margin-top:28px">🎨 内置图片（共 %d 张）</h1>' % len(builtin))
+        html.append('<div class="sub">游戏自带的所有图片素材，按分类展示；点击可看大图。</div>')
+        for cat in sorted(cats.keys()):
+            lst = cats[cat]
+            html.append(f'<div class="bg-opt-head" style="margin:16px 0 8px;font-weight:800;color:#FF5E8A">{cat}（{len(lst)}）</div>')
+            html.append('<div class="grid">')
+            for it in lst:
+                nm = it['name']
+                kb = it['size'] // 1024
+                html.append(
+                    f'<div class="cell">'
+                    f'<img src="{it["url"]}" loading="lazy" onclick="window.open(this.src)">'
+                    f'<div class="nm">{nm}<br><span style="color:#C0AECB">{kb} KB</span></div>'
                     f'</div>')
             html.append('</div>')
         html.append('<script>'
