@@ -2792,6 +2792,7 @@ var YOGA_TIGHT_IMGS = {
   '花环式': "./img/yoga-tight-花环式.webp",
   '骆驼式': "./img/yoga-tight-骆驼式.webp",
   '半鱼王式': "./img/yoga-tight-半鱼王式.webp",
+  '大猫伸展': "./img/yoga-tight-大猫伸展.webp",
 };
 var YOGA_SWIM_IMGS = {
   '山式': "./img/yoga-swim-山式.webp",
@@ -2814,6 +2815,7 @@ var YOGA_SWIM_IMGS = {
   '花环式': "./img/yoga-swim-花环式.webp",
   '骆驼式': "./img/yoga-swim-骆驼式.webp",
   '半鱼王式': "./img/yoga-swim-半鱼王式.webp",
+  '大猫伸展': "./img/yoga-swim-大猫伸展.webp",
 };
 function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
 
@@ -9784,7 +9786,8 @@ var YOGA_POSES = [
   { name: '侧角伸展式', en: 'Extended Side Angle', sec: 30, tip: '侧弓步下沉，下方手撑地，上方手臂贴耳向上伸展，身体成一条斜线', img: "./img/yp-侧角伸展式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L86 104"/><path d="M86 104 L52 122"/><path d="M86 104 L70 172"/><path d="M100 53 L120 84"/><path d="M120 84 L148 108"/></g>' },
   { name: '花环式', en: 'Garland Pose', sec: 30, tip: '双脚并拢蹲下，双手胸前合十，手肘轻抵膝盖内侧，后背挺直', img: "./img/yp-花环式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="40" r="13"/><path d="M100 53 L100 112"/><path d="M100 112 L66 152"/><path d="M100 112 L134 152"/><path d="M66 152 L66 178"/><path d="M134 152 L134 178"/><path d="M100 112 L84 94"/><path d="M100 112 L116 94"/><path d="M84 94 L116 94"/></g>' },
   { name: '骆驼式', en: 'Camel Pose', sec: 25, tip: '双膝跪地，双手向后抓脚跟，胸口上挺，头微微后仰打开胸腔', img: "./img/yp-骆驼式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L108 96"/><path d="M108 96 L142 118"/><path d="M108 96 L66 150"/><path d="M142 118 L142 178"/><path d="M66 150 L66 178"/></g>' },
-  { name: '半鱼王式', en: 'Half Lord of the Fishes', sec: 30, tip: '盘腿而坐，一腿跨过另一腿，身体向一侧扭转，手肘抵住膝盖', img: "./img/yp-半鱼王式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L88 100"/><path d="M88 100 L56 138"/><path d="M88 100 L124 120"/><path d="M56 138 L56 178"/><path d="M124 120 L152 140"/><path d="M88 100 L66 92"/></g>' }
+  { name: '半鱼王式', en: 'Half Lord of the Fishes', sec: 30, tip: '盘腿而坐，一腿跨过另一腿，身体向一侧扭转，手肘抵住膝盖', img: "./img/yp-半鱼王式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="36" r="13"/><path d="M100 49 L88 100"/><path d="M88 100 L56 138"/><path d="M88 100 L124 120"/><path d="M56 138 L56 178"/><path d="M124 120 L152 140"/><path d="M88 100 L66 92"/></g>' },
+  { name: '大猫伸展', en: 'Extended Puppy Pose', sec: 30, tip: '跪姿双臂前伸贴地，胸口下沉贴近垫面，像大猫一样尽情舒展懒腰', img: "./img/yp-大猫伸展.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="42" cy="120" r="13"/><path d="M50 132 L96 96"/><path d="M96 96 L128 60"/><path d="M96 96 L150 132"/><path d="M150 132 L150 178"/><path d="M150 132 L186 150"/></g>' }
 ];
 /* 自定义姿势卡图片（按名称存取，本地即存） */
 function loadYogaCustomImgs(){
