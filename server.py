@@ -205,6 +205,8 @@ class Handler(BaseHTTPRequestHandler):
             self._handle_sse()
         elif path == '/admin':
             self._admin_page()
+        elif path == '/gallery':
+            self._gallery_page()
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
@@ -442,7 +444,11 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, {'ok': True, 'url': '/img/user/' + fn, 'name': fn, 'size': len(raw)})
 
     def _upload_delete(self, body):
-        """POST /upload-delete {name:'xxx.webp'} —— 删除一张用户上传的图"""
+        """POST /upload-delete {name:'xxx.webp', pw:'图库密码'} —— 删除一张用户上传的图"""
+        # 仅图库已认证的 IP 或带正确密码的请求可删除
+        pw = str(body.get('pw') or '')
+        if self._client_ip() not in self._gallery_authed and pw != self.GALLERY_PASSWORD:
+            return self._json(403, {'ok': False, 'error': '需要图库管理密码'})
         fn = os.path.basename(str(body.get('name') or ''))
         if not fn or not re.match(r'^(yoga|bg)-[0-9]{8}-[0-9]{6}-[0-9a-f]{8}\.(webp|png|jpg|gif)$', fn):
             return self._json(400, {'ok': False, 'error': '文件名不合法'})
@@ -754,6 +760,95 @@ class Handler(BaseHTTPRequestHandler):
     def _online_pids(self):
         with sse_lock:
             return set(sse_owner.values())
+
+    # ---------- 用户上传图库（管理员页） ----------
+    GALLERY_PASSWORD = os.environ.get('GALLERY_PASSWORD', 'loveyou')
+    _gallery_authed = set()   # 已通过密码的客户端 IP
+
+    def _client_ip(self):
+        xff = self.headers.get('X-Forwarded-For', '')
+        return (xff.split(',')[0].strip() if xff else self.client_address[0])
+
+    def _gallery_page(self):
+        ip = self._client_ip()
+        pw = urlparse(self.path).query
+        qs = parse_qs(pw)
+        # 密码校验（?pw=xxx 或已验证过的 IP 自动放行）
+        ok = ip in self._gallery_authed
+        if not ok and qs.get('pw', [''])[0] == self.GALLERY_PASSWORD:
+            self._gallery_authed.add(ip)
+            ok = True
+        if not ok:
+            page = ('<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+                    '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                    '<title>图库 · 验证</title><style>'
+                    'body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;'
+                    'display:flex;align-items:center;justify-content:center;min-height:90vh}'
+                    'input,button{font-size:16px;padding:10px 14px;border-radius:10px;border:1.5px solid #F0C9D8}'
+                    'button{background:#FF6E9C;color:#fff;border:none;cursor:pointer;font-weight:700}'
+                    '</style></head><body><form method="get">'
+                    '<div>🔐 请输入管理密码<br><br>'
+                    '<input type="password" name="pw" autofocus>'
+                    ' <button>进入</button></div></form></body></html>')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(page.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(page.encode('utf-8'))
+            return
+        items = _list_upload_files()
+        meta = {i['name']: i for i in _load_upload_index()}
+        html = ['<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                '<title>恋爱飞行棋 · 用户上传图库</title><style>'
+                'body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;max-width:960px;margin:0 auto;padding:16px}'
+                'h1{font-size:20px;color:#FF5E8A} .sub{font-size:13px;color:#A890A0;margin-bottom:14px}'
+                '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}'
+                '.cell{background:#fff;border-radius:14px;padding:10px;box-shadow:0 2px 10px rgba(255,94,138,.12);'
+                'display:flex;flex-direction:column;gap:6px;align-items:center}'
+                '.cell img{width:100%;height:150px;object-fit:cover;border-radius:10px;cursor:pointer;background:#f7f2f4}'
+                '.nm{font-size:11px;color:#7E6BA8;word-break:break-all;text-align:center}'
+                '.kb{font-size:10px;padding:1px 7px;border-radius:8px}'
+                '.kb.yoga{background:#F3E8FF;color:#8B5CF6}.kb.bg{background:#DCFCE7;color:#16A34A}'
+                '.del{font-size:11px;padding:5px 12px;border:none;border-radius:9px;background:#FFE8E8;color:#D63B3B;cursor:pointer}'
+                '.empty{padding:40px;text-align:center;color:#A890A0}'
+                '</style></head><body>']
+        yoga_n = sum(1 for i in items if i['name'].startswith('yoga-'))
+        bg_n = len(items) - yoga_n
+        html.append(f'<h1>🖼 用户上传图库</h1>')
+        html.append(f'<div class="sub">共 {len(items)} 张（姿势卡图 {yoga_n} · 背景图 {bg_n}） · '
+                    f'<a href="/admin">→ 房间管理</a></div>')
+        if not items:
+            html.append('<div class="empty">还没有用户上传图片</div>')
+        else:
+            html.append('<div class="grid">')
+            for it in reversed(items):  # 新的在前
+                nm = it['name']
+                kind = 'yoga' if nm.startswith('yoga-') else 'bg'
+                label = meta.get(nm, {}).get('label', '')
+                import datetime as _dt
+                tstr = _dt.datetime.fromtimestamp(it['ts']).strftime('%m-%d %H:%M')
+                html.append(
+                    f'<div class="cell">'
+                    f'<img src="{it["url"]}" loading="lazy" onclick="window.open(this.src)">'
+                    f'<span class="kb {kind}">{"姿势卡" if kind=="yoga" else "背景"} · {tstr}</span>'
+                    f'<div class="nm">{label or nm}</div>'
+                    f'<button class="del" onclick="delImg(\'{nm}\')">删除</button>'
+                    f'</div>')
+            html.append('</div>')
+        html.append('<script>'
+                    'function delImg(n){if(!confirm("确定删除 "+n+" ?"))return;'
+                    'fetch("/upload-delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n})})'
+                    '.then(function(r){return r.json()}).then(function(d){if(d.ok)location.reload();else alert(d.error||"删除失败")})'
+                    '.catch(function(){alert("删除失败")});}'
+                    '</script></body></html>')
+        page = ''.join(html)
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Content-Length', str(len(page.encode('utf-8'))))
+        self.end_headers()
+        self.wfile.write(page.encode('utf-8'))
 
     def _admin_page(self):
         """管理页：查看房间状态，清理意外退出残留的玩家 / 重置房间。"""
