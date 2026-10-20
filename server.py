@@ -6,6 +6,7 @@
 同 WiFi 下的设备用浏览器打开提示的地址即可加入。
 零依赖，仅用 Python 标准库。
 """
+import gzip
 import json
 import os
 import random
@@ -170,15 +171,31 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with open(fname, 'rb') as f:
                 data = f.read()
+            # 静态大文件（index.html 内嵌图片约 6MB）用 gzip 压缩后再发，体积约降 28%
+            body = data
+            encoding = None
+            if len(data) > 8192 and 'text/' in ctype:
+                accept = (self.headers.get('Accept-Encoding') or '').lower()
+                if 'gzip' in accept:
+                    if not hasattr(self, '_gzip_cache') or self._gzip_cache[0] != fname \
+                            or self._gzip_cache[1] != len(data):
+                        body = gzip.compress(data, 6)
+                        self._gzip_cache = (fname, len(data), body)
+                    else:
+                        body = self._gzip_cache[2]
+                    encoding = 'gzip'
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.send_header('Content-Type', ctype)
-            self.send_header('Content-Length', str(len(data)))
+            if encoding:
+                self.send_header('Content-Encoding', encoding)
+            self.send_header('Vary', 'Accept-Encoding')
+            self.send_header('Content-Length', str(len(body)))
             self.send_header('Cache-Control', 'no-cache')
             self.end_headers()
-            self.wfile.write(data)
+            self.wfile.write(body)
         except FileNotFoundError:
             self.send_error(404)
 
