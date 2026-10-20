@@ -660,7 +660,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;
 }
 #shoot-canvas{
-  width:100%;max-width:360px;height:auto;border-radius:18px;cursor:crosshair;
+  width:100%;max-width:390px;height:auto;border-radius:18px;cursor:crosshair;
   box-shadow:0 10px 30px rgba(74,52,71,.18);background:#FDF7FB;touch-action:manipulation;
 }
 .shoot-status{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:4px;min-height:18px}
@@ -2449,7 +2449,7 @@ function preloadImgs(list, cb){
       </div>
       <div class="shoot-status" id="shoot-status" data-page-node-id="alASYBk75tftnYu5va93Cu">轮流射击人形靶，每人 1 箭，比谁射得准！</div>
       <div class="shoot-stage" data-page-node-id="47qTQZ3EeLdN2vKYZXjq0k">
-        <canvas id="shoot-canvas" width="520" height="620" data-page-node-id="tez8QiQVfHwJ7jOFBekiHK"></canvas>
+        <canvas id="shoot-canvas" width="620" height="760" data-page-node-id="tez8QiQVfHwJ7jOFBekiHK"></canvas>
         <div class="shoot-info" id="shoot-info" data-page-node-id="xh3EzhEF2dhAKy769zrQg6"></div>
         <div class="shoot-result" id="shoot-result" data-page-node-id="DDHB7D9vhnNmIjGTieVLMC"></div>
         <button class="btn-primary btn-rps-roll" id="btn-shoot-again" type="button" style="display:none" data-page-node-id="Tp5QHYmT3b85xOBYPo7J8U">🔁 再来一次</button>
@@ -2477,7 +2477,7 @@ function preloadImgs(list, cb){
             <button class="rps-gtab" type="button" data-g="female">👧 女靶</button>
           </div>
           <div style="text-align:center;margin:6px 0">
-            <canvas id="sp-canvas" width="312" height="372" style="border-radius:14px;max-width:100%;cursor:crosshair;box-shadow:0 4px 14px rgba(255,77,125,.18)"></canvas>
+            <canvas id="sp-canvas" width="372" height="456" style="border-radius:14px;max-width:100%;cursor:crosshair;box-shadow:0 4px 14px rgba(255,77,125,.18)"></canvas>
           </div>
           <div id="sp-list" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0"></div>
           <div id="sp-editor"></div>
@@ -6738,11 +6738,11 @@ function updateShootFrame(dt){
 }
 function toScreenPoint(ix, iy){
   var z = SG.scaleNow || (SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal).zoom;
-  return { x: 260 + SG.sway + (ix - 260) * z, y: 310 + (SG.swayY || 0) + (iy - 310) * z };
+  return { x: 310 + SG.sway + (ix - 310) * z, y: 380 + (SG.swayY || 0) + (iy - 380) * z };
 }
 function toTargetPoint(sx, sy){
   var z = SG.scaleNow || (SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal).zoom;
-  return { x: (sx - 260 - SG.sway) / z + 260, y: (sy - 310 - (SG.swayY || 0)) / z + 310 };
+  return { x: (sx - 310 - SG.sway) / z + 310, y: (sy - 380 - (SG.swayY || 0)) / z + 380 };
 }
 function drawShootScene(){
   var cv = $('shoot-canvas');
@@ -6768,18 +6768,26 @@ function drawShootScene(){
   // 靶图
   var cfg = SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal;
   var photo = shootPhotos[SG.mode === 'female' ? 'female' : 'male'];
+  var CX0 = W / 2, CY0 = H / 2;
+  var _zdw = Math.round(W * 0.74), _zdh = Math.round(H * 0.94);
+  var _zdx = Math.round((W - _zdw) / 2), _zdy = Math.round((H - _zdh) / 2);
   if(photo && photo.complete && photo.naturalWidth > 0){
     ctx.save();
-    ctx.translate(260 + SG.sway, 310 + (SG.swayY || 0));
+    ctx.translate(CX0 + SG.sway, CY0 + (SG.swayY || 0));
     ctx.scale(SG.scaleNow || cfg.zoom, SG.scaleNow || cfg.zoom);
-    ctx.drawImage(photo, -260, -310, W, H);
+    ctx.save();
+    roundRect(ctx, _zdx - CX0, _zdy - CY0, _zdw, _zdh, 26); ctx.clip();
+    ctx.drawImage(photo, _zdx - CX0, _zdy - CY0, _zdw, _zdh);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2.5;
+    roundRect(ctx, _zdx - CX0, _zdy - CY0, _zdw, _zdh, 26); ctx.stroke();
     ctx.restore();
   } else {
     ctx.fillStyle = '#FFE3EE';
-    roundRect(ctx, 135, 60, 250, 500, 22); ctx.fill();
+    roundRect(ctx, _zdx, _zdy, _zdw, _zdh, 26); ctx.fill();
     ctx.fillStyle = '#C97A97';
     ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('靶图加载中…', 260, 300);
+    ctx.fillText('靶图加载中…', CX0, CY0);
   }
 
   // 自定义靶点提示圈（含悬停高亮 + 暴击内圈）
@@ -7242,6 +7250,7 @@ function drawShootTarget(){
   var ctx = cv.getContext('2d');
   var W = cv.width, H = cv.height;
   var off = 0; // 靶固定不动
+  var CX = W / 2, CY = H / 2;
   ctx.clearRect(0, 0, W, H);
   var bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, '#FFF0F6');
@@ -7251,36 +7260,47 @@ function drawShootTarget(){
   // 靶环装饰（随靶平移）
   ctx.strokeStyle = 'rgba(255,110,156,.16)';
   ctx.lineWidth = 2;
+  var rr0 = H * 0.0647;
   for(var r = 1; r <= 3; r++){
     ctx.beginPath();
-    ctx.arc(260 + off, 340, 40 + r * 50, 0, Math.PI * 2);
+    ctx.arc(CX + off, CY, rr0 * r + r * r * 3.2, 0, Math.PI * 2);
     ctx.stroke();
   }
   var male = (shoot.mode === 'male');
   // 真人靶图（优先使用，加载中或失败自动回退卡通）
   var photo = shootPhotos[male ? 'male' : 'female'];
+  // 靶图框：宽度占画布 74%，高度占 94%（比之前 250x500 放大约 42%）
+  var dw2 = Math.round(W * 0.74), dh2 = Math.round(H * 0.94);
+  var dx2 = Math.round((W - dw2) / 2), dy2 = Math.round((H - dh2) / 2);
   if(photo && photo.complete && photo.naturalWidth > 0){
     if(photo.naturalWidth / photo.naturalHeight > 0.8){
-      // 全画布设计图（520×620，自带靶环与分值），整幅绘制即可对齐命中区
-      ctx.drawImage(photo, 0, 0, W, H);
+      // 全画布设计图（620×760）：整幅绘制，最大化显示
+      ctx.save();
+      roundRect(ctx, dx2, dy2, dw2, dh2, 26); ctx.clip();
+      ctx.drawImage(photo, dx2, dy2, dw2, dh2);
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 2.5;
+      roundRect(ctx, dx2, dy2, dw2, dh2, 26); ctx.stroke();
     }else{
-    var dw2 = 250, dh2 = 500, dx2 = 135, dy2 = 60;
+    // 非标准比例图：按"完整显示"适配（contain），不裁掉头脚
     var sw2 = photo.naturalWidth, sh2 = photo.naturalHeight;
-    var sc2 = Math.max(dw2 / sw2, dh2 / sh2);
-    var ssw2 = dw2 / sc2, ssh2 = dh2 / sc2;
-    var ssx2 = (sw2 - ssw2) / 2, ssy2 = (sh2 - ssh2) / 2;
+    var sc2 = Math.min(dw2 / sw2, dh2 / sh2);
+    var rdw = sw2 * sc2, rdh = sh2 * sc2;
+    var rdx = dx2 + (dw2 - rdw) / 2, rdy = dy2 + (dh2 - rdh) / 2;
     ctx.save();
-    roundRect(ctx, dx2, dy2, dw2, dh2, 22); ctx.clip();
-    ctx.drawImage(photo, ssx2, ssy2, ssw2, ssh2, dx2, dy2, dw2, dh2);
+    roundRect(ctx, dx2, dy2, dw2, dh2, 26); ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(dx2, dy2, dw2, dh2);
+    ctx.drawImage(photo, rdx, rdy, rdw, rdh);
     ctx.restore();
     ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 2.5;
-    roundRect(ctx, dx2, dy2, dw2, dh2, 22); ctx.stroke();
-    // 命中部位高亮框（轻提示）
+    roundRect(ctx, dx2, dy2, dw2, dh2, 26); ctx.stroke();
+    // 命中部位高亮框（轻提示，按画布比例缩放）
+    var hs = H / 620;
     ctx.setLineDash([6, 6]);
     ctx.strokeStyle = 'rgba(255,77,125,.45)'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.arc(260 + off, 150, 52, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(260 + off, 342, 42, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeRect(208 + off, 212, 104, 130);
+    ctx.beginPath(); ctx.arc(CX + off, 150 * hs, 52 * hs, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX + off, 342 * hs, 42 * hs, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeRect(208 * (W / 520) + off, 212 * hs, 104 * (W / 520), 130 * hs);
     ctx.setLineDash([]);
     }
   } else {
@@ -7390,12 +7410,12 @@ var SP_CACHE = null;
 function spDefaultPoints(){
   var mk = function(){
     return [
-      { name: '💘 胸口', x: 260, y: 240, r: 40, score: 10, kind: 'heart', reward: '' },
-      { name: '😊 脸颊', x: 260, y: 145, r: 46, score: 8,  kind: 'face',  reward: '' },
-      { name: '👕 身体', x: 260, y: 330, r: 42, score: 6,  kind: 'body',  reward: '' },
-      { name: '💪 左臂', x: 224, y: 315, r: 24, score: 4,  kind: 'arm',   reward: '' },
-      { name: '💪 右臂', x: 296, y: 315, r: 24, score: 4,  kind: 'arm',   reward: '' },
-      { name: '🦵 腿部', x: 260, y: 475, r: 42, score: 3,  kind: 'leg',   reward: '' }
+      { name: '💘 胸口', x: 310, y: 294, r: 49, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 310, y: 178, r: 56, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 310, y: 404, r: 51, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 267, y: 386, r: 29, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 353, y: 386, r: 29, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 310, y: 582, r: 51, score: 3,  kind: 'leg',   reward: '' }
     ].map(spNormPt);
   };
   return { male: mk(), female: mk() };
@@ -7407,9 +7427,9 @@ function spNormPt(p, i){
   return {
     id: p.id || ('p' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 10000)),
     name: String(p.name || ('靶点' + (i + 1))).slice(0, 10),
-    x: Math.max(10, Math.min(510, x)),
-    y: Math.max(10, Math.min(610, y)),
-    r: Math.max(10, Math.min(90, r)),
+    x: Math.max(10, Math.min(610, x)),
+    y: Math.max(10, Math.min(750, y)),
+    r: Math.max(10, Math.min(110, r)),
     score: isFinite(s) ? Math.max(1, Math.min(99, Math.round(s))) : 5,
     kind: ['heart', 'face', 'body', 'arm', 'leg'].indexOf(p.kind) >= 0 ? p.kind : 'heart',
     reward: String(p.reward || '').slice(0, 60)
@@ -7771,15 +7791,19 @@ function spComposeCustom(file, cb){
   fr.onload = function(){
     var im = new Image();
     im.onload = function(){
-      var TW = 520, TH = 620, tr = TW / TH;
+      var TW = 620, TH = 760, tr = TW / TH;
       var iw = im.naturalWidth, ih = im.naturalHeight, ir = iw / ih;
-      var sx, sy, sw, sh;
-      if(ir > tr){ sh = ih; sw = ih * tr; sx = (iw - sw) / 2; sy = 0; }
-      else { sw = iw; sh = iw / tr; sx = 0; sy = Math.max(0, (ih - sh) * 0.2); }
+      // 完整适配（contain）：不裁掉头脚，四周补粉白渐变
+      var sc = Math.min(TW / iw, TH / ih);
+      var dw = iw * sc, dh = ih * sc;
+      var dx = (TW - dw) / 2, dy = (TH - dh) / 2;
       var cv = document.createElement('canvas');
       cv.width = TW; cv.height = TH;
       var cx = cv.getContext('2d');
-      cx.drawImage(im, sx, sy, sw, sh, 0, 0, TW, TH);
+      var g = cx.createLinearGradient(0, 0, 0, TH);
+      g.addColorStop(0, '#FCEDEF'); g.addColorStop(1, '#F2DEE9');
+      cx.fillStyle = g; cx.fillRect(0, 0, TW, TH);
+      cx.drawImage(im, dx, dy, dw, dh);
       cb(cv.toDataURL('image/webp', 0.85));
     };
     im.src = fr.result;
