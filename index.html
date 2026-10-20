@@ -2449,7 +2449,7 @@ function preloadImgs(list, cb){
       </div>
       <div class="shoot-status" id="shoot-status" data-page-node-id="alASYBk75tftnYu5va93Cu">轮流射击人形靶，每人 1 箭，比谁射得准！</div>
       <div class="shoot-stage" data-page-node-id="47qTQZ3EeLdN2vKYZXjq0k">
-        <canvas id="shoot-canvas" width="620" height="760" data-page-node-id="tez8QiQVfHwJ7jOFBekiHK"></canvas>
+        <canvas id="shoot-canvas" width="540" height="960" data-page-node-id="tez8QiQVfHwJ7jOFBekiHK"></canvas>
         <div class="shoot-info" id="shoot-info" data-page-node-id="xh3EzhEF2dhAKy769zrQg6"></div>
         <div class="shoot-result" id="shoot-result" data-page-node-id="DDHB7D9vhnNmIjGTieVLMC"></div>
         <button class="btn-primary btn-rps-roll" id="btn-shoot-again" type="button" style="display:none" data-page-node-id="Tp5QHYmT3b85xOBYPo7J8U">🔁 再来一次</button>
@@ -2477,7 +2477,7 @@ function preloadImgs(list, cb){
             <button class="rps-gtab" type="button" data-g="female">👧 女靶</button>
           </div>
           <div style="text-align:center;margin:6px 0">
-            <canvas id="sp-canvas" width="372" height="456" style="border-radius:14px;max-width:100%;cursor:crosshair;box-shadow:0 4px 14px rgba(255,77,125,.18)"></canvas>
+            <canvas id="sp-canvas" width="324" height="576" style="border-radius:14px;max-width:100%;cursor:crosshair;box-shadow:0 4px 14px rgba(255,77,125,.18)"></canvas>
           </div>
           <div id="sp-list" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0"></div>
           <div id="sp-editor"></div>
@@ -6738,11 +6738,11 @@ function updateShootFrame(dt){
 }
 function toScreenPoint(ix, iy){
   var z = SG.scaleNow || (SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal).zoom;
-  return { x: 310 + SG.sway + (ix - 310) * z, y: 380 + (SG.swayY || 0) + (iy - 380) * z };
+  return { x: 270 + SG.sway + (ix - 270) * z, y: 480 + (SG.swayY || 0) + (iy - 480) * z };
 }
 function toTargetPoint(sx, sy){
   var z = SG.scaleNow || (SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal).zoom;
-  return { x: (sx - 310 - SG.sway) / z + 310, y: (sy - 380 - (SG.swayY || 0)) / z + 380 };
+  return { x: (sx - 270 - SG.sway) / z + 270, y: (sy - 480 - (SG.swayY || 0)) / z + 480 };
 }
 function drawShootScene(){
   var cv = $('shoot-canvas');
@@ -6769,8 +6769,12 @@ function drawShootScene(){
   var cfg = SHOOT_DIFF[SG.diff] || SHOOT_DIFF.normal;
   var photo = shootPhotos[SG.mode === 'female' ? 'female' : 'male'];
   var CX0 = W / 2, CY0 = H / 2;
-  var _zdw = Math.round(W * 0.74), _zdh = Math.round(H * 0.94);
-  var _zdx = Math.round((W - _zdw) / 2), _zdy = Math.round((H - _zdh) / 2);
+  // 靶图 contain 显示：保持原始比例，不拉长；区域为画布 92% 宽 × 92% 高
+  var _mxw = W * 0.92, _mxh = H * 0.92;
+  var _pw = _mxw, _ph = _mxw / (photo && photo.naturalWidth ? photo.naturalWidth / photo.naturalHeight : 0.84);
+  if(_ph > _mxh){ _ph = _mxh; _pw = _mxh * (photo && photo.naturalWidth ? photo.naturalWidth / photo.naturalHeight : 0.84); }
+  var _zdw = Math.round(_pw), _zdh = Math.round(_ph);
+  var _zdx = Math.round(CX0 - _zdw / 2), _zdy = Math.round(CY0 - _zdh / 2);
   if(photo && photo.complete && photo.naturalWidth > 0){
     ctx.save();
     ctx.translate(CX0 + SG.sway, CY0 + (SG.swayY || 0));
@@ -6977,8 +6981,8 @@ function shootPointerXY(ev){
 function shootFire(ev){
   if(!SG || SG.done || SG.paused || SG.lock) return;
   var pos = ev ? shootPointerXY(ev) : { x: SG.aim.x, y: SG.aim.y };
-  pos.x = Math.max(4, Math.min(516, pos.x));
-  pos.y = Math.max(4, Math.min(616, pos.y));
+  pos.x = Math.max(4, Math.min(536, pos.x));
+  pos.y = Math.max(4, Math.min(956, pos.y));
   var p = SG.players[SG.turn];
   var tp = toTargetPoint(pos.x, pos.y);
   var hit = hitPointAt(tp.x, tp.y);
@@ -7251,6 +7255,12 @@ function drawShootTarget(){
   var W = cv.width, H = cv.height;
   var off = 0; // 靶固定不动
   var CX = W / 2, CY = H / 2;
+  // 旧 520×620 逻辑坐标整体等比映射到新 9:16 画布（保持比例不变形）
+  var _ms = Math.min(W * 0.92 / 520, H * 0.92 / 620);
+  var _mox = (W - 520 * _ms) / 2, _moy = (H - 620 * _ms) / 2;
+  ctx.save();
+  ctx.translate(_mox, _moy);
+  ctx.scale(_ms, _ms);
   ctx.clearRect(0, 0, W, H);
   var bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, '#FFF0F6');
@@ -7387,6 +7397,7 @@ function drawShootTarget(){
     ctx.fillStyle = 'rgba(255,77,125,.9)';
     ctx.beginPath(); ctx.arc(ax, ay, 3.2, 0, Math.PI * 2); ctx.fill();
   }
+  ctx.restore();
 }
 function roundRect(ctx, x, y, w, h, r){
   ctx.beginPath();
@@ -7405,17 +7416,17 @@ function drawHeart(ctx, cx, cy, size){
   ctx.fill();
 }
 /* ---------- 自定义靶点数据（自动保存本机） ---------- */
-var SP_KEY = 'love-flight-shoot-points';
+var SP_KEY = 'love-flight-shoot-points-v3';
 var SP_CACHE = null;
 function spDefaultPoints(){
   var mk = function(){
     return [
-      { name: '💘 胸口', x: 310, y: 294, r: 49, score: 10, kind: 'heart', reward: '' },
-      { name: '😊 脸颊', x: 310, y: 178, r: 56, score: 8,  kind: 'face',  reward: '' },
-      { name: '👕 身体', x: 310, y: 404, r: 51, score: 6,  kind: 'body',  reward: '' },
-      { name: '💪 左臂', x: 267, y: 386, r: 29, score: 4,  kind: 'arm',   reward: '' },
-      { name: '💪 右臂', x: 353, y: 386, r: 29, score: 4,  kind: 'arm',   reward: '' },
-      { name: '🦵 腿部', x: 310, y: 582, r: 51, score: 3,  kind: 'leg',   reward: '' }
+      { name: '💘 胸口', x: 270, y: 413, r: 49, score: 10, kind: 'heart', reward: '' },
+      { name: '😊 脸颊', x: 270, y: 323, r: 56, score: 8,  kind: 'face',  reward: '' },
+      { name: '👕 身体', x: 270, y: 499, r: 51, score: 6,  kind: 'body',  reward: '' },
+      { name: '💪 左臂', x: 235, y: 485, r: 29, score: 4,  kind: 'arm',   reward: '' },
+      { name: '💪 右臂', x: 305, y: 485, r: 29, score: 4,  kind: 'arm',   reward: '' },
+      { name: '🦵 腿部', x: 270, y: 637, r: 51, score: 3,  kind: 'leg',   reward: '' }
     ].map(spNormPt);
   };
   return { male: mk(), female: mk() };
@@ -7427,8 +7438,8 @@ function spNormPt(p, i){
   return {
     id: p.id || ('p' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 10000)),
     name: String(p.name || ('靶点' + (i + 1))).slice(0, 10),
-    x: Math.max(10, Math.min(610, x)),
-    y: Math.max(10, Math.min(750, y)),
+    x: Math.max(10, Math.min(530, x)),
+    y: Math.max(10, Math.min(950, y)),
     r: Math.max(10, Math.min(110, r)),
     score: isFinite(s) ? Math.max(1, Math.min(99, Math.round(s))) : 5,
     kind: ['heart', 'face', 'body', 'arm', 'leg'].indexOf(p.kind) >= 0 ? p.kind : 'heart',
@@ -7574,9 +7585,13 @@ function drawSpEditor(){
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   var photo = shootPhotos[spGender];
   if(photo && photo.complete && photo.naturalWidth > 0){
-    ctx.drawImage(photo, 0, 0, W, H);
+    // contain：保持比例，与游戏画面一致
+    var mxw = 540 * k * 0.92, mxh = 960 * k * 0.92;
+    var pw = mxw, ph = mxw / (photo.naturalWidth / photo.naturalHeight);
+    if(ph > mxh){ ph = mxh; pw = mxh * (photo.naturalWidth / photo.naturalHeight); }
+    ctx.drawImage(photo, (W - pw) / 2, (H - ph) / 2, pw, ph);
   } else {
-    ctx.fillStyle = '#FFE3EE'; roundRect(ctx, 81, 36, 150, 300, 13); ctx.fill();
+    ctx.fillStyle = '#FFE3EE'; roundRect(ctx, W * 0.155, H * 0.155, W * 0.69, H * 0.69, 13); ctx.fill();
     ctx.fillStyle = '#C97A97'; ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('靶图加载中…', W / 2, H / 2);
@@ -7791,7 +7806,7 @@ function spComposeCustom(file, cb){
   fr.onload = function(){
     var im = new Image();
     im.onload = function(){
-      var TW = 620, TH = 760, tr = TW / TH;
+      var TW = 540, TH = 960, tr = TW / TH;
       var iw = im.naturalWidth, ih = im.naturalHeight, ir = iw / ih;
       // 完整适配（contain）：不裁掉头脚，四周补粉白渐变
       var sc = Math.min(TW / iw, TH / ih);
@@ -9948,7 +9963,7 @@ function yogaDraw(){
   yoga._lastSvg = svgHtml;
   window.__lastYogaPos = pos;
   var visual;
-  var posImg = pos.img || (pos.custom ? yogaCustomImg(pos.name) : null);
+  var posImg = yogaImgUrl(pos) || (pos.custom ? yogaCustomImg(pos.name) : null);
   if(posImg){
     visual = '<div class="yoga-photo"><img src="' + posImg + '" alt="' + pos.name + '" onclick="openFullView(this.src,this.alt)" loading="lazy"></div>';
   }else if(isCouple){
