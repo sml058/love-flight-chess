@@ -14,7 +14,7 @@ import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 # 云平台部署时端口由环境变量 PORT 决定（Render/Railway 等平台自动注入）
 PORT = int(os.environ.get('PORT', 8765))
@@ -149,7 +149,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        path = urlparse(self.path).path
+        path = unquote(urlparse(self.path).path)
         if path in ('/', '/index.html'):
             self._serve_file('index.html', 'text/html; charset=utf-8')
         elif path == '/server.py':
@@ -161,6 +161,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
+        elif path.startswith('/img/'):
+            # 外置图片：img/xxx.webp
+            fn = unquote(os.path.basename(path))
+            ext = os.path.splitext(fn)[1].lower()
+            mimes = {'.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
+                     '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.gif': 'image/gif'}
+            if fn and ext in mimes and os.path.isfile(os.path.join('img', fn)):
+                self._serve_img(os.path.join('img', fn), mimes[ext])
+            else:
+                self.send_error(404)
         elif path == '/state':
             # 只读：返回当前房间完整状态（用于断线恢复/大厅刷新）
             self._json(200, {'state': snapshot()})
@@ -196,6 +206,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Cache-Control', 'no-cache')
             self.end_headers()
             self.wfile.write(body)
+        except FileNotFoundError:
+            self.send_error(404)
+
+    def _serve_img(self, fpath, ctype):
+        try:
+            with open(fpath, 'rb') as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Type', ctype)
+            self.send_header('Content-Length', str(len(data)))
+            # 图片加长缓存：手机二次进入无需重新下载
+            self.send_header('Cache-Control', 'public, max-age=604800')
+            self.end_headers()
+            self.wfile.write(data)
         except FileNotFoundError:
             self.send_error(404)
 
