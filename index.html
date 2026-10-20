@@ -2809,6 +2809,7 @@ var YOGA_TIGHT_IMGS = {
   '快乐婴儿式': "./img/yoga-tight-快乐婴儿式.webp",
   '仰卧上举腿式': "./img/yoga-tight-仰卧上举腿式.webp",
   '站立前屈式': "./img/yoga-tight-站立前屈式.webp",
+  '坐角式': "./img/yoga-tight-坐角式.webp",
 };
 var YOGA_SWIM_IMGS = {
   '山式': "./img/yoga-swim-山式.webp",
@@ -2835,6 +2836,7 @@ var YOGA_SWIM_IMGS = {
   '快乐婴儿式': "./img/yoga-swim-快乐婴儿式.webp",
   '仰卧上举腿式': "./img/yoga-swim-仰卧上举腿式.webp",
   '站立前屈式': "./img/yoga-swim-站立前屈式.webp",
+  '坐角式': "./img/yoga-swim-坐角式.webp",
 };
 function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
 
@@ -9481,22 +9483,15 @@ $('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.
 bgFile.addEventListener('change', function(){
   var f = bgFile.files && bgFile.files[0];
   if(!f) return;
-  var btn = $('btn-bg');
-  if(btn){ btn.disabled = true; btn.textContent = '⏳ 上传中...'; }
+  // 静默上传：先本地生效让用户立刻看到，后台自动传服务器；成功后换用服务器链接
   uploadFileSmart(f, {kind: 'bg', name: 'board-bg', maxSide: 1600, quality: 0.78,
     onCompress: function(dataUrl){
-      // 先本地生效，用户马上就能看到效果
       setBoardBgSetting(dataUrl); applyBoardTheme();
     }
   }, function(url, info){
     setBoardBgSetting(url);
-    var keep = applyBoardTheme();
-    if(btn){ btn.disabled = false; btn.textContent = '选择图片'; }
+    applyBoardTheme();
     SFX.click();
-    syncBgPresetButtons();
-    showToast(info.uploaded
-      ? '背景已上传到服务器并保存，换设备也能看到 ✅'
-      : '背景已设为本机图片（服务器暂不可用：' + (info.reason || '上传失败') + '）');
   });
   bgFile.value = '';
 });
@@ -9821,7 +9816,8 @@ var YOGA_POSES = [
   { name: '大猫伸展', en: 'Extended Puppy Pose', sec: 30, tip: '跪姿双臂前伸贴地，胸口下沉贴近垫面，像大猫一样尽情舒展懒腰', img: "./img/yp-大猫伸展.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="42" cy="120" r="13"/><path d="M50 132 L96 96"/><path d="M96 96 L128 60"/><path d="M96 96 L150 132"/><path d="M150 132 L150 178"/><path d="M150 132 L186 150"/></g>' },
   { name: '快乐婴儿式', en: 'Happy Baby Pose', sec: 40, tip: '仰躺抱住双脚，膝盖向腋窝方向下沉，像小婴儿一样左右摇晃放松', img: "./img/yp-快乐婴儿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="60" r="13"/><path d="M78 78 L70 128"/><path d="M122 78 L130 128"/><path d="M70 128 L48 100"/><path d="M130 128 L152 100"/><path d="M78 78 L122 78"/><path d="M70 128 L130 128"/></g>' },
  { name: '仰卧上举腿式', en: 'Urdhva Prasarita Padasana', sec: 35, tip: '仰躺后双腿并拢伸直举向天花板，双手扶住小腿帮助稳定，感受腿后侧的舒展', img: "./img/yp-仰卧上举腿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="52" r="13"/><path d="M84 70 L64 96"/><path d="M116 70 L136 96"/><path d="M88 68 L74 130"/><path d="M112 68 L126 130"/><path d="M64 96 L40 88"/><path d="M136 96 L160 88"/><path d="M74 130 L126 130"/><path d="M74 130 L60 190"/><path d="M126 130 L140 190"/></g>' },
- { name: '站立前屈式', en: 'Ardha Uttanasana', sec: 30, tip: '站立屈髋上半身前倾，双手扶膝或扶髋，背部尽量放平，拉伸腿后侧与下背', img: "./img/yp-站立前屈式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="128" cy="86" r="13"/><path d="M116 98 L64 118"/><path d="M64 118 L96 160"/><path d="M64 118 L56 168"/><path d="M96 160 L92 224"/><path d="M120 108 L118 160"/><path d="M118 160 L118 224"/><path d="M92 224 L130 224"/><path d="M118 224 L142 224"/></g>' }
+ { name: '站立前屈式', en: 'Ardha Uttanasana', sec: 30, tip: '站立屈髋上半身前倾，双手扶膝或扶髋，背部尽量放平，拉伸腿后侧与下背', img: "./img/yp-站立前屈式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="128" cy="86" r="13"/><path d="M116 98 L64 118"/><path d="M64 118 L96 160"/><path d="M64 118 L56 168"/><path d="M96 160 L92 224"/><path d="M120 108 L118 160"/><path d="M118 160 L118 224"/><path d="M92 224 L130 224"/><path d="M118 224 L142 224"/></g>' },
+ { name: '坐角式', en: 'Upavistha Konasana', sec: 40, tip: '坐姿双腿向两侧打开伸直，腰背挺直，双手轻放体前，感受大腿内侧的舒展，别硬压', img: "./img/yp-坐角式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="56" r="13"/><path d="M100 70 L100 140"/><path d="M92 78 L44 128"/><path d="M44 128 L28 172"/><path d="M108 78 L156 128"/><path d="M156 128 L172 172"/><path d="M100 140 L84 150"/><path d="M100 140 L116 150"/></g>' }
 ];
 /* 自定义姿势卡图片（按名称存取，本地即存） */
 function loadYogaCustomImgs(){
@@ -10194,10 +10190,9 @@ function _ycResetImgUI(){
       var f = file.files && file.files[0];
       if(!f) return;
       var nm = ($('yc-name').value || '').trim();
-      // 先本地预览，再压缩上传到服务器；上传成功就存链接，失败回退本地图
+      // 静默上传：先本地预览，后台自动传服务器；成功存链接，失败静默回退本地图
       _ycPendingImg = null; _ycPendingState = 'uploading';
       var pv = $('yc-img-preview'), view = $('yc-img-view');
-      if(pick){ pick.textContent = '⏳ 上传中...'; pick.disabled = true; }
       uploadFileSmart(f, {kind: 'yoga', name: nm, maxSide: 900, quality: 0.72,
         onCompress: function(dataUrl){
           if(view){ view.src = dataUrl; }
@@ -10209,10 +10204,6 @@ function _ycResetImgUI(){
         window.__ycPendingState = _ycPendingState;
         if(view){ view.src = url; }
         if(pv){ pv.style.display = 'block'; }
-        if(pick){ pick.textContent = '🖼 选图（可选）'; pick.disabled = false; }
-        showToast(info.uploaded
-          ? '图片已上传到服务器，换设备也能看到 ✅'
-          : '服务器暂不可用，图片先存在本机（' + (info.reason || '上传失败') + '）');
       });
     });
   }
@@ -10309,9 +10300,7 @@ function _ycResetImgUI(){
       if(_ycPendingImg){ setYogaCustomImg(name, _ycPendingImg); _ycPendingImg = null; }
       _ycPendingState = ''; _ycResetImgUI();
       renderYogaCustomList();
-      var imgNow = yogaCustomImg(name);
-      showToast('已加入「' + name + '」到' + (getYogaMode() === 'couple' ? '夫妻' : '单人') + '卡池'
-        + (imgNow ? ((isRemoteUrl(imgNow) || imgNow.indexOf('/img/user/') === 0) ? '（含图片 · 已存服务器）' : '（含图片 · 本机）') : ''));
+      showToast('已加入「' + name + '」到' + (getYogaMode() === 'couple' ? '夫妻' : '单人') + '卡池' + (yogaCustomImg(name) ? '（含图片）' : ''));
       SFX.reward();
     });
   }
