@@ -1143,6 +1143,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .yc-item-main{flex:1;min-width:0}
 .yc-item-name{font-size:13.5px;font-weight:700;color:#5C4A63;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yc-item-sub{font-size:11px;color:#A890A0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.yc-srv{display:flex;align-items:center;gap:6px;margin-top:9px;padding:7px 9px;border-radius:10px;
+  background:#F6F3FF;border:1px solid #E4DAFB;font-size:11px;color:#7E6BA8;line-height:1.45}
+.yc-srv input{flex:1;min-width:0;font-family:var(--body);font-size:11px;color:#5C4A63;background:#fff;
+  border:1px solid #DDD2F3;border-radius:7px;padding:4px 6px;outline:none}
+.yc-srv-dot{width:7px;height:7px;border-radius:50%;background:#C9BEDC;flex:0 0 auto}
+.yc-srv-dot.on{background:#3AC47D;box-shadow:0 0 0 3px rgba(58,196,125,.18)}
+.yc-srv-dot.off{background:#F08A8A;box-shadow:0 0 0 3px rgba(240,138,138,.16)}
 .yc-tag{font-size:10px;font-weight:800;padding:1.5px 6px;border-radius:999px;margin-right:5px;flex:none}
 .yc-tag.solo{background:#EAF3FF;color:#4A7FC9}
 .yc-tag.couple{background:#FFEFF6;color:#D75B8E}
@@ -2612,6 +2619,12 @@ function preloadImgs(list, cb){
               <input type="file" id="yc-img-file" accept="image/*" style="display:none">
             </div>
             <div class="yc-img-preview" id="yc-img-preview" style="display:none"><img id="yc-img-view" alt=""></div>
+            <div class="yc-srv" data-page-node-id="ycv0000000000000000014">
+              <span class="yc-srv-dot" id="yc-srv-dot"></span>
+              <span id="yc-srv-tip" style="flex:0 0 auto">图片上传地址</span>
+              <input id="yc-srv-url" type="url" placeholder="自动使用当前站点" spellcheck="false">
+              <button class="yc-img-btn" id="yc-srv-save" type="button">保存</button>
+            </div>
           </div>
           <div class="yc-list" id="yc-list" data-page-node-id="ycv0000000000000000011"></div>
         </div>
@@ -3679,18 +3692,21 @@ function setBoardBgSetting(v){
     if(v){ localStorage.setItem(gameKey('love-flight-board-bg'), v); }
     else { localStorage.removeItem(gameKey('love-flight-board-bg')); }
     return true;
-  }catch(e){ return false; }
+  }catch(e){
+    // 体积超限时，若已经是服务器链接就直接放手，反正下次能重新拉
+    return !!(v && v.indexOf('data:') !== 0);
+  }
 }
 function isCustomBoardBg(){
   var s = getBoardBgSetting();
-  return !!(s && (s.indexOf('data:') === 0 || s.indexOf('macaron:') === 0));
+  return !!(s && (s.indexOf('data:') === 0 || s.indexOf('macaron:') === 0 || /^https?:\/\//.test(s) || s.indexOf('//') === 0 || s.indexOf('/img/user/') === 0));
 }
 function applyBoardBg(){
   var grid = $('board-grid');
   if(!grid) return false;
   var saved = getBoardBgSetting();
-  // 1) 用户上传的照片：优先级最高，切换主题时保留
-  if(saved && saved.indexOf('data:') === 0){
+  // 1) 用户上传的照片（服务器链接 / 本机 dataURL）：优先级最高，切换主题时保留
+  if(saved && (saved.indexOf('data:') === 0 || /^https?:\/\//.test(saved) || saved.indexOf('//') === 0 || saved.indexOf('/img/user/') === 0)){
     grid.style.backgroundImage = 'url("' + saved + '")';
     grid.style.backgroundSize = 'cover';
     grid.style.backgroundPosition = 'center';
@@ -3728,7 +3744,7 @@ function applyBoardBg(){
 /* 同步「棋盘背景」预设按钮的选中态与提示文案 */
 function syncBgPresetButtons(){
   var saved = getBoardBgSetting();
-  var isPhoto = !!(saved && saved.indexOf('data:') === 0);
+  var isPhoto = !!(saved && (saved.indexOf('data:') === 0 || /^https?:\/\//.test(saved) || saved.indexOf('//') === 0 || saved.indexOf('/img/user/') === 0));
   var macaronKey = (saved && saved.indexOf('macaron:') === 0) ? saved.substring(8) : '';
   var btns = document.querySelectorAll('.bg-preset');
   for(var i = 0; i < btns.length; i++){
@@ -3739,7 +3755,8 @@ function syncBgPresetButtons(){
   var note = $('bg-active-note');
   if(note){
     if(isPhoto){
-      note.textContent = '✔ 正在使用自定义照片背景，切换主题不会覆盖它；点「恢复默认」可清除';
+      var onServer = !(saved.indexOf('data:') === 0);
+      note.textContent = '✔ 正在使用自定义照片背景' + (onServer ? '（已上传服务器）' : '（仅本机）') + '，切换主题不会覆盖它；点「恢复默认」可清除';
       note.style.display = '';
     }else if(macaronKey){
       var nm = '';
@@ -9464,15 +9481,23 @@ $('btn-bg').addEventListener('click', function(){ SFX.init(); SFX.resume(); SFX.
 bgFile.addEventListener('change', function(){
   var f = bgFile.files && bgFile.files[0];
   if(!f) return;
-  var rd = new FileReader();
-  rd.onload = function(){
-    var ok = setBoardBgSetting(rd.result);
-    applyBoardTheme();
+  var btn = $('btn-bg');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 上传中...'; }
+  uploadFileSmart(f, {kind: 'bg', name: 'board-bg', maxSide: 1600, quality: 0.78,
+    onCompress: function(dataUrl){
+      // 先本地生效，用户马上就能看到效果
+      setBoardBgSetting(dataUrl); applyBoardTheme();
+    }
+  }, function(url, info){
+    setBoardBgSetting(url);
+    var keep = applyBoardTheme();
+    if(btn){ btn.disabled = false; btn.textContent = '选择图片'; }
     SFX.click();
-    showToast(ok ? '棋盘背景已更新并自动保存，切换主题会保留这张图'
-                 : '图片已设为背景，但体积较大无法保存，下次打开会恢复原背景');
-  };
-  rd.readAsDataURL(f);
+    syncBgPresetButtons();
+    showToast(info.uploaded
+      ? '背景已上传到服务器并保存，换设备也能看到 ✅'
+      : '背景已设为本机图片（服务器暂不可用：' + (info.reason || '上传失败') + '）');
+  });
   bgFile.value = '';
 });
 $('btn-bg-reset').addEventListener('click', function(){
@@ -9812,6 +9837,77 @@ function setYogaCustomImg(name, dataUrl){
   try{ localStorage.setItem('love-flight-yoga-custom-imgs', JSON.stringify(m)); }catch(e){ return false; }
   return true;
 }
+/* ========== 用户图片上传（姿势卡图 / 棋盘背景） ==========
+   - 压缩为 webp 后 POST 到服务器 /upload，落盘 img/user/，返回 /img/user/xxx.webp
+   - 服务器地址：优先 localStorage 里记的联机地址，否则用当前页面同源
+   - 上传失败（离线 / 服务器文件系统只读）时自动回退为本地 dataURL，功能不中断 */
+function uploadBase(){
+  var u = '';
+  try{ u = localStorage.getItem('love-flight-upload-server') || ''; }catch(e){}
+  if(!u){
+    try{ u = (typeof serverUrl === 'string' && serverUrl) ? serverUrl : ''; }catch(e){}
+  }
+  u = String(u || '').replace(/\/+$/,'');
+  if(!u && /^https?:$/.test(location.protocol)){ u = location.origin; }
+  return u;
+}
+function setUploadServer(u){ try{ localStorage.setItem('love-flight-upload-server', String(u||'').trim().replace(/\/+$/,'')); }catch(e){} }
+function isRemoteUrl(s){ return typeof s === 'string' && /^(https?:)?\/\//.test(s); }
+/* 压缩任意图片文件：maxSide 最长边，q 质量 */
+function imgCompressFile(file, maxSide, q, cb){
+  var rd = new FileReader();
+  rd.onload = function(){
+    var im = new Image();
+    im.onload = function(){
+      var w = im.naturalWidth, h = im.naturalHeight;
+      var k = Math.min(1, (maxSide || 1200) / Math.max(w, h));
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(w * k));
+      cv.height = Math.max(1, Math.round(h * k));
+      cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+      var out;
+      try{ out = cv.toDataURL('image/webp', q || 0.7); }catch(e){ out = cv.toDataURL('image/jpeg', q || 0.7); }
+      if(!out || out.indexOf('data:image') !== 0){ out = cv.toDataURL('image/jpeg', q || 0.7); }
+      cb(out, cv.width, cv.height);
+    };
+    im.onerror = function(){ cb(null); };
+    im.src = rd.result;
+  };
+  rd.onerror = function(){ cb(null); };
+  rd.readAsDataURL(file);
+}
+/* 上传 dataURL 到服务器；cb(url, info) —— 失败时 cb(null) */
+function uploadImageData(dataUrl, kind, name, cb){
+  var base = uploadBase();
+  if(!base){ cb(null, {reason: 'no-server'}); return; }
+  var ctl = ('AbortController' in window) ? new AbortController() : null;
+  var to = ctl ? setTimeout(function(){ ctl.abort(); }, 25000) : null;
+  fetch(base + '/upload', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({kind: kind || 'yoga', dataUrl: dataUrl, name: name || ''}),
+    signal: ctl ? ctl.signal : undefined
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(to) clearTimeout(to);
+    if(d && d.ok && d.url){ cb(d.url, d); } else { cb(null, d || {reason: 'bad-response'}); }
+  }).catch(function(err){
+    if(to) clearTimeout(to);
+    cb(null, {reason: String(err && err.message || err)});
+  });
+}
+/* 组合：压缩 → 上传 → 回调（上传失败给 dataURL 兜底） */
+function uploadFileSmart(file, opt, cb){
+  opt = opt || {};
+  var maxSide = opt.maxSide || 1400, q = opt.quality || 0.72;
+  imgCompressFile(file, maxSide, q, function(dataUrl){
+    if(!dataUrl){ showToast('图片读取失败，请换一张'); return; }
+    if(opt.onCompress) opt.onCompress(dataUrl);
+    uploadImageData(dataUrl, opt.kind, opt.name, function(url, info){
+      if(url){ cb(url, {uploaded: true, dataUrl: dataUrl}); }
+      else { cb(dataUrl, {uploaded: false, reason: (info && (info.error || info.reason)) || '上传失败'}); }
+    });
+  });
+}
 /* 压缩上传的图片到合适大小（最长边 560px，webp 0.62） */
 function yogaCompressUpload(file, cb){
   var rd = new FileReader();
@@ -10083,6 +10179,7 @@ $('btn-yoga-done').addEventListener('click', function(){
 });
 /* ---------- 自定义卡图片：选图 / 预览 / 清除 ---------- */
 var _ycPendingImg = null;
+var _ycPendingState = '';  // '' / 'uploading' / 'server' / 'local'
 function _ycResetImgUI(){
   var pv = $('yc-img-preview'), view = $('yc-img-view');
   if(pv){ pv.style.display = 'none'; }
@@ -10096,12 +10193,26 @@ function _ycResetImgUI(){
     file.addEventListener('change', function(){
       var f = file.files && file.files[0];
       if(!f) return;
-      yogaCompressUpload(f, function(dataUrl){
-        _ycPendingImg = dataUrl;
-        var pv = $('yc-img-preview'), view = $('yc-img-view');
-        if(view){ view.src = dataUrl; }
+      var nm = ($('yc-name').value || '').trim();
+      // 先本地预览，再压缩上传到服务器；上传成功就存链接，失败回退本地图
+      _ycPendingImg = null; _ycPendingState = 'uploading';
+      var pv = $('yc-img-preview'), view = $('yc-img-view');
+      if(pick){ pick.textContent = '⏳ 上传中...'; pick.disabled = true; }
+      uploadFileSmart(f, {kind: 'yoga', name: nm, maxSide: 900, quality: 0.72,
+        onCompress: function(dataUrl){
+          if(view){ view.src = dataUrl; }
+          if(pv){ pv.style.display = 'block'; }
+        }
+      }, function(url, info){
+        _ycPendingImg = url;
+        _ycPendingState = info.uploaded ? 'server' : 'local';
+        window.__ycPendingState = _ycPendingState;
+        if(view){ view.src = url; }
         if(pv){ pv.style.display = 'block'; }
-        showToast('图片已就绪，点「+ 添加」时一起保存');
+        if(pick){ pick.textContent = '🖼 选图（可选）'; pick.disabled = false; }
+        showToast(info.uploaded
+          ? '图片已上传到服务器，换设备也能看到 ✅'
+          : '服务器暂不可用，图片先存在本机（' + (info.reason || '上传失败') + '）');
       });
     });
   }
@@ -10119,6 +10230,37 @@ function _ycResetImgUI(){
       renderYogaCustomList();
     });
   }
+  /* ---- 服务器地址：显示 + 保存 + 连通性检测 ---- */
+  var srvInput = $('yc-srv-url'), srvSave = $('yc-srv-save'), srvDot = $('yc-srv-dot'), srvTip = $('yc-srv-tip');
+  function paintSrv(state, txt){
+    if(srvDot){ srvDot.className = 'yc-srv-dot' + (state ? ' ' + state : ''); }
+    if(srvTip && txt){ srvTip.textContent = txt; }
+  }
+  function probeSrv(){
+    var base = uploadBase();
+    if(!base){ paintSrv('off', '上传地址'); return; }
+    try{ if(srvInput && !srvInput.value){ srvInput.placeholder = base; } }catch(e){}
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var to = ctl ? setTimeout(function(){ ctl.abort(); }, 6000) : null;
+    fetch(base + '/health', {signal: ctl ? ctl.signal : undefined})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(to) clearTimeout(to); paintSrv('on', '✅ 可上传'); })
+      .catch(function(){ if(to) clearTimeout(to); paintSrv('off', '⚠ 不可上传'); });
+  }
+  if(srvSave){
+    srvSave.addEventListener('click', function(){
+      var v = (srvInput.value || '').trim().replace(/\/+$/, '');
+      setUploadServer(v);
+      SFX.click();
+      showToast(v ? '上传地址已保存：' + v : '已恢复为自动（当前站点）');
+      probeSrv();
+    });
+  }
+  if(srvInput){
+    try{ srvInput.value = localStorage.getItem('love-flight-upload-server') || ''; }catch(e){}
+  }
+  window.__ycProbeSrv = probeSrv;
+  setTimeout(probeSrv, 300);
 })();
 /* ---------- 瑜伽：模式切换 + 自定义姿势卡 ---------- */
 (function(){
@@ -10154,6 +10296,7 @@ function _ycResetImgUI(){
       SFX.click();
       var name = ($('yc-name').value || '').trim();
       if(!name){ showToast('先给姿势起个名字吧'); $('yc-name').focus(); return; }
+      if(_ycPendingState === 'uploading'){ showToast('图片还在上传，等 1~2 秒再点「+ 添加」'); return; }
       var sec = parseInt($('yc-sec').value, 10);
       if(!sec || sec < 5) sec = 30;
       if(sec > 300) sec = 300;
@@ -10162,10 +10305,13 @@ function _ycResetImgUI(){
       list.push({ name: name, sec: sec, tip: tip, mode: getYogaMode(), ts: Date.now() });
       saveYogaCustom(list);
       $('yc-name').value = ''; $('yc-sec').value = ''; $('yc-tip').value = '';
-      // 若选了图，绑定到这张卡
-      if(_ycPendingImg){ setYogaCustomImg(name, _ycPendingImg); _ycPendingImg = null; _ycResetImgUI(); }
+      // 若选了图，绑定到这张卡（服务器链接 or 本地兜底图）
+      if(_ycPendingImg){ setYogaCustomImg(name, _ycPendingImg); _ycPendingImg = null; }
+      _ycPendingState = ''; _ycResetImgUI();
       renderYogaCustomList();
-      showToast('已加入「' + name + '」到' + (getYogaMode() === 'couple' ? '夫妻' : '单人') + '卡池' + (yogaCustomImg(name) ? '（含图片）' : ''));
+      var imgNow = yogaCustomImg(name);
+      showToast('已加入「' + name + '」到' + (getYogaMode() === 'couple' ? '夫妻' : '单人') + '卡池'
+        + (imgNow ? ((isRemoteUrl(imgNow) || imgNow.indexOf('/img/user/') === 0) ? '（含图片 · 已存服务器）' : '（含图片 · 本机）') : ''));
       SFX.reward();
     });
   }
