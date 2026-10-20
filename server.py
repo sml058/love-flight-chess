@@ -6,10 +6,13 @@
 同 WiFi 下的设备用浏览器打开提示的地址即可加入。
 零依赖，仅用 Python 标准库。
 """
+import base64
 import gzip
+import hashlib
 import json
 import os
 import random
+import re
 import socket
 import threading
 import time
@@ -104,6 +107,50 @@ state = {
     },
 }
 state_lock = threading.Lock()
+
+# ---------- 用户上传的图片（自定义姿势卡图 / 自定义棋盘背景） ----------
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img', 'user')
+UPLOAD_INDEX = os.path.join(UPLOAD_DIR, 'index.json')   # 元数据（文件名、类型、大小、时间）
+UPLOAD_MAX_BYTES = 8 * 1024 * 1024                      # 单张上限 8MB（前端已压到 200KB 以内）
+UPLOAD_KINDS = ('yoga', 'bg')
+upload_lock = threading.Lock()
+
+
+def _ensure_upload_dir():
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def _load_upload_index():
+    try:
+        with open(UPLOAD_INDEX, 'r', encoding='utf-8') as f:
+            v = json.load(f)
+            return v if isinstance(v, list) else []
+    except Exception:
+        return []
+
+
+def _save_upload_index(items):
+    _ensure_upload_dir()
+    tmp = UPLOAD_INDEX + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(items, f, ensure_ascii=False)
+    os.replace(tmp, UPLOAD_INDEX)
+
+
+def _list_upload_files():
+    _ensure_upload_dir()
+    out = []
+    for fn in sorted(os.listdir(UPLOAD_DIR)):
+        if fn.startswith('.') or not fn.lower().endswith(('.webp', '.png', '.jpg', '.jpeg', '.gif')):
+            continue
+        p = os.path.join(UPLOAD_DIR, fn)
+        try:
+            stt = os.stat(p)
+        except OSError:
+            continue
+        out.append({'name': fn, 'url': '/img/user/' + fn, 'size': stt.st_size,
+                    'ts': int(stt.st_mtime)})
+    return out
 # 真心话大冒险抽卡后自动切换下一位的定时器（模块级，跨 Handler 实例共享）
 tda_timer = None
 TDA_AUTO_SECONDS = 10
@@ -161,6 +208,20 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
+        elif path.startswith('/img/user/'):
+            # 用户上传的图片：img/user/xxx.webp
+            fn = os.path.basename(unquote(path))
+            ext = os.path.splitext(fn)[1].lower()
+            mimes = {'.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
+                     '.jpeg': 'image/jpeg', '.gif': 'image/gif'}
+            fp = os.path.join(UPLOAD_DIR, fn)
+            if fn and ext in mimes and os.path.isfile(fp):
+                self._serve_img(fp, mimes[ext])
+            else:
+                self.send_error(404)
+        elif path == '/uploads':
+            # 列出所有用户上传的图片（图库页用）
+            self._json(200, {'items': _list_upload_files()})
         elif path.startswith('/img/'):
             # 外置图片：img/xxx.webp
             fn = unquote(os.path.basename(path))
@@ -336,8 +397,65 @@ class Handler(BaseHTTPRequestHandler):
             self._admin_reset()
         elif path == '/rps-cards':
             self._rps_cards(body)
+        elif path == '/upload':
+            self._upload(body)
+        elif path == '/upload-delete':
+            self._upload_delete(body)
         else:
             self.send_error(404)
+
+    # ---------- 用户图片上传 ----------
+    def _upload(self, body):
+        """POST /upload  {kind:'yoga'|'bg', dataUrl:'data:image/webp;base64,...', name:'可选'}
+        图片落盘到 img/user/，返回可直接使用的 /img/user/xxx.webp 链接。
+        """
+        kind = body.get('kind') if body.get('kind') in UPLOAD_KINDS else 'yoga'
+        data_url = body.get('dataUrl') or ''
+        m = re.match(r'^data:image/(png|jpeg|jpg|webp|gif);base64,(.+)$', data_url, re.S)
+        if not m:
+            return self._json(400, {'ok': False, 'error': '图片格式不支持，请用 png/jpg/webp'})
+        ext = 'jpg' if m.group(1) in ('jpeg', 'jpg') else m.group(1)
+        try:
+            raw = base64.b64decode(m.group(2))
+        except Exception:
+            return self._json(400, {'ok': False, 'error': '图片数据损坏'})
+        if not raw:
+            return self._json(400, {'ok': False, 'error': '图片是空的'})
+        if len(raw) > UPLOAD_MAX_BYTES:
+            return self._json(413, {'ok': False, 'error': '图片太大了（上限 8MB）'})
+        _ensure_upload_dir()
+        stamp = time.strftime('%Y%m%d-%H%M%S')
+        digest = hashlib.sha1(raw).hexdigest()[:8]
+        fn = '%s-%s-%s.%s' % (kind, stamp, digest, ext)
+        with upload_lock:
+            # 同一张图（内容 hash 相同、类型相同）直接复用，不重复占空间
+            for old in os.listdir(UPLOAD_DIR):
+                if old.startswith(kind + '-') and old.endswith('-' + digest + '.' + ext):
+                    return self._json(200, {'ok': True, 'url': '/img/user/' + old, 'name': old,
+                                            'size': len(raw), 'reused': True})
+            with open(os.path.join(UPLOAD_DIR, fn), 'wb') as f:
+                f.write(raw)
+            items = _load_upload_index()
+            items.append({'name': fn, 'kind': kind, 'label': str(body.get('name') or '')[:20],
+                          'size': len(raw), 'ts': int(time.time())})
+            _save_upload_index(items[-2000:])
+        self._json(200, {'ok': True, 'url': '/img/user/' + fn, 'name': fn, 'size': len(raw)})
+
+    def _upload_delete(self, body):
+        """POST /upload-delete {name:'xxx.webp'} —— 删除一张用户上传的图"""
+        fn = os.path.basename(str(body.get('name') or ''))
+        if not fn or not re.match(r'^(yoga|bg)-[0-9]{8}-[0-9]{6}-[0-9a-f]{8}\.(webp|png|jpg|gif)$', fn):
+            return self._json(400, {'ok': False, 'error': '文件名不合法'})
+        p = os.path.join(UPLOAD_DIR, fn)
+        with upload_lock:
+            if os.path.isfile(p):
+                try:
+                    os.remove(p)
+                except OSError:
+                    return self._json(500, {'ok': False, 'error': '删除失败'})
+            items = [i for i in _load_upload_index() if i.get('name') != fn]
+            _save_upload_index(items)
+        self._json(200, {'ok': True})
 
     def _json(self, code, obj):
         data = json.dumps(obj, ensure_ascii=False).encode('utf-8')
