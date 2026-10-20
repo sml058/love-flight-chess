@@ -2812,6 +2812,7 @@ var YOGA_TIGHT_IMGS = {
   '坐角式': "./img/yoga-tight-坐角式.webp",
   '侧卧举腿式': "./img/yoga-tight-侧卧举腿式.webp",
   '侧卧拉伸式': "./img/yoga-tight-侧卧拉伸式.webp",
+  '站立手拉脚趾式': "./img/yoga-tight-站立手拉脚趾式.webp",
 };
 var YOGA_SWIM_IMGS = {
   '山式': "./img/yoga-swim-山式.webp",
@@ -2841,6 +2842,7 @@ var YOGA_SWIM_IMGS = {
   '坐角式': "./img/yoga-swim-坐角式.webp",
   '侧卧举腿式': "./img/yoga-swim-侧卧举腿式.webp",
   '侧卧拉伸式': "./img/yoga-swim-侧卧拉伸式.webp",
+  '站立手拉脚趾式': "./img/yoga-swim-站立手拉脚趾式.webp",
 };
 function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
 
@@ -9823,7 +9825,8 @@ var YOGA_POSES = [
  { name: '站立前屈式', en: 'Ardha Uttanasana', sec: 30, tip: '站立屈髋上半身前倾，双手扶膝或扶髋，背部尽量放平，拉伸腿后侧与下背', img: "./img/yp-站立前屈式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="128" cy="86" r="13"/><path d="M116 98 L64 118"/><path d="M64 118 L96 160"/><path d="M64 118 L56 168"/><path d="M96 160 L92 224"/><path d="M120 108 L118 160"/><path d="M118 160 L118 224"/><path d="M92 224 L130 224"/><path d="M118 224 L142 224"/></g>' },
  { name: '坐角式', en: 'Upavistha Konasana', sec: 40, tip: '坐姿双腿向两侧打开伸直，腰背挺直，双手轻放体前，感受大腿内侧的舒展，别硬压', img: "./img/yp-坐角式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="56" r="13"/><path d="M100 70 L100 140"/><path d="M92 78 L44 128"/><path d="M44 128 L28 172"/><path d="M108 78 L156 128"/><path d="M156 128 L172 172"/><path d="M100 140 L84 150"/><path d="M100 140 L116 150"/></g>' },
  { name: '侧卧举腿式', en: 'Anantasana', sec: 30, tip: '侧躺撑头，上方的腿缓慢举向天花板再慢慢放下，做 5~8 次后换边，收紧腰腹别塌腰', img: "./img/yp-侧卧举腿式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="118" cy="66" r="13"/><path d="M105 78 L70 96"/><path d="M70 96 L60 170"/><path d="M70 96 L36 160"/><path d="M60 170 L100 170"/><path d="M100 170 L96 224"/><path d="M112 88 L138 40"/><path d="M138 40 L146 92"/></g>' },
- { name: '侧卧拉伸式', en: 'Side Lying Quad Stretch', sec: 35, tip: '侧躺下方的手撑头，上方的手向后抓住脚背，轻轻把脚跟拉向臀部，拉伸大腿前侧，换边重复', img: "./img/yp-侧卧拉伸式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="70" cy="96" r="13"/><path d="M83 106 L120 130"/><path d="M120 130 L110 180"/><path d="M110 180 L150 180"/><path d="M150 180 L146 224"/><path d="M84 96 L130 76"/><path d="M130 76 L146 44"/><path d="M146 44 L128 22"/><path d="M146 44 L118 46"/></g>' }
+ { name: '侧卧拉伸式', en: 'Side Lying Quad Stretch', sec: 35, tip: '侧躺下方的手撑头，上方的手向后抓住脚背，轻轻把脚跟拉向臀部，拉伸大腿前侧，换边重复', img: "./img/yp-侧卧拉伸式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="70" cy="96" r="13"/><path d="M83 106 L120 130"/><path d="M120 130 L110 180"/><path d="M110 180 L150 180"/><path d="M150 180 L146 224"/><path d="M84 96 L130 76"/><path d="M130 76 L146 44"/><path d="M146 44 L128 22"/><path d="M146 44 L118 46"/></g>' },
+ { name: '站立手拉脚趾式', en: 'Utthita Hasta Padangusthasana', sec: 30, tip: '单腿站稳，一只手抓住抬起的脚掌向上拉伸，另一只手侧平举保持平衡，站不稳可扶墙，换边重复', img: "./img/yp-站立手拉脚趾式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="96" cy="42" r="13"/><path d="M92 56 L94 130"/><path d="M92 64 L62 88"/><path d="M62 88 L34 76"/><path d="M104 62 L118 26"/><path d="M118 26 L108 10"/><path d="M94 130 L88 224"/><path d="M88 224 L112 224"/><path d="M118 26 L138 12"/></g>' }
 ];
 /* 自定义姿势卡图片（按名称存取，本地即存） */
 function loadYogaCustomImgs(){
