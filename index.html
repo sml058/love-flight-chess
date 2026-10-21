@@ -2904,8 +2904,16 @@ try{ fetch('/outfit-manifest').then(function(r){ return r.json(); }).then(functi
 }).catch(function(){}); }catch(e){}
 function yogaImgUrl(pos){
   if(pos && pos.name){
-    var ov = OUTFIT_OVERRIDES[yogaOutfit + '|' + pos.name];
-    if(ov) return ov;
+    var arr = OUTFIT_OVERRIDES[yogaOutfit + '|' + pos.name];
+    if(arr && arr.length){
+      // 后台上传的多张图 + 内置插画一起随机
+      var builtin = null;
+      if(yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) builtin = YOGA_TIGHT_IMGS[pos.name];
+      else if(yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) builtin = YOGA_SWIM_IMGS[pos.name];
+      else builtin = pos.img || null;
+      var pool = arr.concat(builtin ? [builtin] : []);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
   }
   if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name];
   if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name];
