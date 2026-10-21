@@ -2024,6 +2024,8 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-reel::before{top:0;background:linear-gradient(180deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
 .slot-reel::after{bottom:0;background:linear-gradient(0deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
 .slot-strip{width:100%;will-change:transform}
+.slot-strip.blur{filter:blur(3px)}
+.slot-reel.spinning .slot-cell{opacity:.92}
 .slot-cell{height:60px;display:flex;align-items:center;justify-content:center;font-size:42px;line-height:1}
 .slot-reel.spinning{box-shadow:inset 0 0 0 2px rgba(255,110,156,.35)}
 .slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1)}
@@ -8307,7 +8309,7 @@ function buildStrip(idx){
   var el = $('slot-reel-' + idx);
   if(!el) return null;
   var html = '';
-  for(var g = 0; g < 10; g++){
+  for(var g = 0; g < 15; g++){
     for(var i = 0; i < SLOT_SYMS.length; i++){ html += '<div class="slot-cell">' + SLOT_SYMS[i] + '</div>'; }
   }
   el.innerHTML = '<div class="slot-strip">' + html + '</div>';
@@ -8326,29 +8328,56 @@ function resetSlotReels(){
   if(lg){ lg.classList.remove('party'); var is = lg.querySelectorAll('i'); for(var k = 0; k < is.length; k++) is[k].classList.remove('on'); }
 }
 function slotPick(list){ return list[Math.floor(Math.random() * list.length)]; }
+function slotTickSound(){
+  if(SFX.ctx && !SFX.muted){ SFX.tone(1600, 0.03, { type: 'square', vol: 0.06 }); }
+}
 function slotSpinReel(idx, sym, delayMs){
-  var dur = 1350 + idx * 420;
+  var dur = 1750 + idx * 480;          // 每列总时长
+  var spinDur = dur - 220;             // 主滚动段
   setTimeout(function(){
     var strip = buildStrip(idx);
     if(!strip) return;
+    var el = $('slot-reel-' + idx);
     var symIdx = SLOT_SYMS.indexOf(sym); if(symIdx < 0) symIdx = 0;
-    var group = 7 + Math.floor(Math.random() * 3);   // 停在第 7~9 组，位置每次不同
-    var target = -((group * SLOT_SYMS.length + symIdx) * SLOT_CELL_H);
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){
-        strip.style.transition = 'transform ' + dur + 'ms cubic-bezier(.15,.66,.16,1)';
+    var loops = 9 + idx * 2 + Math.floor(Math.random() * 2);  // 9~13 圈，列越靠后转越多
+    var target = -((loops * SLOT_SYMS.length + symIdx) * SLOT_CELL_H);
+    var pull = 32;                     // 起步前向上抬起（蓄力）
+    var total = target + pull;
+    var OVER = 14 + idx * 4;           // 停止时冲过头再回弹的距离
+    var t0 = null, lastCell = -1;
+    function frame(ts){
+      if(t0 === null) t0 = ts;
+      var p = ts - t0;
+      var y, blurring = false;
+      if(p < spinDur){
+        var q = p / spinDur;
+        var e = 1 - Math.pow(1 - q, 3);        // easeOutCubic：起步飞快，逐渐减速
+        y = -pull + (total + OVER) * e;
+        blurring = q < 0.62;
+        if(q > 0.5){                            // 减速段才出哒哒声
+          var cell = Math.floor(-y / SLOT_CELL_H);
+          if(cell !== lastCell){ lastCell = cell; slotTickSound(); }
+        }
+      } else {
+        var q2 = Math.min((p - spinDur) / (dur - spinDur), 1);
+        var e2 = 1 - Math.pow(1 - q2, 2);      // 回弹：从过冲点缓慢收回
+        y = (target - OVER) + OVER * e2;
+        var cell2 = Math.floor(-y / SLOT_CELL_H);
+        if(cell2 !== lastCell){ lastCell = cell2; slotTickSound(); }
+      }
+      strip.style.transform = 'translateY(' + y.toFixed(2) + 'px)';
+      if(blurring !== strip._blur){ strip._blur = blurring; if(blurring){ strip.classList.add('blur'); } else { strip.classList.remove('blur'); } }
+      if(p < dur){ requestAnimationFrame(frame); }
+      else {
         strip.style.transform = 'translateY(' + target + 'px)';
-      });
-    });
-    setTimeout(function(){
-      var el = $('slot-reel-' + idx);
-      if(el) el.classList.remove('spinning');
-      SFX.click();
-      if(idx === 2) slotJudge();
-    }, dur);
+        if(el) el.classList.remove('spinning');
+        SFX.click();
+        if(idx === 2) setTimeout(slotJudge, 180);
+      }
+    }
+    strip.style.transform = 'translateY(' + (-pull) + 'px)';
+    requestAnimationFrame(frame);
   }, delayMs);
-  var iv = setTimeout(function(){}, delayMs + dur + 10);
-  _slotTimers.push(iv);
 }
 function slotPull(){
   if(!slot || slot.busy) return;
@@ -8370,9 +8399,9 @@ function slotPull(){
   if(res[0] !== res[1] && res[1] !== res[2] && res[0] !== res[2] && Math.random() < 0.08){ res[2] = res[0]; }
   var p = slot.players[slot.turn];
   p.pulls++;
-  slotSpinReel(0, res[0], 80);
-  slotSpinReel(1, res[1], 160);
-  slotSpinReel(2, res[2], 240);
+  slotSpinReel(0, res[0], 60);
+  slotSpinReel(1, res[1], 240);
+  slotSpinReel(2, res[2], 420);
 }
 function slotWindowSym(idx){
   var el = $('slot-reel-' + idx);
