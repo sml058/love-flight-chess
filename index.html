@@ -3224,6 +3224,7 @@ function buildCells(n){
 function loadCellCount(){
   try{
     var s = JSON.parse(localStorage.getItem('love-flight-cell-count') || '{}');
+    try{ if(!(window.packUnlocked||function(){return false;})()){ return {reward: 0, penalty: 0}; } }catch(e){}
     return {
       reward: Math.max(0, parseInt(s.reward, 10) || 0),
       penalty: Math.max(0, parseInt(s.penalty, 10) || 0)
@@ -3245,6 +3246,15 @@ function fillCellCount(){
   if($('ccount-reward') && cc.reward > 0){ $('ccount-reward').value = cc.reward; }
   if($('ccount-penalty') && cc.penalty > 0){ $('ccount-penalty').value = cc.penalty; }
 }
+
+function _cellCountLocked(){ var fn = window.packUnlocked; return fn ? !fn() : false; }
+function _applyCellCountLock(){
+  var lock = _cellCountLocked();
+  if($('ccount-reward')){ $('ccount-reward').readOnly = lock; $('ccount-reward').placeholder = lock ? 'VIP' : '默认'; }
+  if($('ccount-penalty')){ $('ccount-penalty').readOnly = lock; $('ccount-penalty').placeholder = lock ? 'VIP' : '默认'; }
+}
+setTimeout(_applyCellCountLock, 0);
+document.addEventListener('pack-unlocked', _applyCellCountLock);
 var CELLS = buildCells(2);
 
 var CELL_META = {
@@ -9840,8 +9850,8 @@ for(var bv = 0; bv < bvBtns.length; bv++){
 // 奖励/惩罚格自定义次数：加载已保存值 + 修改自动保存
 fillCellCount();
 var _cr = $('ccount-reward'); var _cp = $('ccount-penalty');
-if(_cr){ _cr.addEventListener('change', saveCellCount); }
-if(_cp){ _cp.addEventListener('change', saveCellCount); }
+if(_cr){ _cr.addEventListener('change', function(e){ if(_cellCountLocked()){ e.target.value=''; showToast('自定义奖励/惩罚格是进阶内容，输入激活码解锁'); if(window.openPackPanel) window.openPackPanel(''); return; } saveCellCount(); }); }
+if(_cp){ _cp.addEventListener('change', function(e){ if(_cellCountLocked()){ e.target.value=''; showToast('自定义奖励/惩罚格是进阶内容，输入激活码解锁'); if(window.openPackPanel) window.openPackPanel(''); return; } saveCellCount(); }); }
 var genderBtns = document.querySelectorAll('.g-btn');
 for(var gb = 0; gb < genderBtns.length; gb++){
   genderBtns[gb].addEventListener('click', function(){
@@ -10392,7 +10402,8 @@ function submitPackCode(){
     'btn-mystery-custom-toggle',  // 盲盒 · 自定义内容
     'btn-race-custom-toggle',     // 赛马 · 自定义惩罚
     'btn-yoga-custom-toggle',     // 瑜伽 · 自定义姿势卡
-    'btn-bg'                      // 棋盘 · 自定义背景图
+    'ccount-reward',              // 飞行棋 · 自定义奖励格
+    'ccount-penalty'              // 飞行棋 · 自定义惩罚格
   ];
   function gateUnlockMsg(){
     if(typeof showToast==='function') showToast('自定义功能是进阶内容，输入激活码解锁');
