@@ -2013,6 +2013,29 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
   .input-row .icon{width:30px;height:30px}
   .gender-switch .g-btn{padding:0 6px;font-size:11.5px}
 }
+/* ---------- 甜蜜老虎机 ---------- */
+.slot-status{font-size:15px;color:var(--ink);font-weight:700;text-align:center;margin:10px 0 6px;min-height:22px}
+.slot-stage{text-align:center}
+.slot-machine{position:relative;max-width:340px;margin:0 auto;background:linear-gradient(160deg,#FFE3EC,#FFC2D6);border-radius:22px;padding:18px 14px 14px;box-shadow:0 8px 22px rgba(255,110,156,.28)}
+.slot-machine::before{content:'🎰';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:30px;filter:drop-shadow(0 3px 4px rgba(255,110,156,.4))}
+.slot-reels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#fff;border-radius:14px;padding:12px 10px;box-shadow:inset 0 3px 8px rgba(255,110,156,.18)}
+.slot-reel{aspect-ratio:1/1.1;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(180deg,#FFF7FA,#FFEAF1);border-radius:10px;box-shadow:inset 0 2px 6px rgba(255,110,156,.15);transition:transform .08s}
+.slot-reel.spinning{animation:slotShake .12s linear infinite}
+@keyframes slotShake{0%{transform:translateY(-3px)}50%{transform:translateY(3px)}100%{transform:translateY(-3px)}}
+.slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+.slot-lights{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.slot-lights i{width:9px;height:9px;border-radius:50%;background:#fff;opacity:.55}
+.slot-lights i.on{background:#FF6E9C;opacity:1;box-shadow:0 0 8px #FF6E9C}
+.slot-lights.party i{animation:slotBlink .5s ease-in-out infinite}
+.slot-lights.party i:nth-child(2n){animation-delay:.25s}
+@keyframes slotBlink{0%,100%{opacity:1;box-shadow:0 0 10px #FF6E9C}50%{opacity:.3;box-shadow:none}}
+.slot-result{min-height:56px;margin:12px auto 4px;max-width:360px;font-size:15px;font-weight:700;color:var(--ink);background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 2px 10px rgba(255,110,156,.12)}
+.slot-result .sr-big{font-size:17px;color:#FF5E8A}
+.slot-cfg-row{margin:10px 0;text-align:left}
+.slot-cfg-row label{display:block;font-size:13px;font-weight:700;color:#A8788C;margin-bottom:4px}
+.slot-cfg-row textarea{width:100%;box-sizing:border-box;border:1px solid #F3D2DE;border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;resize:vertical;background:#FFF9FB}
+.slot-cfg-hint{font-size:12px;color:#C09AA8;margin-top:6px}
 </style>
 <script>
 /* ============ 图片外置：按需加载（方案A） ============ */
@@ -2125,6 +2148,11 @@ function preloadImgs(list, cb){
           <span class="mc-emoji" data-page-node-id="AMb9qAyBgiaZcDc9ptl7fK">🏇</span>
           <span class="mc-name" data-page-node-id="4GYZdj7loe55VTuHwsGA2p">赛马游戏</span>
           <span class="mc-desc" data-page-node-id="oGjV6HbpGnxeS3SntPtSSa">猜中冠军马，猜错受惩罚</span>
+        </button>
+        <button class="menu-card" type="button" data-g="slot" data-page-node-id="slm0000000000000000001">
+          <span class="mc-emoji" data-page-node-id="slm0000000000000000002">🎰</span>
+          <span class="mc-name" data-page-node-id="slm0000000000000000003">甜蜜老虎机</span>
+          <span class="mc-desc" data-page-node-id="slm0000000000000000004">拉一把，转出爱心和惊喜</span>
         </button>
         <button class="menu-card" type="button" data-g="yoga" data-page-node-id="DfIt1TLsDvf42Hbafj0G57">
           <span class="mc-emoji" data-page-node-id="b1XHEOLor4DEHlpElmx7mR">🧘</span>
@@ -2595,6 +2623,39 @@ function preloadImgs(list, cb){
           <div class="wc-list" id="mystery-custom-list" data-page-node-id="WHC7Ft2HCvVpXpS1hdBcgA"></div>
           <button class="cc-add" type="button" id="mystery-custom-add" data-page-node-id="6N5bGsfN4IYwcjN1tBJ7Xt">+ 加一张</button>
           <button class="btn-primary btn-rps-save" id="mystery-custom-save" type="button" data-page-node-id="xpC7bw4CeL0Immi9lfw1wh">💾 保存</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：甜蜜老虎机 ========== -->
+  <section id="view-slot" class="view">
+    <div class="rps-wrap">
+      <div class="rps-head">
+        <div class="rps-title" id="slot-title"><span class="t-emoji">🎰</span><span class="t-tx">甜蜜老虎机</span></div>
+        <button class="rps-exit" id="btn-slot-exit" type="button"><svg class="x-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>退出</button>
+      </div>
+      <div class="rps-score" id="slot-score"></div>
+      <div class="slot-status" id="slot-status">轮流拉杆，看谁的手气最甜！</div>
+      <div class="slot-stage">
+        <div class="slot-machine">
+          <div class="slot-reels">
+            <div class="slot-reel" id="slot-reel-0">💋</div>
+            <div class="slot-reel" id="slot-reel-1">🍒</div>
+            <div class="slot-reel" id="slot-reel-2">🔔</div>
+          </div>
+          <div class="slot-lights" id="slot-lights"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="slot-result" id="slot-result"></div>
+        <button class="btn-primary btn-rps-roll" id="btn-slot-pull" type="button">🎰 拉一把！</button>
+        <button class="btn-primary btn-rps-roll" id="btn-slot-again" type="button" style="display:none">🔁 再来一局</button>
+        <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义奖项内容</button>
+        <div class="rps-custom-panel" id="slot-custom-panel" style="display:none">
+          <div class="wc-title">自定义老虎机奖项 · 输入即存，下次打开还在</div>
+          <div class="slot-cfg-row"><label>🎊 三同大奖（抽到的甜蜜奖励）</label><textarea id="slot-cfg-triple" rows="4" placeholder="每行一条，抽中三同时随机执行一条，爱心 +2 照加"></textarea></div>
+          <div class="slot-cfg-row"><label>💝 两同小奖（爱心 +1）</label><textarea id="slot-cfg-pair" rows="4" placeholder="每行一条甜蜜小奖励"></textarea></div>
+          <div class="slot-cfg-row"><label>😈 落空小惩罚</label><textarea id="slot-cfg-none" rows="4" placeholder="每行一条可爱小惩罚"></textarea></div>
+          <div class="slot-cfg-hint">💋💋💋 是终极大奖：对方亲你三下 + 爱心 +3（固定不放）</div>
         </div>
       </div>
     </div>
@@ -3194,7 +3255,7 @@ var BOARD_VERSIONS = {
 };
 var currentBoardVersion = 50;
 var selectedGame = 'flight'; // flight / wheel / rps / tda / shoot / mystery（主界面选择后进入对应游戏）
-var GAME_NAMES = { flight: '飞行棋', wheel: '幸运转盘', rps: '猜拳对决', tda: '真心话大冒险', shoot: '射击游戏', mystery: '盲盒奇遇', race: '赛马游戏', yoga: '瑜伽抽卡' };
+var GAME_NAMES = { flight: '飞行棋', wheel: '幸运转盘', rps: '猜拳对决', tda: '真心话大冒险', shoot: '射击游戏', mystery: '盲盒奇遇', race: '赛马游戏', yoga: '瑜伽抽卡', slot: '甜蜜老虎机' };
 var N = 150;
 var BOARD_COLS = 10;
 var BOARD_ROWS = 15;
@@ -5409,7 +5470,7 @@ function showPassMask(p){
 
 /* ---------- 游戏选择主界面：选游戏 → 配置玩家 → 开始 ---------- */
 function enterConfigForGame(){
-  var emoji = { flight: '✈️', wheel: '🎡', rps: '✊', tda: '🎯', shoot: '🔫', mystery: '🎁', race: '🏇', yoga: '🧘' };
+  var emoji = { flight: '✈️', wheel: '🎡', rps: '✊', tda: '🎯', shoot: '🔫', mystery: '🎁', race: '🏇', yoga: '🧘', slot: '🎰' };
   var gName = GAME_NAMES[selectedGame] || '飞行棋';
   var _ct = $('config-game-title');
   if(_ct.querySelector('.t-emoji') && _ct.querySelector('.t-tx')){
@@ -5422,7 +5483,7 @@ function enterConfigForGame(){
   if(cfg2){ cfg2.style.display = isF ? '' : 'none'; }
   if(cfg3){ cfg3.style.display = isF ? '' : 'none'; }
   if(cfg4){ cfg4.style.display = isF ? '' : 'none'; }
-  var startTxt = { flight: '🚀 开始飞行', wheel: '🎡 开始转盘', rps: '✊ 开始猜拳', tda: '🎯 开始真心话', shoot: '🔫 开始射击', mystery: '🎁 开启盲盒', race: '🏇 开始赛马', yoga: '🧘 开始瑜伽' };
+  var startTxt = { flight: '🚀 开始飞行', wheel: '🎡 开始转盘', rps: '✊ 开始猜拳', tda: '🎯 开始真心话', shoot: '🔫 开始射击', mystery: '🎁 开启盲盒', race: '🏇 开始赛马', yoga: '🧘 开始瑜伽', slot: '🎰 开始老虎机' };
   $('btn-start').textContent = startTxt[selectedGame] || '开始游戏';
 }
 var menuCards = document.querySelectorAll('.menu-card');
@@ -6120,6 +6181,7 @@ $('btn-start').addEventListener('click', function(){
   if(selectedGame === 'mystery'){ openMystery(); return; }
   if(selectedGame === 'race'){ openRace(); return; }
   if(selectedGame === 'yoga'){ openYoga(); return; }
+  if(selectedGame === 'slot'){ openSlot(); return; }
   var list = [];
   for(var i = 0; i < playerCount; i++){
     var g = document.querySelector('#gender-' + i + ' .g-btn.active');
@@ -8155,6 +8217,229 @@ function applyMysteryTheme(id, silent){
   }
   return id;
 }
+/* ============================================================
+   甜蜜老虎机（单机双人轮流）
+   ============================================================ */
+var SLOT_SYMS = ['💋','🍒','🔔','💝','7️⃣','🎁'];
+var SLOT_DEFAULTS = {
+  triple: [
+    '对方要听你的，完成你一个小心愿',
+    '两人十指相扣散步十分钟（原地也行）',
+    '对方给你按揉肩膀一分钟',
+    '今晚由你决定看什么节目'
+  ],
+  pair: [
+    '对视 10 秒，先笑的再亲一次',
+    '说一句最想听的情话',
+    '抱 15 秒不许松手',
+    '夸对方三个优点',
+    '喂对方吃一口小零食'
+  ],
+  none: [
+    '学一种动物叫，把对方逗笑',
+    '做 5 个深蹲，边做边说「我爱你」',
+    '保持公主抱姿势 10 秒',
+    '唱一句情歌送给对方',
+    '被对方弹一下脑门'
+  ]
+};
+var SLOT_HEARTS = { jackpot: 3, triple: 2, pair: 1 };
+function slotCustomGet(){
+  try{
+    var v = JSON.parse(localStorage.getItem('love-slot-custom') || '{}');
+    return {
+      triple: (v.triple && v.triple.length) ? v.triple : SLOT_DEFAULTS.triple,
+      pair: (v.pair && v.pair.length) ? v.pair : SLOT_DEFAULTS.pair,
+      none: (v.none && v.none.length) ? v.none : SLOT_DEFAULTS.none
+    };
+  }catch(e){ return {triple: SLOT_DEFAULTS.triple, pair: SLOT_DEFAULTS.pair, none: SLOT_DEFAULTS.none}; }
+}
+var slot = null;
+var _slotTimers = [];
+function openSlot(){
+  SFX.init(); SFX.resume(); SFX.click();
+  var ps = [];
+  for(var i = 0; i < playerCount; i++){
+    var g = document.querySelector('#gender-' + i + ' .g-btn.active');
+    var gender = (g && g.getAttribute('data-g')) || (i % 2 === 0 ? 'male' : 'female');
+    var v = $('name-' + i).value.trim();
+    ps.push({name: v || '宝贝' + (i+1), gender: gender, color: PLAYER_COLORS[i % 4], hearts: 0, pulls: 0});
+  }
+  slot = { players: ps, turn: 0, round: 1, busy: false };
+  $('slot-result').innerHTML = '准备就绪，轮到 <b style="color:#FF5E8A">' + slot.players[0].name + '</b> 拉杆！';
+  $('btn-slot-again').style.display = 'none';
+  $('btn-slot-pull').style.display = '';
+  var st = $('btn-slot-custom-toggle');
+  if(st){ st.style.display = 'block'; }
+  var scp = $('slot-custom-panel');
+  if(scp){ scp.style.display = 'none'; }
+  slotCustomFill();
+  renderSlotScore();
+  updateSlotStatus();
+  resetSlotReels();
+  switchView('view-slot');
+}
+function slotCustomFill(){
+  var c = slotCustomGet();
+  var t = $('slot-cfg-triple'), p = $('slot-cfg-pair'), n = $('slot-cfg-none');
+  if(t && t.value === '') t.value = SLOT_DEFAULTS.triple.join('\n');
+  if(p && p.value === '') p.value = SLOT_DEFAULTS.pair.join('\n');
+  if(n && n.value === '') n.value = SLOT_DEFAULTS.none.join('\n');
+}
+function renderSlotScore(){
+  var box = $('slot-score');
+  if(!box || !slot) return;
+  box.innerHTML = slot.players.map(function(p){
+    return '<span class="ps" style="color:' + p.color + '">' + p.name + ' ❤️ ' + p.hearts + '</span>';
+  }).join('<span class="ps-sep">·</span>') + '<span class="ps-round">第 ' + slot.round + ' 轮</span>';
+}
+function updateSlotStatus(){
+  if(!slot) return;
+  var p = slot.players[slot.turn];
+  $('slot-status').textContent = '第 ' + slot.round + ' 轮 · 轮到 ' + p.name + ' 拉杆';
+}
+function resetSlotReels(){
+  for(var i = 0; i < 3; i++){
+    var el = $('slot-reel-' + i);
+    if(el){ el.classList.remove('spinning','win'); el.textContent = SLOT_SYMS[i % SLOT_SYMS.length]; }
+  }
+  var lg = $('slot-lights');
+  if(lg){ lg.classList.remove('party'); var is = lg.querySelectorAll('i'); for(var k = 0; k < is.length; k++) is[k].classList.remove('on'); }
+}
+function slotPick(list){ return list[Math.floor(Math.random() * list.length)]; }
+function slotStopReel(idx, sym){
+  var el = $('slot-reel-' + idx);
+  if(!el) return;
+  el.classList.remove('spinning');
+  el.textContent = sym;
+  var iv = setInterval(function(){ el.textContent = SLOT_SYMS[Math.floor(Math.random() * SLOT_SYMS.length)]; }, 60);
+  _slotTimers.push(iv);
+  setTimeout(function(){
+    clearInterval(iv);
+    el.textContent = sym;
+    SFX.click();
+    if(idx === 2) slotJudge();
+  }, 500 + idx * 450);
+}
+function slotPull(){
+  if(!slot || slot.busy) return;
+  SFX.init(); SFX.resume();
+  slot.busy = true;
+  $('btn-slot-pull').disabled = true;
+  var lg = $('slot-lights');
+  if(lg){ var is = lg.querySelectorAll('i'); for(var k = 0; k < is.length; k++) is[k].classList.add('on'); }
+  for(var i = 0; i < 3; i++){
+    (function(idx){
+      var el = $('slot-reel-' + idx);
+      if(el) el.classList.add('spinning');
+    })(i);
+  }
+  // 结果提前定，滚动只是演出
+  var res = [];
+  for(var r = 0; r < 3; r++){ res.push(SLOT_SYMS[Math.floor(Math.random() * SLOT_SYMS.length)]); }
+  // 小幅提升手感：8% 概率把落空改成两同
+  if(res[0] !== res[1] && res[1] !== res[2] && res[0] !== res[2] && Math.random() < 0.08){ res[2] = res[0]; }
+  var p = slot.players[slot.turn];
+  p.pulls++;
+  setTimeout(function(){ slotStopReel(0, res[0]); }, 300);
+  setTimeout(function(){ slotStopReel(1, res[1]); }, 300);
+  setTimeout(function(){ slotStopReel(2, res[2]); }, 300);
+}
+function slotJudge(){
+  if(!slot) return;
+  var syms = [$('slot-reel-0').textContent, $('slot-reel-1').textContent, $('slot-reel-2').textContent];
+  var p = slot.players[slot.turn];
+  var other = slot.players[(slot.turn + 1) % slot.players.length];
+  var c = slotCustomGet();
+  var html = '', gain = 0;
+  var allSame = syms[0] === syms[1] && syms[1] === syms[2];
+  var kind;
+  if(allSame && syms[0] === '💋'){
+    kind = 'jackpot'; gain = SLOT_HEARTS.jackpot;
+    html = '<span class="sr-big">💋💋💋 终极大奖！</span><br>对方要亲你三下，爱心 +' + gain + '！';
+    for(var i = 0; i < 3; i++){ (function(n){ setTimeout(function(){ SFX.reward(); }, n * 350); })(i); }
+  } else if(allSame){
+    kind = 'triple'; gain = SLOT_HEARTS.triple;
+    html = '<span class="sr-big">🎉 三同 ' + syms[0] + ' ！爱心 +' + gain + '</span><br>' + slotPick(c.triple);
+    SFX.reward();
+  } else if(syms[0] === syms[1] || syms[1] === syms[2] || syms[0] === syms[2]){
+    kind = 'pair'; gain = SLOT_HEARTS.pair;
+    html = '<span class="sr-big">💝 两同小奖！爱心 +' + gain + '</span><br>' + slotPick(c.pair);
+    SFX.reward();
+  } else {
+    kind = 'none'; gain = 0;
+    html = '<span class="sr-big">🌫 落空～</span><br>' + p.name + ' ' + slotPick(c.none);
+    SFX.penalty();
+  }
+  p.hearts += gain;
+  $('slot-result').innerHTML = html;
+  var lg = $('slot-lights');
+  if(lg){
+    var is = lg.querySelectorAll('i');
+    if(kind === 'jackpot'){ lg.classList.add('party'); }
+    else { for(var k = 0; k < is.length; k++){ if(k < 3) is[k].classList.add('on'); } }
+  }
+  var reels = [0,1,2].map(function(i){ return $('slot-reel-' + i); });
+  if(kind !== 'none'){ reels.forEach(function(el){ if(el) el.classList.add('win'); }); }
+  renderSlotScore();
+  var iv = setTimeout(function(){
+    slot.busy = false;
+    $('btn-slot-pull').disabled = false;
+    slot.turn = (slot.turn + 1) % slot.players.length;
+    if(slot.turn === 0) slot.round++;
+    updateSlotStatus();
+    resetSlotReels();
+    $('slot-result').innerHTML = '轮到 <b style="color:#FF5E8A">' + slot.players[slot.turn].name + '</b> 拉杆！';
+  }, 2600);
+  _slotTimers.push(iv);
+}
+function slotResetAll(){
+  if(!slot) return;
+  for(var i = 0; i < slot.players.length; i++){ slot.players[i].hearts = 0; slot.players[i].pulls = 0; }
+  slot.turn = 0; slot.round = 1; slot.busy = false;
+  $('btn-slot-pull').disabled = false;
+  $('btn-slot-pull').style.display = '';
+  $('btn-slot-again').style.display = 'none';
+  renderSlotScore();
+  updateSlotStatus();
+  resetSlotReels();
+  $('slot-result').innerHTML = '新一局开始，轮到 <b style="color:#FF5E8A">' + slot.players[0].name + '</b>！';
+}
+$('btn-slot-pull').addEventListener('click', slotPull);
+$('btn-slot-exit').addEventListener('click', function(){
+  SFX.click();
+  slot = null;
+  for(var i = 0; i < _slotTimers.length; i++) clearTimeout(_slotTimers[i]), clearInterval(_slotTimers[i]);
+  _slotTimers = [];
+  switchView('view-menu');
+});
+$('btn-slot-again').addEventListener('click', function(){
+  SFX.click();
+  slotResetAll();
+});
+$('btn-slot-custom-toggle').addEventListener('click', function(){
+  var p = $('slot-custom-panel');
+  if(!p) return;
+  var show = p.style.display === 'none';
+  p.style.display = show ? 'block' : 'none';
+  this.textContent = show ? '✏️ 收起自定义奖项 ▲' : '✏️ 自定义奖项内容';
+  if(show) slotCustomFill();
+  SFX.click();
+});
+(function(){
+  function save(){
+    try{
+      function lines(id){ var v = ($(id) && $(id).value || '').split('\n').map(function(x){ return x.trim(); }).filter(Boolean); return v; }
+      var c = { triple: lines('slot-cfg-triple'), pair: lines('slot-cfg-pair'), none: lines('slot-cfg-none') };
+      localStorage.setItem('love-slot-custom', JSON.stringify(c));
+    }catch(e){}
+  }
+  ['slot-cfg-triple','slot-cfg-pair','slot-cfg-none'].forEach(function(id){
+    var el = $(id);
+    if(el) el.addEventListener('change', save);
+  });
+})();
+
 function openMystery(){
   SFX.init(); SFX.resume(); SFX.click();
   var ps = [];
@@ -10422,6 +10707,7 @@ function submitPackCode(){
     'btn-yoga-custom-toggle',     // 瑜伽 · 自定义姿势卡
     'cfg-flight-cards',           // 飞行棋 · 自定义奖励/惩罚卡
     'wheel-custom-toggle',        // 转盘 · 自定义内容
+    'btn-slot-custom-toggle',     // 老虎机 · 自定义奖项
     'ccount-reward',              // 飞行棋 · 自定义奖励格
     'ccount-penalty'              // 飞行棋 · 自定义惩罚格
   ];
