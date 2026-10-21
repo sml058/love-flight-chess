@@ -10397,11 +10397,11 @@ function submitPackCode(){
   var CUSTOM_GATES = [
     'btn-rps-custom-toggle',      // 猜拳 · 自定义惩罚卡
     'btn-tda-custom-toggle',      // 真心话 · 自定义卡片内容
-    'btn-shoot-custom-toggle',    // 射击 · 自定义命中内容
-    'btn-shoot-points-toggle',    // 射击 · 自定义靶点
     'btn-mystery-custom-toggle',  // 盲盒 · 自定义内容
     'btn-race-custom-toggle',     // 赛马 · 自定义惩罚
     'btn-yoga-custom-toggle',     // 瑜伽 · 自定义姿势卡
+    'cfg-flight-cards',           // 飞行棋 · 自定义奖励/惩罚卡
+    'wheel-custom-toggle',        // 转盘 · 自定义内容
     'ccount-reward',              // 飞行棋 · 自定义奖励格
     'ccount-penalty'              // 飞行棋 · 自定义惩罚格
   ];
@@ -10417,6 +10417,7 @@ function submitPackCode(){
   (function paintVipTags(){
     for(var i = 0; i < CUSTOM_GATES.length; i++){
       var b = document.getElementById(CUSTOM_GATES[i]);
+      if(b && b.tagName === 'DETAILS'){ b = b.querySelector('summary') || b; }
       if(b && !b.querySelector('.yc-vip-tag')){
         var sp = document.createElement('span');
         sp.className = 'yc-vip-tag';
