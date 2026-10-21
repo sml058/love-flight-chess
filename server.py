@@ -190,6 +190,12 @@ PAID_POSE_NAMES = [
     '侧角伸展式', '花环式', '骆驼式', '半鱼王式',
     '大猫伸展', '快乐婴儿式', '仰卧上举腿式', '站立前屈式',
     '坐角式', '侧卧举腿式', '侧卧拉伸式', '站立手拉脚趾式',
+    # 🧳 旅行特辑
+    '日出伸展式', '背包熊抱式', '观景台靠肩式', '地图平板式', '行李箱平衡式', '星空摊尸式',
+    # 🏨 酒店场景
+    '开门拥抱式', '床上晚安式', '枕头堡垒式', '晨起猫牛式', '浴缸放松式', '窗边合影式',
+    # 💞 情侣配合
+    '镜像模仿式', '背靠背传物式', '信任后倒式', '三脚同盟式', '对视呼吸式', '合十感恩式',
 ]
 CODE_RE = re.compile(r'^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$')
 
@@ -1750,6 +1756,19 @@ load();
             y['pack'] = bool(body.get('pack'))
             total = FREE_COUNT + len(PAID_POSE_NAMES)
             pool = list(range(total)) if y['pack'] else list(range(FREE_COUNT))
+            # 客户端可传主题筛选后的索引列表（仅允许合法范围内的白名单）
+            try:
+                sub = [int(x) for x in (body.get('pool') or [])]
+            except Exception:
+                sub = []
+            if sub:
+                sub = [x for x in sub if 0 <= x < total]
+                if y['pack']:
+                    sub = [x for x in sub if x >= FREE_COUNT] or sub
+                else:
+                    sub = [x for x in sub if x < FREE_COUNT]
+                if sub:
+                    pool = sub
             y['posIdx'] = random.choice(pool)
             y['phase'] = 'hold'
             snap = json.loads(json.dumps(state['yoga']))
