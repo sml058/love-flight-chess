@@ -178,6 +178,41 @@ def _list_upload_files():
     return out
 # ---------- 激活码（解锁进阶卡包） ----------
 CODES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'codes.json')
+
+# ---------- 瑜伽衣着图后台（管理页上传，覆盖内置 SVG） ----------
+OUTFIT_STYLES = ('yoga', 'tight', 'swim')
+OUTFIT_STYLE_LABELS = {'yoga': '常规款', 'tight': '超短款', 'swim': '泳衣款'}
+OUTFIT_EXT_MIMES = ('png', 'jpg', 'webp', 'gif')
+IMG_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img')
+
+def _outfit_pose_names():
+    return list(FREE_POSE_NAMES) + list(PAID_POSE_NAMES)
+
+def _outfit_fn(style, pose, ext):
+    h = hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10]
+    return 'of-%s-%s.%s' % (style, h, ext)
+
+def _outfit_key(style, pose):
+    return style + '|' + pose
+
+def _outfit_manifest():
+    """扫描 img/of-* 文件，返回 { 'style|姿势名': '/img/文件名' }，前端优先生效。"""
+    names = set(_outfit_pose_names())
+    out = {}
+    try:
+        files = os.listdir(IMG_ROOT)
+    except OSError:
+        return out
+    for fn in files:
+        m = re.match(r'^of-(yoga|tight|swim)-([0-9a-f]{10})\.(png|jpg|webp|gif)$', fn)
+        if not m:
+            continue
+        style, h, ext = m.groups()
+        for pose in names:
+            if hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10] == h:
+                out[_outfit_key(style, pose)] = '/img/' + fn
+                break
+    return out
 codes_lock = threading.Lock()
 # 免费池上限：索引 >= FREE_COUNT 的姿势归入「进阶卡包」，需激活码解锁
 FREE_COUNT = 8
@@ -294,6 +329,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._serve_img(fp, mimes[ext])
             else:
                 self.send_error(404)
+        elif path == '/outfit-manifest':
+            self._json(200, {'map': _outfit_manifest()})
         elif path == '/uploads':
             # 列出所有用户上传的图片（图库页用）
             self._json(200, {'items': _list_upload_files()})
@@ -484,6 +521,10 @@ class Handler(BaseHTTPRequestHandler):
             self._codes_list(body)
         elif path == '/codes-toggle':
             self._codes_toggle(body)
+        elif path == '/outfit-upload':
+            self._outfit_upload(body)
+        elif path == '/outfit-delete':
+            self._outfit_delete(body)
         else:
             self.send_error(404)
 
@@ -580,6 +621,66 @@ class Handler(BaseHTTPRequestHandler):
                 it['bind'], it['usedAt'], it['ip'] = '', 0, ''
             _save_codes(db)
         self._json(200, {'ok': True, 'code': code, 'status': st})
+
+    # ---------- 瑜伽衣着图管理 ----------
+    def _outfit_upload(self, body):
+        """POST /outfit-upload {pw, style:'yoga'|'tight'|'swim', pose:'山式', dataUrl}
+        同款式同姿势只保留一张，重复上传自动覆盖。"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '密码错误'})
+        style = str(body.get('style') or '')
+        pose = str(body.get('pose') or '')
+        if style not in OUTFIT_STYLES:
+            return self._json(400, {'ok': False, 'error': '款式不正确'})
+        if pose not in _outfit_pose_names():
+            return self._json(400, {'ok': False, 'error': '姿势名不正确'})
+        data_url = str(body.get('dataUrl') or '')
+        m = re.match(r'^data:image/(png|jpeg|jpg|webp|gif);base64,(.+)$', data_url, re.S)
+        if not m:
+            return self._json(400, {'ok': False, 'error': '图片格式不支持，请用 png/jpg/webp'})
+        ext = 'jpg' if m.group(1) in ('jpeg', 'jpg') else m.group(1)
+        try:
+            raw = base64.b64decode(m.group(2))
+        except Exception:
+            return self._json(400, {'ok': False, 'error': '图片数据损坏'})
+        if not raw:
+            return self._json(400, {'ok': False, 'error': '图片是空的'})
+        if len(raw) > UPLOAD_MAX_BYTES:
+            return self._json(413, {'ok': False, 'error': '图片太大了（上限 8MB）'})
+        _ensure_upload_dir()
+        fn = _outfit_fn(style, pose, ext)
+        with upload_lock:
+            # 覆盖：删掉同款式同姿势的旧图（不同扩展名）
+            prefix = 'of-%s-%s.' % (style, hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10])
+            for old in os.listdir(IMG_ROOT):
+                if old.startswith(prefix) and old != fn:
+                    try:
+                        os.remove(os.path.join(IMG_ROOT, old))
+                    except OSError:
+                        pass
+            with open(os.path.join(IMG_ROOT, fn), 'wb') as f:
+                f.write(raw)
+        self._json(200, {'ok': True, 'url': '/img/' + fn, 'key': _outfit_key(style, pose),
+                         'style': OUTFIT_STYLE_LABELS[style], 'pose': pose})
+
+    def _outfit_delete(self, body):
+        """POST /outfit-delete {pw, style, pose} —— 删除一张衣着图（回退内置 SVG）"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '密码错误'})
+        style = str(body.get('style') or '')
+        pose = str(body.get('pose') or '')
+        if style not in OUTFIT_STYLES or pose not in _outfit_pose_names():
+            return self._json(400, {'ok': False, 'error': '参数不正确'})
+        prefix = 'of-%s-%s.' % (style, hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10])
+        removed = 0
+        for old in os.listdir(IMG_ROOT):
+            if old.startswith(prefix):
+                try:
+                    os.remove(os.path.join(IMG_ROOT, old))
+                    removed += 1
+                except OSError:
+                    pass
+        self._json(200, {'ok': True, 'removed': removed})
 
     # ---------- 用户图片上传 ----------
     def _upload(self, body):
@@ -1118,6 +1219,21 @@ font-family:ui-monospace,monospace;font-size:13px;white-space:pre-wrap;line-heig
 </div>
 
 <div class="card">
+  <b style="color:#FF5E8A">👗 瑜伽衣着图管理</b>
+  <div class="hint" style="margin:6px 0 10px">上传后所有玩家抽到该姿势时显示你的图（覆盖内置插画）；重复上传自动覆盖，删除后回退内置插画。支持 png / jpg / webp / gif，单张 ≤ 8MB。</div>
+  <div class="row" style="margin-bottom:8px">
+    <select id="of-style" style="flex:none"><option value="yoga">常规款</option><option value="tight">超短款</option><option value="swim">泳衣款</option></select>
+    <select id="of-pose" style="flex:1;min-width:120px"></select>
+  </div>
+  <div class="row">
+    <input type="file" id="of-file" accept="image/*" style="flex:1;min-width:140px;font-size:12px">
+    <button onclick="ofUpload()">上传</button>
+  </div>
+  <div class="newbox" id="of-msg" style="display:none"></div>
+  <div id="of-list" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
   <div class="row">
     <input id="g-n" type="number" value="10" min="1" max="200" style="width:80px">
     <input id="g-tag" type="text" placeholder="备注（如：小红书首波）" style="flex:1;min-width:140px">
@@ -1196,8 +1312,67 @@ function exportCsv(){
   a.download = 'love-flight-codes.csv';
   a.click();
 }
+/* ---------- 瑜伽衣着图管理 ---------- */
+var POSES = __POSES_JSON__;
+var OFSTYLES = {yoga:'常规款', tight:'超短款', swim:'泳衣款'};
+function ofInit(){
+  var sel = document.getElementById('of-pose');
+  sel.innerHTML = POSES.map(function(n){ return '<option>'+n+'</option>'; }).join('');
+  ofLoad();
+}
+function ofLoad(){
+  fetch('/outfit-manifest').then(function(r){ return r.json(); }).then(function(d){
+    var map = (d && d.map) || {};
+    var box = document.getElementById('of-list');
+    var keys = Object.keys(map);
+    if(!keys.length){ box.innerHTML = '<div class="hint">还没有上传过衣着图，三套均用内置插画。</div>'; return; }
+    box.innerHTML = '<div class="hint" style="margin-bottom:6px">已上传 '+keys.length+' 张：</div>' + keys.map(function(k){
+      var parts = k.split('|');
+      var st = OFSTYLES[parts[0]] || parts[0];
+      return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
+        + '<img src="'+map[k]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px;background:#F6EEF2">'
+        + '<span style="flex:1;font-size:13px">'+st+' · '+parts[1]+'</span>'
+        + '<button class="ghost of-del" data-st="'+parts[0]+'" data-pose="'+parts[1]+'" style="padding:4px 10px;font-size:12px">删除</button></div>';
+    }).join('');
+  });
+}
+function ofMsg(txt, err){
+  var box = document.getElementById('of-msg');
+  box.style.display = 'block';
+  box.style.color = err ? '#D65A5A' : '#2E9E6B';
+  box.textContent = txt;
+}
+function ofUpload(){
+  var style = document.getElementById('of-style').value;
+  var pose = document.getElementById('of-pose').value;
+  var f = document.getElementById('of-file').files[0];
+  if(!f){ ofMsg('先选一张图片', true); return; }
+  if(f.size > 8*1024*1024){ ofMsg('图片超过 8MB', true); return; }
+  var rd = new FileReader();
+  rd.onload = function(){
+    ofMsg('上传中…');
+    api('/outfit-upload', {style:style, pose:pose, dataUrl:rd.result}).then(function(d){
+      if(!d.ok){ ofMsg(d.error||'上传失败', true); return; }
+      ofMsg('已上传：'+d.style+' · '+d.pose);
+      ofLoad();
+    }).catch(function(){ ofMsg('网络错误', true); });
+  };
+  rd.readAsDataURL(f);
+}
+document.addEventListener('click', function(ev){
+  var t = ev.target.closest ? ev.target.closest('.of-del') : null;
+  if(!t) return;
+  var style = t.getAttribute('data-st'), pose = t.getAttribute('data-pose');
+  if(!confirm('删除 '+(OFSTYLES[style]||style)+' · '+pose+' 的衣着图？')) return;
+  api('/outfit-delete', {style:style, pose:pose}).then(function(d){
+    if(!d.ok){ alert(d.error||'删除失败'); return; }
+    ofLoad();
+  });
+});
+ofInit();
 load();
 </script></body></html>'''
+        page = page.replace('__POSES_JSON__', json.dumps(_outfit_pose_names(), ensure_ascii=False))
         b = page.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
