@@ -1112,7 +1112,11 @@ class Handler(BaseHTTPRequestHandler):
                     f'</div>')
             html.append('</div>')
         # ---- 内置图片区块 ----
+        import re as _re
         def _cat(fn):
+            m = _re.match(r'^of-(yoga|tight|swim)-', fn)
+            if m:
+                return {'yoga': '瑜伽服', 'tight': '超短款', 'swim': '泳衣款'}[m.group(1)] + '·追加'
             if fn.startswith('yp-'): return '瑜伽服'
             if fn.startswith('yoga-tight-'): return '超短款'
             if fn.startswith('yoga-swim-'): return '泳衣款'
