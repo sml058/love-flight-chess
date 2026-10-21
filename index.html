@@ -2898,7 +2898,19 @@ var YOGA_SWIM_IMGS = {
   '侧卧拉伸式': "./img/yoga-swim-侧卧拉伸式.webp",
   '站立手拉脚趾式': "./img/yoga-swim-站立手拉脚趾式.webp",
 };
-function yogaImgUrl(pos){ if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name]; if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name]; return pos ? pos.img : null; }
+var OUTFIT_OVERRIDES = {};
+try{ fetch('/outfit-manifest').then(function(r){ return r.json(); }).then(function(d){
+  if(d && d.map){ OUTFIT_OVERRIDES = d.map || {}; }
+}).catch(function(){}); }catch(e){}
+function yogaImgUrl(pos){
+  if(pos && pos.name){
+    var ov = OUTFIT_OVERRIDES[yogaOutfit + '|' + pos.name];
+    if(ov) return ov;
+  }
+  if(pos && pos.name && yogaOutfit==='tight' && YOGA_TIGHT_IMGS[pos.name]) return YOGA_TIGHT_IMGS[pos.name];
+  if(pos && pos.name && yogaOutfit==='swim' && YOGA_SWIM_IMGS[pos.name]) return YOGA_SWIM_IMGS[pos.name];
+  return pos ? pos.img : null;
+}
 
 /* 瑜伽图源兜底：jsDelivr → GitHub raw → 旧图床 → 占位图，逐级自动切换 */
 var YOGA_OLD_URLS = {set1:{pose01:'https://aka.doubaocdn.com/s/vEYpTcVuDK',pose02:'https://aka.doubaocdn.com/s/5iBCO1RAFJ',pose03:'https://aka.doubaocdn.com/s/huw7w9e5cI',pose04:'https://aka.doubaocdn.com/s/THWgLhms3O',pose05:'https://aka.doubaocdn.com/s/HYi3RnwwTr',pose06:'https://aka.doubaocdn.com/s/sSffMtxPQg',pose07:'https://aka.doubaocdn.com/s/h66eNVqRIP',pose08:'https://aka.doubaocdn.com/s/wTX4zSkcwK',pose09:'https://aka.doubaocdn.com/s/UB5PG7Q0bC',pose10:'https://aka.doubaocdn.com/s/5kFmtqjcdn',pose11:'https://aka.doubaocdn.com/s/gFPVpgcfU7',pose12:'https://aka.doubaocdn.com/s/XZaDKbB81R',pose13:'https://aka.doubaocdn.com/s/4UOi7daUC7',pose14:'https://aka.doubaocdn.com/s/vbj0r5DVg5',pose15:'https://aka.doubaocdn.com/s/D1d0W5L9Zs',pose16:'https://aka.doubaocdn.com/s/QU6PiN7RDH',pose17:'https://aka.doubaocdn.com/s/fnyIO8Lvmp',pose18:'https://aka.doubaocdn.com/s/q8XEGLeAp2',pose19:'https://aka.doubaocdn.com/s/IM9xWotUvA',pose20:'https://aka.doubaocdn.com/s/FlmbFGNNUn'},set2:{pose01:'https://aka.doubaocdn.com/s/t14DqxaM8X',pose02:'https://aka.doubaocdn.com/s/rImesVk0WY',pose03:'https://aka.doubaocdn.com/s/5z8tDlG09l',pose04:'https://aka.doubaocdn.com/s/RKVwym3adj',pose05:'https://aka.doubaocdn.com/s/HYi3RnwwTr',pose06:'https://aka.doubaocdn.com/s/6waJbI0dij',pose07:'https://aka.doubaocdn.com/s/fMqogOnbZG',pose08:'https://aka.doubaocdn.com/s/2bB9oBMECH',pose09:'https://aka.doubaocdn.com/s/RJpohuWAaU',pose10:'https://aka.doubaocdn.com/s/zG3SxVusxV',pose11:'https://aka.doubaocdn.com/s/euBaK3teUz',pose12:'https://aka.doubaocdn.com/s/BpY2kitvnl',pose13:'https://aka.doubaocdn.com/s/r6UUKXg6y6',pose14:'https://aka.doubaocdn.com/s/yhEBzR5gsd',pose15:'https://aka.doubaocdn.com/s/J0F421CsiH',pose16:'https://aka.doubaocdn.com/s/EqWhJvIiOY',pose17:'https://aka.doubaocdn.com/s/eEo9odTF96',pose18:'https://aka.doubaocdn.com/s/Vr3WZM3Ocb',pose19:'https://aka.doubaocdn.com/s/BRsUKIOGpg',pose20:'https://aka.doubaocdn.com/s/6WaJlvsQb0'},set3:{pose01:'https://aka.doubaocdn.com/s/cuf9bJaQ6V',pose02:'https://aka.doubaocdn.com/s/5UEh7L3UEU',pose03:'https://aka.doubaocdn.com/s/kRw8WkM4jf',pose04:'https://aka.doubaocdn.com/s/7ok32ueeqR',pose05:'https://aka.doubaocdn.com/s/HYi3RnwwTr',pose06:'https://aka.doubaocdn.com/s/kClBLQqIHH',pose07:'https://aka.doubaocdn.com/s/v3hReMmX3E',pose08:'https://aka.doubaocdn.com/s/qC2NFIUr79',pose09:'https://aka.doubaocdn.com/s/nUVTE8WNjV',pose10:'https://aka.doubaocdn.com/s/hCohAXmN8Y',pose11:'https://aka.doubaocdn.com/s/4yHEaUU4Tx',pose12:'https://aka.doubaocdn.com/s/7xHgT3zT4m',pose13:'https://aka.doubaocdn.com/s/L1IbjPWYVC',pose14:'https://aka.doubaocdn.com/s/vMncGdUUUu',pose15:'https://aka.doubaocdn.com/s/H2r3aUJvkP',pose16:'https://aka.doubaocdn.com/s/kViChVVQoG',pose17:'https://aka.doubaocdn.com/s/sBtGCTYF72',pose18:'https://aka.doubaocdn.com/s/Vg6PdANjkt',pose19:'https://aka.doubaocdn.com/s/ALtnkyQlN5',pose20:'https://aka.doubaocdn.com/s/x6V882Z6av'}};
