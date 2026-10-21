@@ -2026,7 +2026,11 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-strip{width:100%;will-change:transform}
 .slot-strip.blur{filter:blur(3px)}
 .slot-reel.spinning .slot-cell{opacity:.92}
-.slot-cell{height:60px;display:flex;align-items:center;justify-content:center;font-size:42px;line-height:1}
+.slot-cell{height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.slot-cell .sc-card{font-size:17px;font-weight:800;letter-spacing:.5px}
+.slot-cell .sc-card.red{color:#E0455E}
+.slot-cell .sc-card.blk{color:#454556}
+.slot-cell .sc-label{font-size:12px;color:#A8788C;margin-top:3px;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slot-reel.spinning{box-shadow:inset 0 0 0 2px rgba(255,110,156,.35)}
 .slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
@@ -2655,13 +2659,13 @@ function preloadImgs(list, cb){
         <div class="slot-result" id="slot-result"></div>
         <button class="btn-primary btn-rps-roll" id="btn-slot-pull" type="button">🎰 拉一把！</button>
         <button class="btn-primary btn-rps-roll" id="btn-slot-again" type="button" style="display:none">🔁 再来一局</button>
-        <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义奖项内容</button>
+        <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义词库内容</button>
         <div class="rps-custom-panel" id="slot-custom-panel" style="display:none">
-          <div class="wc-title">自定义老虎机奖项 · 输入即存，下次打开还在</div>
-          <div class="slot-cfg-row"><label>🎊 三同大奖（抽到的甜蜜奖励）</label><textarea id="slot-cfg-triple" rows="4" placeholder="每行一条，抽中三同时随机执行一条，爱心 +2 照加"></textarea></div>
-          <div class="slot-cfg-row"><label>💝 两同小奖（爱心 +1）</label><textarea id="slot-cfg-pair" rows="4" placeholder="每行一条甜蜜小奖励"></textarea></div>
-          <div class="slot-cfg-row"><label>😈 落空小惩罚</label><textarea id="slot-cfg-none" rows="4" placeholder="每行一条可爱小惩罚"></textarea></div>
-          <div class="slot-cfg-hint">💋💋💋 是终极大奖：对方亲你三下 + 爱心 +3（固定不放）</div>
+          <div class="wc-title">自定义老虎机词库 · 输入即存，下次打开还在</div>
+          <div class="slot-cfg-row"><label>📍 地点（每行一个）</label><textarea id="slot-cfg-place" rows="4" placeholder="如：沙发上、阳台、厨房…"></textarea></div>
+          <div class="slot-cfg-row"><label>💞 动作（每行一个）</label><textarea id="slot-cfg-act" rows="4" placeholder="如：亲吻、拥抱、按摩肩膀…"></textarea></div>
+          <div class="slot-cfg-row"><label>⏱️ 时长（每行一个）</label><textarea id="slot-cfg-dur" rows="4" placeholder="如：30 秒、1 分钟…"></textarea></div>
+          <div class="slot-cfg-hint">每次拉杆组合出一个甜蜜任务，完成即可 · 三列花色全同 = 终极心动（爱心 +3 + 彩带）· 两列同花色 = 爱心 +2 · 普通 = 爱心 +1</div>
         </div>
       </div>
     </div>
@@ -8226,39 +8230,27 @@ function applyMysteryTheme(id, silent){
 /* ============================================================
    甜蜜老虎机（单机双人轮流）
    ============================================================ */
-var SLOT_SYMS = ['💋','🍒','🔔','💝','7️⃣','🎁'];
+var SLOT_RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+var SLOT_SUITS = ['♠','♥','♣','♦'];
 var SLOT_DEFAULTS = {
-  triple: [
-    '对方要听你的，完成你一个小心愿',
-    '两人十指相扣散步十分钟（原地也行）',
-    '对方给你按揉肩膀一分钟',
-    '今晚由你决定看什么节目'
-  ],
-  pair: [
-    '对视 10 秒，先笑的再亲一次',
-    '说一句最想听的情话',
-    '抱 15 秒不许松手',
-    '夸对方三个优点',
-    '喂对方吃一口小零食'
-  ],
-  none: [
-    '学一种动物叫，把对方逗笑',
-    '做 5 个深蹲，边做边说「我爱你」',
-    '保持公主抱姿势 10 秒',
-    '唱一句情歌送给对方',
-    '被对方弹一下脑门'
-  ]
+  place: ['沙发上', '阳台', '厨房', '卧室', '地毯上', '玄关', '飘窗', '餐桌旁'],
+  act: ['亲吻', '拥抱', '按摩肩膀', '对视', '挠痒痒', '贴贴', '额头吻', '牵手晃一晃'],
+  dur: ['10 秒', '30 秒', '1 分钟', '3 个深呼吸', '数到 20', '15 秒', '哼一句歌', '一个心跳的时间']
 };
-var SLOT_HEARTS = { jackpot: 3, triple: 2, pair: 1 };
+var SLOT_HEARTS = { base: 1, pair: 2, jackpot: 3 };
 function slotCustomGet(){
   try{
-    var v = JSON.parse(localStorage.getItem('love-slot-custom') || '{}');
-    return {
-      triple: (v.triple && v.triple.length) ? v.triple : SLOT_DEFAULTS.triple,
-      pair: (v.pair && v.pair.length) ? v.pair : SLOT_DEFAULTS.pair,
-      none: (v.none && v.none.length) ? v.none : SLOT_DEFAULTS.none
-    };
-  }catch(e){ return {triple: SLOT_DEFAULTS.triple, pair: SLOT_DEFAULTS.pair, none: SLOT_DEFAULTS.none}; }
+    var v = JSON.parse(localStorage.getItem('love-slot-custom2') || '{}');
+    function arr(k, def){ return (v[k] && v[k].length) ? v[k] : def; }
+    return { place: arr('place', SLOT_DEFAULTS.place), act: arr('act', SLOT_DEFAULTS.act), dur: arr('dur', SLOT_DEFAULTS.dur) };
+  }catch(e){ return { place: SLOT_DEFAULTS.place, act: SLOT_DEFAULTS.act, dur: SLOT_DEFAULTS.dur }; }
+}
+function slotReelItems(idx){
+  var c = slotCustomGet();
+  return [c.place, c.act, c.dur][idx] || SLOT_DEFAULTS.place;
+}
+function slotCard(idx, i){
+  return { rank: SLOT_RANKS[(i + idx * 5) % SLOT_RANKS.length], suit: SLOT_SUITS[i % SLOT_SUITS.length] };
 }
 var slot = null;
 var _slotTimers = [];
@@ -8287,10 +8279,10 @@ function openSlot(){
 }
 function slotCustomFill(){
   var c = slotCustomGet();
-  var t = $('slot-cfg-triple'), p = $('slot-cfg-pair'), n = $('slot-cfg-none');
-  if(t && t.value === '') t.value = SLOT_DEFAULTS.triple.join('\n');
-  if(p && p.value === '') p.value = SLOT_DEFAULTS.pair.join('\n');
-  if(n && n.value === '') n.value = SLOT_DEFAULTS.none.join('\n');
+  var t = $('slot-cfg-place'), p = $('slot-cfg-act'), n = $('slot-cfg-dur');
+  if(t && t.value === '') t.value = c.place.join('\n');
+  if(p && p.value === '') p.value = c.act.join('\n');
+  if(n && n.value === '') n.value = c.dur.join('\n');
 }
 function renderSlotScore(){
   var box = $('slot-score');
@@ -8304,13 +8296,18 @@ function updateSlotStatus(){
   var p = slot.players[slot.turn];
   $('slot-status').textContent = '第 ' + slot.round + ' 轮 · 轮到 ' + p.name + ' 拉杆';
 }
-var SLOT_CELL_H = 60;
+var SLOT_CELL_H = 64;
 function buildStrip(idx){
   var el = $('slot-reel-' + idx);
   if(!el) return null;
+  var items = slotReelItems(idx);
   var html = '';
   for(var g = 0; g < 15; g++){
-    for(var i = 0; i < SLOT_SYMS.length; i++){ html += '<div class="slot-cell">' + SLOT_SYMS[i] + '</div>'; }
+    for(var i = 0; i < items.length; i++){
+      var card = slotCard(idx, i);
+      var red = (card.suit === '♥' || card.suit === '♦');
+      html += '<div class="slot-cell"><div class="sc-card ' + (red ? 'red' : 'blk') + '">' + card.rank + card.suit + '</div><div class="sc-label">' + items[i] + '</div></div>';
+    }
   }
   el.innerHTML = '<div class="slot-strip">' + html + '</div>';
   return el.firstChild;
@@ -8331,16 +8328,17 @@ function slotPick(list){ return list[Math.floor(Math.random() * list.length)]; }
 function slotTickSound(){
   if(SFX.ctx && !SFX.muted){ SFX.tone(1600, 0.03, { type: 'square', vol: 0.06 }); }
 }
-function slotSpinReel(idx, sym, delayMs){
+function slotSpinReel(idx, itemIdx, delayMs){
   var dur = 1750 + idx * 480;          // 每列总时长
   var spinDur = dur - 220;             // 主滚动段
   setTimeout(function(){
     var strip = buildStrip(idx);
     if(!strip) return;
     var el = $('slot-reel-' + idx);
-    var symIdx = SLOT_SYMS.indexOf(sym); if(symIdx < 0) symIdx = 0;
+    var n = slotReelItems(idx).length;
+    var symIdx = itemIdx % n; if(symIdx < 0) symIdx = 0;
     var loops = 9 + idx * 2 + Math.floor(Math.random() * 2);  // 9~13 圈，列越靠后转越多
-    var target = -((loops * SLOT_SYMS.length + symIdx) * SLOT_CELL_H);
+    var target = -((loops * n + symIdx) * SLOT_CELL_H);
     var pull = 32;                     // 起步前向上抬起（蓄力）
     var total = target + pull;
     var OVER = 14 + idx * 4;           // 停止时冲过头再回弹的距离
@@ -8392,51 +8390,56 @@ function slotPull(){
       if(el) el.classList.add('spinning');
     })(i);
   }
-  // 结果提前定，滚动只是演出
+  // 结果提前定，滚动只是演出：每列随机一个词条下标
   var res = [];
-  for(var r = 0; r < 3; r++){ res.push(SLOT_SYMS[Math.floor(Math.random() * SLOT_SYMS.length)]); }
-  // 小幅提升手感：8% 概率把落空改成两同
-  if(res[0] !== res[1] && res[1] !== res[2] && res[0] !== res[2] && Math.random() < 0.08){ res[2] = res[0]; }
+  for(var r = 0; r < 3; r++){ res.push(Math.floor(Math.random() * slotReelItems(r).length)); }
+  // 小幅提升手感：8% 概率把第三列升成与前两列同花色
+  if(Math.random() < 0.08){
+    var s0 = SLOT_SUITS[res[0] % 4], s1 = SLOT_SUITS[res[1] % 4];
+    var its2 = slotReelItems(2);
+    for(var k = 0; k < its2.length; k++){
+      var sk = SLOT_SUITS[k % 4];
+      if(sk === s0 || sk === s1){ res[2] = k; break; }
+    }
+  }
   var p = slot.players[slot.turn];
   p.pulls++;
   slotSpinReel(0, res[0], 60);
   slotSpinReel(1, res[1], 240);
   slotSpinReel(2, res[2], 420);
 }
-function slotWindowSym(idx){
+function slotWindowItem(idx){
   var el = $('slot-reel-' + idx);
   var strip = el && el.firstChild;
   var m = strip ? (strip.style.transform || '').match(/-?[\d.]+/) : null;
   var y = m ? Math.abs(parseFloat(m[0])) : 0;
-  var i = Math.round((y + 2) / SLOT_CELL_H) % SLOT_SYMS.length;
-  return SLOT_SYMS[i];
+  var items = slotReelItems(idx);
+  var i = Math.round((y + 2) / SLOT_CELL_H) % items.length;
+  var card = slotCard(idx, i);
+  return { label: items[i], suit: card.suit, rank: card.rank };
 }
-window.slotWindowSym = slotWindowSym;
+window.slotWindowSym = slotWindowItem;
 function slotJudge(){
   if(!slot) return;
-  var syms = [slotWindowSym(0), slotWindowSym(1), slotWindowSym(2)];
+  var its = [slotWindowItem(0), slotWindowItem(1), slotWindowItem(2)];
   var p = slot.players[slot.turn];
-  var other = slot.players[(slot.turn + 1) % slot.players.length];
-  var c = slotCustomGet();
+  var task = '在' + its[0].label + its[1].label + its[2].label;
+  var s = [its[0].suit, its[1].suit, its[2].suit];
   var html = '', gain = 0;
-  var allSame = syms[0] === syms[1] && syms[1] === syms[2];
+  var allSame = s[0] === s[1] && s[1] === s[2];
   var kind;
-  if(allSame && syms[0] === '💋'){
+  if(allSame){
     kind = 'jackpot'; gain = SLOT_HEARTS.jackpot;
-    html = '<span class="sr-big">💋💋💋 终极大奖！</span><br>对方要亲你三下，爱心 +' + gain + '！';
+    html = '<span class="sr-big">💫 终极心动！花色全同 ' + s[0] + s[0] + s[0] + ' · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b><br>额外奖励：对方要亲你三下！';
     for(var i = 0; i < 3; i++){ (function(n){ setTimeout(function(){ SFX.reward(); }, n * 350); })(i); }
-  } else if(allSame){
-    kind = 'triple'; gain = SLOT_HEARTS.triple;
-    html = '<span class="sr-big">🎉 三同 ' + syms[0] + ' ！爱心 +' + gain + '</span><br>' + slotPick(c.triple);
-    SFX.reward();
-  } else if(syms[0] === syms[1] || syms[1] === syms[2] || syms[0] === syms[2]){
+  } else if(s[0] === s[1] || s[1] === s[2] || s[0] === s[2]){
     kind = 'pair'; gain = SLOT_HEARTS.pair;
-    html = '<span class="sr-big">💝 两同小奖！爱心 +' + gain + '</span><br>' + slotPick(c.pair);
+    html = '<span class="sr-big">💝 甜蜜组合！两列同花色 · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b>';
     SFX.reward();
   } else {
-    kind = 'none'; gain = 0;
-    html = '<span class="sr-big">🌫 落空～</span><br>' + p.name + ' ' + slotPick(c.none);
-    SFX.penalty();
+    kind = 'base'; gain = SLOT_HEARTS.base;
+    html = '<span class="sr-big">💞 甜蜜任务 · 爱心 +' + gain + '</span><br><b>' + task + '</b><br>完成才能拿爱心哦～';
+    SFX.reward();
   }
   p.hearts += gain;
   $('slot-result').innerHTML = html;
@@ -8444,10 +8447,11 @@ function slotJudge(){
   if(lg){
     var is = lg.querySelectorAll('i');
     if(kind === 'jackpot'){ lg.classList.add('party'); }
-    else { for(var k = 0; k < is.length; k++){ if(k < 3) is[k].classList.add('on'); } }
+    else if(kind === 'pair'){ for(var k = 0; k < is.length; k++){ if(k < 3) is[k].classList.add('on'); } }
+    else { if(is[0]) is[0].classList.add('on'); }
   }
   var reels = [0,1,2].map(function(i){ return $('slot-reel-' + i); });
-  if(kind !== 'none'){ reels.forEach(function(el){ if(el) el.classList.add('win'); }); }
+  if(kind === 'jackpot' || kind === 'pair'){ reels.forEach(function(el){ if(el) el.classList.add('win'); }); }
   renderSlotScore();
   var iv = setTimeout(function(){
     slot.busy = false;
@@ -8497,11 +8501,11 @@ $('btn-slot-custom-toggle').addEventListener('click', function(){
   function save(){
     try{
       function lines(id){ var v = ($(id) && $(id).value || '').split('\n').map(function(x){ return x.trim(); }).filter(Boolean); return v; }
-      var c = { triple: lines('slot-cfg-triple'), pair: lines('slot-cfg-pair'), none: lines('slot-cfg-none') };
-      localStorage.setItem('love-slot-custom', JSON.stringify(c));
+      var c = { place: lines('slot-cfg-place'), act: lines('slot-cfg-act'), dur: lines('slot-cfg-dur') };
+      localStorage.setItem('love-slot-custom2', JSON.stringify(c));
     }catch(e){}
   }
-  ['slot-cfg-triple','slot-cfg-pair','slot-cfg-none'].forEach(function(id){
+  ['slot-cfg-place','slot-cfg-act','slot-cfg-dur'].forEach(function(id){
     var el = $(id);
     if(el) el.addEventListener('change', save);
   });
