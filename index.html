@@ -1143,13 +1143,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .yc-item-main{flex:1;min-width:0}
 .yc-item-name{font-size:13.5px;font-weight:700;color:#5C4A63;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yc-item-sub{font-size:11px;color:#A890A0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.yc-srv{display:flex;align-items:center;gap:6px;margin-top:9px;padding:7px 9px;border-radius:10px;
-  background:#F6F3FF;border:1px solid #E4DAFB;font-size:11px;color:#7E6BA8;line-height:1.45}
-.yc-srv input{flex:1;min-width:0;font-family:var(--body);font-size:11px;color:#5C4A63;background:#fff;
-  border:1px solid #DDD2F3;border-radius:7px;padding:4px 6px;outline:none}
-.yc-srv-dot{width:7px;height:7px;border-radius:50%;background:#C9BEDC;flex:0 0 auto}
-.yc-srv-dot.on{background:#3AC47D;box-shadow:0 0 0 3px rgba(58,196,125,.18)}
-.yc-srv-dot.off{background:#F08A8A;box-shadow:0 0 0 3px rgba(240,138,138,.16)}
 .yc-tag{font-size:10px;font-weight:800;padding:1.5px 6px;border-radius:999px;margin-right:5px;flex:none}
 .yc-tag.solo{background:#EAF3FF;color:#4A7FC9}
 .yc-tag.couple{background:#FFEFF6;color:#D75B8E}
@@ -1158,6 +1151,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .yc-del:hover{background:#FFE0E9}
 .yc-empty{font-size:12px;color:#C0A8B6;text-align:center;padding:10px 0}
 .yc-imgrow{display:flex;gap:7px}
+.yc-vip-tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.5px;color:#fff;
+  background:linear-gradient(135deg,#FFB347,#FF6E9C);border-radius:6px;padding:1px 5px;vertical-align:1px}
+.yc-vip-tag.hide{display:none}
+.yc-lock{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  padding:14px 10px 16px;margin-bottom:4px;background:#FFF7FA;border:1.5px dashed #F7B9CD;border-radius:14px}
+.yc-lock-ico{font-size:26px}
+.yc-lock-tx{font-size:12px;color:#A890A0;line-height:1.7}
+.yc-lock-tx b{color:#FF5E8A;font-size:13px}
+.yc-lock .btn-unlock{margin-top:2px}
 .yc-img-btn{flex:1;font-family:var(--body);font-size:12.5px;font-weight:700;color:#9B7BFF;
   background:#F7F4FF;border:1.5px solid #D8CCF5;border-radius:11px;padding:9px 6px;cursor:pointer;transition:all .15s}
 .yc-img-btn:hover{background:#F0EBFF}
@@ -2653,9 +2655,15 @@ function preloadImgs(list, cb){
         <button class="btn-primary btn-rps-roll" id="btn-yoga-outfit" type="button" style="margin-right:6px" onclick="toggleYogaOutfit()" data-page-node-id="9VExutvuwXqOYYAkC8DOtI">🧘 衣着：瑜伽服</button> <button class="btn-primary btn-rps-roll" id="btn-yoga-draw" type="button" data-page-node-id="KJOC5Lri9TPTlpBDaczPof">🃏 抽一张</button>
         <button class="btn-primary btn-rps-roll" id="btn-yoga-done" type="button" style="display:none" data-page-node-id="fHHjfxblrIuMZrABj562AZ">✅ 做完啦，换下一位</button>
         <button class="btn-primary btn-rps-roll" id="btn-yoga-again" type="button" style="display:none" data-page-node-id="16qF8AIxSxD6J08u4b0Whh">🔁 再来一局</button>
-        <button class="yoga-custom-btn" id="btn-yoga-custom-toggle" type="button" data-page-node-id="ycv0000000000000000001">✏️ 自定义姿势卡 ▼</button>
+        <button class="yoga-custom-btn" id="btn-yoga-custom-toggle" type="button" data-page-node-id="ycv0000000000000000001"><span id="yc-toggle-label">✏️ 自定义姿势卡</span> <span class="yc-vip-tag" id="yc-vip-tag">VIP</span><span id="yc-arrow"> ▼</span></button>
         <div class="yoga-custom-panel" id="yoga-custom-panel" style="display:none" data-page-node-id="ycv0000000000000000002">
           <div class="yc-title" data-page-node-id="ycv0000000000000000003">自建姿势卡 · 输入即存</div>
+          <div class="yc-lock" id="yc-lock" style="display:none">
+            <div class="yc-lock-ico">🔒</div>
+            <div class="yc-lock-tx"><b>自定义姿势卡是付费功能</b><br>输入激活码解锁后即可自由添加、配图</div>
+            <button class="btn-unlock" type="button" id="yc-unlock-btn">🔑 输入激活码</button>
+          </div>
+          <div id="yc-main">
           <div class="yc-hint" data-page-node-id="ycv0000000000000000004">名称必填；保持秒数不填默认 30 秒。会加进对应模式的卡池里一起抽。</div>
           <div class="yc-fields" data-page-node-id="ycv0000000000000000005">
             <input class="yc-input" id="yc-name" type="text" maxlength="12" placeholder="姿势名称，如：背靠背" data-page-node-id="ycv0000000000000000006">
@@ -2670,14 +2678,9 @@ function preloadImgs(list, cb){
               <input type="file" id="yc-img-file" accept="image/*" style="display:none">
             </div>
             <div class="yc-img-preview" id="yc-img-preview" style="display:none"><img id="yc-img-view" alt=""></div>
-            <div class="yc-srv" data-page-node-id="ycv0000000000000000014">
-              <span class="yc-srv-dot" id="yc-srv-dot"></span>
-              <span id="yc-srv-tip" style="flex:0 0 auto">图片上传地址</span>
-              <input id="yc-srv-url" type="url" placeholder="自动使用当前站点" spellcheck="false">
-              <button class="yc-img-btn" id="yc-srv-save" type="button">保存</button>
-            </div>
           </div>
           <div class="yc-list" id="yc-list" data-page-node-id="ycv0000000000000000011"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -10323,6 +10326,8 @@ function submitPackCode(){
       msg.textContent = d.already ? '已在本机恢复，欢迎回来 🎉' : '解锁成功！进阶卡已加入卡池 🎉';
       SFX.reward();
       refreshPackLink();
+      try{ document.dispatchEvent(new CustomEvent('pack-unlocked')); }catch(e){}
+      syncYcLock();
       setTimeout(function(){ closePackPanel(); }, 900);
     }else{
       msg.className = 'pack-msg';
@@ -10361,6 +10366,9 @@ function submitPackCode(){
     });
   }
   refreshPackLink();
+  try{ syncYcLock(); }catch(e){}
+  var yub = $('yc-unlock-btn');
+  if(yub){ yub.addEventListener('click', function(){ openPackPanel(''); }); }
 })();
 $('btn-yoga-exit').addEventListener('click', function(){
   if(onlineMode && state && state.gameType === 'yoga'){ leaveOnline(); return; }
@@ -10425,39 +10433,18 @@ function _ycResetImgUI(){
       renderYogaCustomList();
     });
   }
-  /* ---- 服务器地址：显示 + 保存 + 连通性检测 ---- */
-  var srvInput = $('yc-srv-url'), srvSave = $('yc-srv-save'), srvDot = $('yc-srv-dot'), srvTip = $('yc-srv-tip');
-  function paintSrv(state, txt){
-    if(srvDot){ srvDot.className = 'yc-srv-dot' + (state ? ' ' + state : ''); }
-    if(srvTip && txt){ srvTip.textContent = txt; }
-  }
-  function probeSrv(){
-    var base = uploadBase();
-    if(!base){ paintSrv('off', '上传地址'); return; }
-    try{ if(srvInput && !srvInput.value){ srvInput.placeholder = base; } }catch(e){}
-    var ctl = ('AbortController' in window) ? new AbortController() : null;
-    var to = ctl ? setTimeout(function(){ ctl.abort(); }, 6000) : null;
-    fetch(base + '/health', {signal: ctl ? ctl.signal : undefined})
-      .then(function(r){ return r.json(); })
-      .then(function(d){ if(to) clearTimeout(to); paintSrv('on', '✅ 可上传'); })
-      .catch(function(){ if(to) clearTimeout(to); paintSrv('off', '⚠ 不可上传'); });
-  }
-  if(srvSave){
-    srvSave.addEventListener('click', function(){
-      var v = (srvInput.value || '').trim().replace(/\/+$/, '');
-      setUploadServer(v);
-      SFX.click();
-      showToast(v ? '上传地址已保存：' + v : '已恢复为自动（当前站点）');
-      probeSrv();
-    });
-  }
-  if(srvInput){
-    try{ srvInput.value = localStorage.getItem('love-flight-upload-server') || ''; }catch(e){}
-  }
-  window.__ycProbeSrv = probeSrv;
-  setTimeout(probeSrv, 300);
 })();
 /* ---------- 瑜伽：模式切换 + 自定义姿势卡 ---------- */
+/* 自定义姿势卡为付费功能：未解锁时隐藏输入区，只留一个解锁提示 */
+function syncYcLock(){
+  var main = $('yc-main'), lock = $('yc-lock'), tag = $('yc-vip-tag');
+  var on = packUnlocked();
+  if(main){ main.style.display = on ? '' : 'none'; }
+  if(lock){ lock.style.display = on ? 'none' : 'flex'; }
+  if(tag){ tag.className = 'yc-vip-tag' + (on ? ' hide' : ''); }
+}
+window.__syncYcLock = syncYcLock;
+document.addEventListener('pack-unlocked', function(){ syncYcLock(); });
 (function(){
   var modeBtns = document.querySelectorAll('.yoga-mode-btn');
   for(var i = 0; i < modeBtns.length; i++){
@@ -10481,7 +10468,9 @@ function _ycResetImgUI(){
       var panel = $('yoga-custom-panel');
       var open = panel.style.display !== 'none';
       panel.style.display = open ? 'none' : 'block';
-      this.textContent = open ? '✏️ 自定义姿势卡 ▼' : '✏️ 自定义姿势卡 ▲';
+      var ar = $('yc-arrow');
+      if(ar){ ar.textContent = open ? ' ▼' : ' ▲'; }
+      syncYcLock();
       if(!open){ renderYogaCustomList(); }
     });
   }
@@ -10489,6 +10478,7 @@ function _ycResetImgUI(){
   if(addBtn){
     addBtn.addEventListener('click', function(){
       SFX.click();
+      if(!packUnlocked()){ openPackPanel(''); return; }
       var name = ($('yc-name').value || '').trim();
       if(!name){ showToast('先给姿势起个名字吧'); $('yc-name').focus(); return; }
       if(_ycPendingState === 'uploading'){ showToast('图片还在上传，等 1~2 秒再点「+ 添加」'); return; }
