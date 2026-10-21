@@ -1957,6 +1957,39 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 /* 次级文字可读性 */
 .mc-desc{font-size:12px;color:#7d5f74}
 .menu-hint,.bg-opt-note,.cc-note,.cell-count-hint,.lv-label,.bv-label{font-size:12px;opacity:.9}
+/* ---------- 进阶卡包 · 激活码 ---------- */
+.pack-link{margin-top:10px;font-size:12.5px;color:#B08FB0;background:none;border:none;cursor:pointer;
+  padding:6px 10px;border-radius:10px;font-family:inherit;text-decoration:underline dotted;text-underline-offset:3px}
+.pack-link b{color:#FF5E8A}
+.pack-link.on{color:#1F9D5B}
+.pack-mask{position:fixed;inset:0;background:rgba(58,46,57,.42);backdrop-filter:blur(3px);z-index:9000;
+  display:none;align-items:center;justify-content:center;padding:18px}
+.pack-mask.show{display:flex}
+.pack-box{background:#fff;border-radius:20px;padding:20px 18px 16px;width:100%;max-width:340px;
+  box-shadow:0 18px 48px rgba(160,70,110,.28);text-align:center;animation:packIn .22s ease}
+@keyframes packIn{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.pack-ico{font-size:34px;line-height:1}
+.pack-title{font-size:17px;font-weight:800;color:#3A2E39;margin-top:6px}
+.pack-sub{font-size:12.5px;color:#A890A0;margin:6px 0 14px;line-height:1.6}
+.pack-input{width:100%;box-sizing:border-box;font-size:16px;letter-spacing:1.5px;text-align:center;
+  padding:11px 12px;border-radius:12px;border:1.5px solid #F0C9D8;font-family:ui-monospace,monospace;outline:none}
+.pack-input:focus{border-color:#FF8FB0;box-shadow:0 0 0 3px rgba(255,143,176,.16)}
+.pack-msg{font-size:12.5px;min-height:18px;margin:8px 0 2px;color:#D65A5A}
+.pack-msg.ok{color:#1F9D5B}
+.pack-btns{display:flex;gap:9px;margin-top:10px}
+.pack-btn{flex:1;font-size:14.5px;font-weight:800;padding:11px 0;border-radius:12px;border:none;cursor:pointer;font-family:inherit}
+.pack-btn.go{background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;box-shadow:0 6px 16px rgba(255,94,138,.3)}
+.pack-btn.ghost{background:#FFF3F7;color:#E0648E}
+.pack-hint{font-size:11px;color:#C0AECB;margin-top:12px;line-height:1.6}
+.pack-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  min-height:260px;color:#B08FB0;font-size:13px;text-align:center;padding:24px 12px}
+.pack-lock .pl-ico{font-size:40px;filter:grayscale(.15)}
+.pack-lock b{color:#FF5E8A;font-size:14px}
+.btn-unlock{margin-top:6px;font-size:13px;font-weight:800;padding:9px 22px;border-radius:11px;border:none;
+  cursor:pointer;background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;font-family:inherit;
+  box-shadow:0 5px 14px rgba(255,94,138,.28)}
+.pack-count{display:inline-block;font-size:11px;font-weight:700;color:#E0648E;background:#FFF0F5;
+  border-radius:9px;padding:2px 8px;margin-left:6px}
 /* 焦点可视 & 动效降级 */
 :focus-visible{outline:3px solid var(--boost);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -2098,9 +2131,27 @@ function preloadImgs(list, cb){
         </button>
       </div>
       <p class="menu-hint" data-page-node-id="0nDkH9vMU1LpJIWVd9oq5d">选好想玩的游戏，下一步配置玩家</p>
+      <button class="pack-link" id="btn-pack-link" type="button" data-page-node-id="pk00000000000000000001">已购买？<b>输入激活码</b>解锁进阶卡包</button>
       <button class="btn-primary" id="btn-menu-next" type="button" data-page-node-id="EpOBX7gi8JDSI7g8aS9yGl">下一步：选择玩家 ▶</button>
     </div>
   </section>
+
+  <!-- ========== 弹层：进阶卡包解锁 ========== -->
+  <div class="pack-mask" id="pack-mask" data-page-node-id="pk00000000000000000002">
+    <div class="pack-box" data-page-node-id="pk00000000000000000003">
+      <div class="pack-ico" data-page-node-id="pk00000000000000000004">🎁</div>
+      <div class="pack-title" data-page-node-id="pk00000000000000000005">进阶姿势包</div>
+      <div class="pack-sub" id="pack-sub" data-page-node-id="pk00000000000000000006">输入激活码，解锁全部进阶姿势卡</div>
+      <input class="pack-input" id="pack-input" type="text" maxlength="16" autocomplete="off" spellcheck="false"
+             placeholder="LF-XXXX-XXXX" data-page-node-id="pk00000000000000000007">
+      <div class="pack-msg" id="pack-msg" data-page-node-id="pk00000000000000000008"></div>
+      <div class="pack-btns" data-page-node-id="pk00000000000000000009">
+        <button class="pack-btn ghost" id="pack-close" type="button" data-page-node-id="pk0000000000000000000a">取消</button>
+        <button class="pack-btn go" id="pack-ok" type="button" data-page-node-id="pk0000000000000000000b">解锁</button>
+      </div>
+      <div class="pack-hint" data-page-node-id="pk0000000000000000000c">一个激活码绑定首次使用的设备，换手机可凭同一个码重新激活</div>
+    </div>
+  </div>
 
 <section id="view-start" class="view" data-page-node-id="RYLd9i9KuAywDcqKs1iJ0H">
     <div class="start-wrap" data-page-node-id="XcGwKvP81IeOsbHoS0bYDk">
@@ -8734,7 +8785,7 @@ function renderOnlineYoga(){
       drawBtn.onclick = function(){
         if(!onlineMode || !state || !state.yoga) return;
         if(state.yoga.phase !== 'draw' || state.yoga.order[state.yoga.turnIdx] !== myId){ showToast('还没轮到你'); return; }
-        fetch(serverUrl + '/yoga-draw', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId})})
+        fetch(serverUrl + '/yoga-draw', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id: myId, pack: packUnlocked() ? 1 : 0})})
           .then(function(r2){ return r2.json(); })
           .then(function(d){ if(d && d.error){ showToast(d.error); } })
           .catch(function(){ showToast('网络错误'); });
@@ -8776,6 +8827,12 @@ function renderOnlineYoga(){
 function showOnlineYogaPose(pos){
   if(!pos) return;
   var card = $('yoga-card');
+  if(_yogaPackLocked(pos)){
+    card.innerHTML = packLockHtml(-1);
+    var stl = $('yoga-status');
+    if(stl){ stl.innerHTML = '抽到了进阶姿势卡 🔒 输入激活码后双方都能看到这张卡'; }
+    return;
+  }
   var col = '#FF6E9C';
   var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + pos.svg.replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
   window.__lastYogaPos = pos; var photo = yogaImgUrl(pos) ? '<div class=\"yoga-photo\"><img src=\"' + yogaImgUrl(pos) + '\" alt="' + pos.name + '" onclick="openFullView(this.src,this.alt)" loading="lazy" onerror="yogaImgFallback(this)"></div>'
@@ -9798,6 +9855,8 @@ for(var gb = 0; gb < genderBtns.length; gb++){
 
 /* ============ 瑜伽姿势抽卡 ============ */
 var YOGA_COLORS = ['#E86B9B','#8A6FE8','#F5A623','#4FC3A1','#5B8DEF','#F2789F'];
+/* 进阶卡包：索引 >= FREE_POSE_MAX 的是付费内容（免费池 28 张），未解锁时打 locked 标记 */
+var FREE_POSE_MAX = 20;
 var YOGA_POSES = [
   { name: '山式', en: 'Mountain Pose', sec: 30, tip: '站直如松，双脚并拢，深呼吸三次，感受彼此的呼吸节奏', img: "./img/yp-山式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13" fill="none"/><path d="M100 55 L100 132"/><path d="M100 132 L92 205"/><path d="M100 132 L108 205"/><path d="M100 72 L68 100"/><path d="M100 72 L132 100"/></g>' },
   { name: '树式', en: 'Tree Pose', sec: 30, tip: '单腿站立，另一只脚贴小腿，像小树一样稳稳扎根，站不稳可以互相扶着', img: "./img/yp-树式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="100" cy="42" r="13"/><path d="M100 55 L100 128"/><path d="M100 128 L100 205"/><path d="M100 128 L122 148 L100 156"/><path d="M100 72 L92 26"/><path d="M100 72 L108 26"/></g>' },
@@ -9828,6 +9887,12 @@ var YOGA_POSES = [
  { name: '侧卧拉伸式', en: 'Side Lying Quad Stretch', sec: 35, tip: '侧躺下方的手撑头，上方的手向后抓住脚背，轻轻把脚跟拉向臀部，拉伸大腿前侧，换边重复', img: "./img/yp-侧卧拉伸式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="70" cy="96" r="13"/><path d="M83 106 L120 130"/><path d="M120 130 L110 180"/><path d="M110 180 L150 180"/><path d="M150 180 L146 224"/><path d="M84 96 L130 76"/><path d="M130 76 L146 44"/><path d="M146 44 L128 22"/><path d="M146 44 L118 46"/></g>' },
  { name: '站立手拉脚趾式', en: 'Utthita Hasta Padangusthasana', sec: 30, tip: '单腿站稳，一只手抓住抬起的脚掌向上拉伸，另一只手侧平举保持平衡，站不稳可扶墙，换边重复', img: "./img/yp-站立手拉脚趾式.webp", svg: '<g stroke-width="11" stroke-linecap="round" fill="none"><circle cx="96" cy="42" r="13"/><path d="M92 56 L94 130"/><path d="M92 64 L62 88"/><path d="M62 88 L34 76"/><path d="M104 62 L118 26"/><path d="M118 26 L108 10"/><path d="M94 130 L88 224"/><path d="M88 224 L112 224"/><path d="M118 26 L138 12"/></g>' }
 ];
+/* 标记进阶姿势（索引 >= FREE_POSE_MAX） */
+(function(){
+  for(var i = 0; i < YOGA_POSES.length; i++){
+    if(i >= FREE_POSE_MAX){ YOGA_POSES[i].locked = true; }
+  }
+})();
 /* 自定义姿势卡图片（按名称存取，本地即存） */
 function loadYogaCustomImgs(){
   try{ var v = JSON.parse(localStorage.getItem('love-flight-yoga-custom-imgs') || '{}'); return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
@@ -10030,9 +10095,44 @@ function yogaDuoSVG(pos, col){
     + '</svg>';
 }
 /* 当前卡池：单人 / 夫妻 / 自建（自建按模式归类） */
+/* ---------- 进阶卡包（激活码解锁） ----------
+   FREE_POSE_MAX 在 YOGA_POSES 定义前声明；超出的姿势自动归入「进阶卡包」。
+   未解锁时不进抽卡池，只显示 🔒 占位。 */
+var PACK_UNLOCKED = false;
+try{ PACK_UNLOCKED = localStorage.getItem('love-flight-pack') === '1'; }catch(e){}
+function packUnlocked(){ return !!PACK_UNLOCKED; }
+function setPackUnlocked(v){
+  PACK_UNLOCKED = !!v;
+  try{
+    if(v){ localStorage.setItem('love-flight-pack', '1'); }
+    else{ localStorage.removeItem('love-flight-pack'); localStorage.removeItem('love-flight-acode'); }
+  }catch(e){}
+}
+function acodeGet(){ try{ return localStorage.getItem('love-flight-acode') || ''; }catch(e){ return ''; } }
+function acodeSet(c){ try{ localStorage.setItem('love-flight-acode', c); }catch(e){} }
+function deviceBind(){
+  var k = '';
+  try{ k = localStorage.getItem('love-flight-bind'); }catch(e){}
+  if(!k){
+    k = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    try{ localStorage.setItem('love-flight-bind', k); }catch(e){}
+  }
+  return k;
+}
+/* 未解锁时，把「进阶」姿势剔除掉 —— 所有抽卡入口都走这里 */
+function packFilter(list){
+  if(packUnlocked()) return list;
+  return list.filter(function(p){ return !p || !p.locked; });
+}
+function yogaLockedCount(){
+  var n = 0;
+  for(var i = 0; i < YOGA_POSES.length; i++){ if(YOGA_POSES[i].locked) n++; }
+  return n;
+}
 function yogaPool(){
   var mode = getYogaMode();
   var base = (mode === 'couple') ? YOGA_COUPLE_POSES.slice() : YOGA_POSES.slice();
+  base = packFilter(base);
   var custom = loadYogaCustom();
   for(var i = 0; i < custom.length; i++){
     var c = custom[i];
@@ -10067,9 +10167,16 @@ function openYoga(){
 function yogaResetStage(){
   var card = $('yoga-card');
   if(card){
-    card.innerHTML = (getYogaMode() === 'couple')
+    var emptyTxt = (getYogaMode() === 'couple')
       ? '<div class="yoga-empty">💞 抽一张夫妻姿势卡，两个人一起完成</div>'
       : '<div class="yoga-empty">抽一张瑜伽姿势卡，抽到谁就谁来做 💕</div>';
+    var lk = yogaLockedCount();
+    if(lk > 0 && !packUnlocked()){
+      emptyTxt += '<div style="text-align:center;margin-top:10px">'
+        + '<button class="pack-link" type="button" onclick="openPackPanel(\'\')">'
+        + '🔒 进阶卡包还有 <b>' + lk + '</b> 张 · 输入激活码解锁</button></div>';
+    }
+    card.innerHTML = emptyTxt;
   }
   var tm = $('yoga-timer'); if(tm){ tm.textContent = ''; }
   var d = $('btn-yoga-draw'); if(d){ d.style.display = ''; }
@@ -10094,13 +10201,13 @@ function renderYogaTurn(){
   var tp = yoga.players[yoga.turn];
   t.innerHTML = '🎯 轮到 ' + pAvatar(tp) + '<b style="color:' + tp.color + '">' + tp.name + '</b> 抽卡';
 }
-function yogaDraw(){
+function yogaDraw(){ return yogaDrawSafe(); }
+function yogaDrawWith(pos){
   if(!yoga) return;
   if(yoga.timer){ clearInterval(yoga.timer); yoga.timer = null; }
   var p = yoga.players[yoga.turn];
   var isCouple = (getYogaMode() === 'couple');
-  var pool = yogaPool();
-  var pos = pool[Math.floor(Math.random() * pool.length)];
+  if(!pos){ var pool = yogaPool(); pos = pool[Math.floor(Math.random() * pool.length)]; }
   var col = YOGA_COLORS[Math.floor(Math.random() * YOGA_COLORS.length)];
   var card = $('yoga-card');
   var svgHtml = '<svg class="yoga-pose-svg" viewBox="0 0 200 240" width="200" height="240" style="color:' + col + '"><g stroke="' + col + '"><g stroke-width="11" stroke-linecap="round" fill="none">' + String(pos.svg || '').replace(/<g[^>]*>|<\/g>/g, '') + '</g></g></svg>';
@@ -10167,6 +10274,94 @@ function yogaDone(){
   $('btn-yoga-draw').style.display = '';
   $('btn-yoga-done').style.display = 'none';
 }
+/* ---------- 解锁弹层逻辑 ---------- */
+function openPackPanel(reason){
+  var m = $('pack-mask'); if(!m) return;
+  var sub = $('pack-sub'), msg = $('pack-msg');
+  var locked = yogaLockedCount();
+  if(reason === 'locked'){
+    sub.innerHTML = '这张是进阶姿势卡 🔒<br>输入激活码即可解锁全部 ' + locked + ' 张进阶卡';
+  }else{
+    sub.innerHTML = (locked ? '还有 ' + locked + ' 张进阶姿势卡待解锁' : '输入激活码解锁进阶姿势卡') + '<br>一次解锁，永久有效';
+  }
+  if(msg){ msg.textContent = ''; msg.className = 'pack-msg'; }
+  var last = acodeGet();
+  if(last){ $('pack-input').value = last; }
+  m.classList.add('show');
+  setTimeout(function(){ try{ $('pack-input').focus(); }catch(e){} }, 60);
+  SFX.click();
+}
+function closePackPanel(){ var m = $('pack-mask'); if(m){ m.classList.remove('show'); } }
+function refreshPackLink(){
+  var b = $('btn-pack-link'); if(!b) return;
+  var locked = yogaLockedCount();
+  if(packUnlocked()){
+    b.className = 'pack-link on';
+    b.innerHTML = '✅ 进阶卡包已解锁 · 共 ' + (YOGA_POSES.length - FREE_POSE_MAX) + ' 张进阶卡';
+  }else if(locked > 0){
+    b.className = 'pack-link';
+    b.innerHTML = '🎁 还有 <b>' + locked + '</b> 张进阶姿势卡 · 输入激活码解锁';
+  }else{
+    b.className = 'pack-link';
+    b.innerHTML = '已购买？<b>输入激活码</b>解锁进阶卡包';
+  }
+}
+function submitPackCode(){
+  var inp = $('pack-input'), msg = $('pack-msg');
+  var code = (inp.value || '').toUpperCase().replace(/\s+/g, '');
+  if(!code){ msg.className = 'pack-msg'; msg.textContent = '请输入激活码'; return; }
+  var btn = $('pack-ok');
+  btn.disabled = true; btn.textContent = '验证中…';
+  msg.className = 'pack-msg'; msg.textContent = '';
+  var base = (typeof uploadBase === 'function') ? uploadBase() : '';
+  var done = function(d){
+    btn.disabled = false; btn.textContent = '解锁';
+    if(d && d.ok){
+      acodeSet(d.code || code);
+      setPackUnlocked(true);
+      msg.className = 'pack-msg ok';
+      msg.textContent = d.already ? '已在本机恢复，欢迎回来 🎉' : '解锁成功！进阶卡已加入卡池 🎉';
+      SFX.reward();
+      refreshPackLink();
+      setTimeout(function(){ closePackPanel(); }, 900);
+    }else{
+      msg.className = 'pack-msg';
+      msg.textContent = (d && d.error) || '验证失败，请稍后再试';
+    }
+  };
+  fetch(base + '/redeem', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({code: code, bind: deviceBind()})
+  }).then(function(r){ return r.json(); }).then(done)
+    .catch(function(){
+      btn.disabled = false; btn.textContent = '解锁';
+      msg.className = 'pack-msg'; msg.textContent = '网络不给力，检查网络后再试';
+    });
+}
+(function bindPackUI(){
+  var link = $('btn-pack-link');
+  if(link){ link.addEventListener('click', function(){
+    if(packUnlocked()){
+      showToast('进阶卡包已解锁，共 ' + (YOGA_POSES.length - FREE_POSE_MAX) + ' 张');
+      refreshPackLink(); return;
+    }
+    openPackPanel('');
+  }); }
+  var ok = $('pack-ok'); if(ok){ ok.addEventListener('click', submitPackCode); }
+  var cl = $('pack-close'); if(cl){ cl.addEventListener('click', closePackPanel); }
+  var mk = $('pack-mask');
+  if(mk){ mk.addEventListener('click', function(e){ if(e.target === mk){ closePackPanel(); } }); }
+  var inp = $('pack-input');
+  if(inp){
+    inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ submitPackCode(); } });
+    inp.addEventListener('input', function(){
+      var v = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if(v.length > 2){ v = 'LF' + v.replace(/^LF/, ''); v = v.slice(0, 10); inp.value = v.slice(0, 2) + '-' + v.slice(2, 6) + '-' + v.slice(6, 10); }
+      else { inp.value = v; }
+    });
+  }
+  refreshPackLink();
+})();
 $('btn-yoga-exit').addEventListener('click', function(){
   if(onlineMode && state && state.gameType === 'yoga'){ leaveOnline(); return; }
   SFX.click();
@@ -10368,6 +10563,36 @@ function escapeHtmlYoga(t){
     if(tt) tt.textContent = (m === 'couple') ? '夫妻姿势卡' : '瑜伽姿势抽卡';
   }
 })();
+/* 未知姿势索引（服务端抽到进阶卡 / 旧缓存）：未解锁时展示锁定占位，而不是空卡 */
+var _pendingLockIdx = -1;
+/* 判断某张卡是否属于未解锁的进阶内容 */
+function _yogaPackLocked(pos){
+  if(!pos || packUnlocked()) return false;
+  if(pos.locked) return true;
+  for(var i = 0; i < YOGA_POSES.length; i++){
+    if(YOGA_POSES[i].name === pos.name) return !!YOGA_POSES[i].locked;
+  }
+  return false;
+}
+function packLockHtml(idx){
+  _pendingLockIdx = idx;
+  var locked = yogaLockedCount();
+  return '<div class="pack-lock">'
+    + '<div class="pl-ico">🔒</div>'
+    + '<b>进阶姿势卡</b>'
+    + '<div>本次抽到的是进阶卡，输入激活码即可解锁<br>还有 ' + locked + ' 张等着你们解锁</div>'
+    + '<button class="btn-unlock" type="button" onclick="openPackPanel(\'locked\')">🔑 输入激活码解锁</button>'
+    + '</div>';
+}
+/* 本地抽卡：池里已过滤掉未解锁卡；万一命中锁定卡就重抽（最多 6 次） */
+function yogaDrawSafe(){
+  var pool = yogaPool();
+  var pos = pool[Math.floor(Math.random() * pool.length)];
+  for(var i = 0; i < 6 && _yogaPackLocked(pos); i++){
+    pos = pool[Math.floor(Math.random() * pool.length)];
+  }
+  return yogaDrawWith(_yogaPackLocked(pos) ? null : pos);
+}
 $('btn-yoga-again').addEventListener('click', function(){
   if(onlineMode && state && state.gameType === 'yoga'){ onlineAgain(); return; }
   SFX.click();
