@@ -97,6 +97,7 @@ state = {
         'winnerTxt': '',   # 冠军展示文字
     },
     'yoga': {        # 联机瑜伽抽卡状态
+        'pack': False,     # 抽卡时是否已解锁进阶卡包
         'phase': 'wait',   # wait=等待开局 / draw=待抽卡 / hold=展示中 / end=结算
         'order': [],       # [pid...] 抽卡顺序
         'turnIdx': 0,      # 当前该抽的玩家在 order 中的下标
@@ -175,6 +176,48 @@ def _list_upload_files():
         out.append({'name': fn, 'url': '/img/user/' + fn, 'size': stt.st_size,
                     'ts': int(stt.st_mtime)})
     return out
+# ---------- 激活码（解锁进阶卡包） ----------
+CODES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'codes.json')
+codes_lock = threading.Lock()
+# 免费池上限：索引 >= FREE_COUNT 的姿势归入「进阶卡包」，需激活码解锁
+FREE_COUNT = 20
+FREE_POSE_NAMES = [
+    '山式', '树式', '战士一式', '战士二式', '三角式', '下犬式', '猫牛式', '婴儿式',
+    '眼镜蛇式', '桥式', '蝴蝶式', '平板支撑', '鸽子式', '摊尸式', '新月式', '鸟王式',
+    '侧角伸展式', '花环式', '骆驼式', '半鱼王式',
+]
+PAID_POSE_NAMES = [
+    '大猫伸展', '快乐婴儿式', '仰卧上举腿式', '站立前屈式',
+    '坐角式', '侧卧举腿式', '侧卧拉伸式', '站立手拉脚趾式',
+]
+CODE_RE = re.compile(r'^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$')
+
+
+def _load_codes():
+    try:
+        with open(CODES_PATH, 'r', encoding='utf-8') as f:
+            v = json.load(f)
+            return v if isinstance(v, dict) else {'codes': {}}
+    except Exception:
+        return {'codes': {}}
+
+
+def _save_codes(db):
+    tmp = CODES_PATH + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(db, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, CODES_PATH)
+
+
+def _gen_code(existing):
+    alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'   # 去掉易混的 I/O/0/1
+    while True:
+        code = 'LF-%s-%s' % (''.join(random.choice(alphabet) for _ in range(4)),
+                             ''.join(random.choice(alphabet) for _ in range(4)))
+        if code not in existing:
+            return code
+
+
 # 真心话大冒险抽卡后自动切换下一位的定时器（模块级，跨 Handler 实例共享）
 tda_timer = None
 TDA_AUTO_SECONDS = 10
@@ -231,6 +274,11 @@ class Handler(BaseHTTPRequestHandler):
             self._admin_page()
         elif path == '/gallery':
             self._gallery_page()
+        elif path == '/codes':
+            self._codes_page()
+        elif path == '/free-poses':
+            self._json(200, {'freeCount': FREE_COUNT, 'names': FREE_POSE_NAMES,
+                             'paidNames': PAID_POSE_NAMES, 'total': FREE_COUNT + len(PAID_POSE_NAMES)})
         elif path == '/health':
             # 健康检查端点（云平台用它判断服务是否存活）
             self._json(200, {'status': 'ok', 'players': len(state['players']), 'time': int(time.time())})
@@ -427,8 +475,110 @@ class Handler(BaseHTTPRequestHandler):
             self._upload(body)
         elif path == '/upload-delete':
             self._upload_delete(body)
+        elif path == '/redeem':
+            self._redeem(body)
+        elif path == '/codes-gen':
+            self._codes_gen(body)
+        elif path == '/codes-list':
+            self._codes_list(body)
+        elif path == '/codes-toggle':
+            self._codes_toggle(body)
         else:
             self.send_error(404)
+
+    # ---------- 激活码 ----------
+    def _is_admin(self, body):
+        return self._client_ip() in self._gallery_authed or \
+            str(body.get('pw') or '') == self.GALLERY_PASSWORD
+
+    def _redeem(self, body):
+        """POST /redeem {code:'LF-XXXX-XXXX', bind:'设备指纹'}
+        返回 {ok, code, already}。同一设备重复校验不会报错（换机恢复用）。"""
+        raw = str(body.get('code') or '').strip().upper()
+        raw = re.sub(r'\s+', '', raw)
+        if len(raw) == 10 and raw.startswith('LF') and '-' not in raw:   # 容错：LFXXXXXXXX
+            raw = 'LF-' + raw[2:6] + '-' + raw[6:]
+        if not CODE_RE.match(raw):
+            return self._json(200, {'ok': False, 'error': '激活码格式不对（应为 LF-XXXX-XXXX）'})
+        bind = str(body.get('bind') or '')[:64]
+        with codes_lock:
+            db = _load_codes()
+            item = db['codes'].get(raw)
+            if not item:
+                return self._json(200, {'ok': False, 'error': '激活码不存在，请核对后重试'})
+            if item.get('status') == 'disabled':
+                return self._json(200, {'ok': False, 'error': '该激活码已被禁用，请联系卖家'})
+            if item.get('status') == 'used':
+                # 已绑定同一设备 → 认作本机恢复；否则拒绝二次核销
+                if bind and item.get('bind') == bind:
+                    return self._json(200, {'ok': True, 'code': raw, 'already': True})
+                return self._json(200, {'ok': False, 'error': '该激活码已被使用，如为误用请联系卖家'})
+            item['status'] = 'used'
+            item['usedAt'] = int(time.time())
+            item['bind'] = bind
+            item['ip'] = self._client_ip()
+            item['count'] = int(item.get('count') or 0) + 1
+            _save_codes(db)
+        self._json(200, {'ok': True, 'code': raw, 'already': False})
+
+    def _codes_gen(self, body):
+        """POST /codes-gen {pw, n, tag} —— 批量生成激活码"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '需要管理密码'})
+        try:
+            n = max(1, min(200, int(body.get('n') or 10)))
+        except Exception:
+            n = 10
+        tag = str(body.get('tag') or '')[:24]
+        with codes_lock:
+            db = _load_codes()
+            made = []
+            for _ in range(n):
+                code = _gen_code(db['codes'])
+                db['codes'][code] = {'status': 'unused', 'ts': int(time.time()),
+                                     'tag': tag, 'bind': '', 'usedAt': 0, 'ip': '', 'count': 0}
+                made.append(code)
+            _save_codes(db)
+        self._json(200, {'ok': True, 'codes': made})
+
+    def _codes_list(self, body):
+        """POST /codes-list {pw} —— 列出全部码 + 统计"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '需要管理密码'})
+        db = _load_codes()
+        items = []
+        for code, it in db['codes'].items():
+            items.append({'code': code, 'status': it.get('status', 'unused'),
+                          'ts': it.get('ts', 0), 'tag': it.get('tag', ''),
+                          'usedAt': it.get('usedAt', 0), 'bind': it.get('bind', ''),
+                          'ip': it.get('ip', '')})
+        items.sort(key=lambda x: -x['ts'])
+        stat = {'total': len(items),
+                'used': sum(1 for i in items if i['status'] == 'used'),
+                'unused': sum(1 for i in items if i['status'] == 'unused'),
+                'disabled': sum(1 for i in items if i['status'] == 'disabled')}
+        self._json(200, {'ok': True, 'items': items, 'stat': stat})
+
+    def _codes_toggle(self, body):
+        """POST /codes-toggle {pw, code, status:'unused'|'disabled'} —— 禁用/恢复"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '需要管理密码'})
+        code = str(body.get('code') or '').strip().upper()
+        st = body.get('status')
+        if st not in ('unused', 'disabled'):
+            return self._json(400, {'ok': False, 'error': '状态不合法'})
+        with codes_lock:
+            db = _load_codes()
+            it = db['codes'].get(code)
+            if not it:
+                return self._json(404, {'ok': False, 'error': '没有这个码'})
+            if it.get('status') == 'used' and st == 'unused':
+                return self._json(400, {'ok': False, 'error': '已使用的码不能恢复为未用'})
+            it['status'] = st
+            if st == 'unused':
+                it['bind'], it['usedAt'], it['ip'] = '', 0, ''
+            _save_codes(db)
+        self._json(200, {'ok': True, 'code': code, 'status': st})
 
     # ---------- 用户图片上传 ----------
     def _upload(self, body):
@@ -900,6 +1050,160 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(page.encode('utf-8'))))
         self.end_headers()
         self.wfile.write(page.encode('utf-8'))
+
+    def _codes_page(self):
+        """激活码管理：生成 / 查看核销 / 禁用 / 导出 CSV"""
+        ip = self._client_ip()
+        qs = parse_qs(urlparse(self.path).query)
+        ok = ip in self._gallery_authed
+        if not ok and qs.get('pw', [''])[0] == self.GALLERY_PASSWORD:
+            self._gallery_authed.add(ip)
+            ok = True
+        if not ok:
+            page = ('<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+                    '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                    '<title>激活码 · 验证</title><style>'
+                    'body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;'
+                    'display:flex;align-items:center;justify-content:center;min-height:90vh}'
+                    'input,button{font-size:16px;padding:10px 14px;border-radius:10px;border:1.5px solid #F0C9D8}'
+                    'button{background:#FF6E9C;color:#fff;border:none;cursor:pointer;font-weight:700}'
+                    '</style></head><body><form method="get">'
+                    '<div>🔐 请输入管理密码<br><br>'
+                    '<input type="password" name="pw" autofocus>'
+                    ' <button>进入</button></div></form></body></html>')
+            b = page.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(b)))
+            self.end_headers()
+            self.wfile.write(b)
+            return
+        page = '''<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>恋爱飞行棋 · 激活码管理</title><style>
+body{font-family:-apple-system,sans-serif;background:#FFF5F9;color:#3A2E39;max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:20px;color:#FF5E8A;margin:0 0 4px}
+.sub{font-size:13px;color:#A890A0;margin-bottom:16px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 2px 12px rgba(255,94,138,.12);margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,button{font-size:14px;padding:8px 12px;border-radius:10px;border:1.5px solid #F0C9D8;font-family:inherit}
+button{background:#FF6E9C;color:#fff;border:none;cursor:pointer;font-weight:700}
+button.ghost{background:#fff;color:#FF5E8A;border:1.5px solid #F7B9CD}
+button:disabled{opacity:.5;cursor:not-allowed}
+.stat{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.st{flex:1;min-width:90px;background:#fff;border-radius:14px;padding:10px 12px;text-align:center;box-shadow:0 2px 10px rgba(255,94,138,.1)}
+.st b{display:block;font-size:22px;color:#FF5E8A}
+.st span{font-size:12px;color:#A890A0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #F8E7EE}
+th{color:#A890A0;font-weight:600;font-size:12px}
+code{background:#FFF0F5;padding:2px 6px;border-radius:6px;font-size:13px;letter-spacing:.5px}
+.tag{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:700}
+.tag.unused{background:#E8F8EF;color:#1F9D5B}
+.tag.used{background:#EEF0FF;color:#5566D9}
+.tag.disabled{background:#FBE9E9;color:#D65A5A}
+.newbox{display:none;background:#FFF7FA;border:1.5px dashed #F7B9CD;border-radius:12px;padding:12px;margin-top:10px;
+font-family:ui-monospace,monospace;font-size:13px;white-space:pre-wrap;line-height:1.8}
+.hint{font-size:12px;color:#A890A0;margin-top:8px;line-height:1.6}
+</style></head><body>
+<h1>🎫 激活码管理</h1>
+<div class="sub">生成 → 发出 → 用户输入 → 这里自动显示核销状态。<a href="/gallery">← 回图片管理</a></div>
+
+<div class="stat">
+  <div class="st"><b id="s-total">-</b><span>总数</span></div>
+  <div class="st"><b id="s-unused">-</b><span>未使用</span></div>
+  <div class="st"><b id="s-used">-</b><span>已使用</span></div>
+  <div class="st"><b id="s-off">-</b><span>已禁用</span></div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <input id="g-n" type="number" value="10" min="1" max="200" style="width:80px">
+    <input id="g-tag" type="text" placeholder="备注（如：小红书首波）" style="flex:1;min-width:140px">
+    <button onclick="gen()">生成</button>
+    <button class="ghost" onclick="copyNew()">复制新码</button>
+    <button class="ghost" onclick="exportCsv()">导出 CSV</button>
+  </div>
+  <div class="newbox" id="newbox"></div>
+</div>
+
+<div class="card">
+  <table><thead><tr><th>激活码</th><th>状态</th><th>备注</th><th>使用时间</th><th>操作</th></tr></thead>
+  <tbody id="tb"><tr><td colspan="5" style="color:#C0AECB">加载中…</td></tr></tbody></table>
+  <div class="hint">用户核销后「使用时间」会填上；同一设备重复输入不会报错（换机恢复）。</div>
+</div>
+
+<script>
+var PWSET = location.search.indexOf('pw=') >= 0;
+var PW = PWSET ? decodeURIComponent(location.search.split('pw=')[1].split('&')[0]) : '';
+var ROWS = [], NEWCODES = '';
+function api(path, body){
+  if(PW) body.pw = PW;
+  return fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})
+    .then(function(r){ return r.json(); });
+}
+function fmt(t){ if(!t) return '-'; var d = new Date(t*1000);
+  function p(n){ return n<10?'0'+n:''+n; }
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+function load(){
+  api('/codes-list', {}).then(function(d){
+    if(!d.ok){ document.getElementById('tb').innerHTML = '<tr><td colspan="5" style="color:#D65A5A">'+(d.error||'加载失败')+'</td></tr>'; return; }
+    ROWS = d.items;
+    document.getElementById('s-total').textContent = d.stat.total;
+    document.getElementById('s-unused').textContent = d.stat.unused;
+    document.getElementById('s-used').textContent = d.stat.used;
+    document.getElementById('s-off').textContent = d.stat.disabled;
+    var tb = document.getElementById('tb');
+    if(!ROWS.length){ tb.innerHTML = '<tr><td colspan="5" style="color:#C0AECB">还没有码，上面生成一批</td></tr>'; return; }
+    tb.innerHTML = ROWS.map(function(r){
+      var cls = r.status, lab = {unused:'未使用', used:'已使用', disabled:'已禁用'}[r.status] || r.status;
+      var btn = r.status === 'used' ? '' :
+        '<button class="ghost" style="padding:4px 10px;font-size:12px" onclick="toggle(\\''+r.code+'\\',\\''+(r.status==='unused'?'disabled':'unused')+'\\')">'+(r.status==='unused'?'禁用':'恢复')+'</button>';
+      return '<tr><td><code>'+r.code+'</code></td><td><span class="tag '+cls+'">'+lab+'</span></td>'
+        + '<td>'+(r.tag||'-')+'</td><td>'+fmt(r.usedAt)+'</td><td>'+btn+'</td></tr>';
+    }).join('');
+  }).catch(function(){ document.getElementById('tb').innerHTML = '<tr><td colspan="5" style="color:#D65A5A">网络错误，确认已用 ?pw= 密码进入</td></tr>'; });
+}
+function gen(){
+  var n = parseInt(document.getElementById('g-n').value, 10) || 10;
+  var tag = document.getElementById('g-tag').value.trim();
+  api('/codes-gen', {n:n, tag:tag}).then(function(d){
+    if(!d.ok){ alert(d.error||'生成失败'); return; }
+    NEWCODES = d.codes.join('\\n');
+    var box = document.getElementById('newbox');
+    box.style.display = 'block';
+    box.textContent = d.codes.join('\\n');
+    load();
+  });
+}
+function copyNew(){
+  if(!NEWCODES){ alert('还没有新生成的码'); return; }
+  navigator.clipboard.writeText(NEWCODES).then(function(){ alert('已复制 ' + NEWCODES.split('\\n').length + ' 个码'); },
+    function(){ prompt('手动复制：', NEWCODES); });
+}
+function toggle(code, st){
+  api('/codes-toggle', {code:code, status:st}).then(function(d){ if(!d.ok) alert(d.error||'操作失败'); load(); });
+}
+function exportCsv(){
+  var head = 'code,status,tag,generated,usedAt,bind,ip\\n';
+  var lines = ROWS.map(function(r){
+    return [r.code, r.status, r.tag||'', fmt(r.ts), fmt(r.usedAt), r.bind||'', r.ip||''].join(',');
+  });
+  var blob = new Blob(['\\ufeff'+head+lines.join('\\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'love-flight-codes.csv';
+  a.click();
+}
+load();
+</script></body></html>'''
+        b = page.encode('utf-8')
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Content-Length', str(len(b)))
+        self.end_headers()
+        self.wfile.write(b)
 
     def _admin_page(self):
         """管理页：查看房间状态，清理意外退出残留的玩家 / 重置房间。"""
@@ -1441,7 +1745,11 @@ class Handler(BaseHTTPRequestHandler):
             pid = body.get('id')
             if pid != y['order'][y['turnIdx']]:
                 self._json(400, {'error': '还没轮到你抽'}); return
-            y['posIdx'] = random.randint(0, 19)
+            # 抽卡池与服务端自由池一致：前 FREE_COUNT 个免费，解锁后并入进阶池
+            y['pack'] = bool(body.get('pack'))
+            total = FREE_COUNT + len(PAID_POSE_NAMES)
+            pool = list(range(total)) if y['pack'] else list(range(FREE_COUNT))
+            y['posIdx'] = random.choice(pool)
             y['phase'] = 'hold'
             snap = json.loads(json.dumps(state['yoga']))
         broadcast('yoga', snap)
