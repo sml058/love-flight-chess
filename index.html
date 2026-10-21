@@ -2019,9 +2019,13 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-machine{position:relative;max-width:340px;margin:0 auto;background:linear-gradient(160deg,#FFE3EC,#FFC2D6);border-radius:22px;padding:18px 14px 14px;box-shadow:0 8px 22px rgba(255,110,156,.28)}
 .slot-machine::before{content:'🎰';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:30px;filter:drop-shadow(0 3px 4px rgba(255,110,156,.4))}
 .slot-reels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#fff;border-radius:14px;padding:12px 10px;box-shadow:inset 0 3px 8px rgba(255,110,156,.18)}
-.slot-reel{aspect-ratio:1/1.1;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(180deg,#FFF7FA,#FFEAF1);border-radius:10px;box-shadow:inset 0 2px 6px rgba(255,110,156,.15);transition:transform .08s}
-.slot-reel.spinning{animation:slotShake .12s linear infinite}
-@keyframes slotShake{0%{transform:translateY(-3px)}50%{transform:translateY(3px)}100%{transform:translateY(-3px)}}
+.slot-reel{position:relative;overflow:hidden;height:64px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FFF7FA,#FFEAF1);border-radius:10px;box-shadow:inset 0 2px 6px rgba(255,110,156,.15)}
+.slot-reel::before,.slot-reel::after{content:'';position:absolute;left:0;right:0;height:14px;pointer-events:none;z-index:2}
+.slot-reel::before{top:0;background:linear-gradient(180deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
+.slot-reel::after{bottom:0;background:linear-gradient(0deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
+.slot-strip{width:100%;will-change:transform}
+.slot-cell{height:60px;display:flex;align-items:center;justify-content:center;font-size:42px;line-height:1}
+.slot-reel.spinning{box-shadow:inset 0 0 0 2px rgba(255,110,156,.35)}
 .slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
 .slot-lights{display:flex;justify-content:center;gap:8px;margin-top:12px}
@@ -2640,9 +2644,9 @@ function preloadImgs(list, cb){
       <div class="slot-stage">
         <div class="slot-machine">
           <div class="slot-reels">
-            <div class="slot-reel" id="slot-reel-0">💋</div>
-            <div class="slot-reel" id="slot-reel-1">🍒</div>
-            <div class="slot-reel" id="slot-reel-2">🔔</div>
+            <div class="slot-reel" id="slot-reel-0"></div>
+            <div class="slot-reel" id="slot-reel-1"></div>
+            <div class="slot-reel" id="slot-reel-2"></div>
           </div>
           <div class="slot-lights" id="slot-lights"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
@@ -8298,28 +8302,53 @@ function updateSlotStatus(){
   var p = slot.players[slot.turn];
   $('slot-status').textContent = '第 ' + slot.round + ' 轮 · 轮到 ' + p.name + ' 拉杆';
 }
+var SLOT_CELL_H = 60;
+function buildStrip(idx){
+  var el = $('slot-reel-' + idx);
+  if(!el) return null;
+  var html = '';
+  for(var g = 0; g < 10; g++){
+    for(var i = 0; i < SLOT_SYMS.length; i++){ html += '<div class="slot-cell">' + SLOT_SYMS[i] + '</div>'; }
+  }
+  el.innerHTML = '<div class="slot-strip">' + html + '</div>';
+  return el.firstChild;
+}
 function resetSlotReels(){
   for(var i = 0; i < 3; i++){
     var el = $('slot-reel-' + i);
-    if(el){ el.classList.remove('spinning','win'); el.textContent = SLOT_SYMS[i % SLOT_SYMS.length]; }
+    if(el){
+      el.classList.remove('spinning','win');
+      var strip = buildStrip(i);
+      if(strip){ strip.style.transition = 'none'; strip.style.transform = 'translateY(0px)'; }
+    }
   }
   var lg = $('slot-lights');
   if(lg){ lg.classList.remove('party'); var is = lg.querySelectorAll('i'); for(var k = 0; k < is.length; k++) is[k].classList.remove('on'); }
 }
 function slotPick(list){ return list[Math.floor(Math.random() * list.length)]; }
-function slotStopReel(idx, sym){
-  var el = $('slot-reel-' + idx);
-  if(!el) return;
-  el.classList.remove('spinning');
-  el.textContent = sym;
-  var iv = setInterval(function(){ el.textContent = SLOT_SYMS[Math.floor(Math.random() * SLOT_SYMS.length)]; }, 60);
-  _slotTimers.push(iv);
+function slotSpinReel(idx, sym, delayMs){
+  var dur = 1350 + idx * 420;
   setTimeout(function(){
-    clearInterval(iv);
-    el.textContent = sym;
-    SFX.click();
-    if(idx === 2) slotJudge();
-  }, 500 + idx * 450);
+    var strip = buildStrip(idx);
+    if(!strip) return;
+    var symIdx = SLOT_SYMS.indexOf(sym); if(symIdx < 0) symIdx = 0;
+    var group = 7 + Math.floor(Math.random() * 3);   // 停在第 7~9 组，位置每次不同
+    var target = -((group * SLOT_SYMS.length + symIdx) * SLOT_CELL_H);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        strip.style.transition = 'transform ' + dur + 'ms cubic-bezier(.15,.66,.16,1)';
+        strip.style.transform = 'translateY(' + target + 'px)';
+      });
+    });
+    setTimeout(function(){
+      var el = $('slot-reel-' + idx);
+      if(el) el.classList.remove('spinning');
+      SFX.click();
+      if(idx === 2) slotJudge();
+    }, dur);
+  }, delayMs);
+  var iv = setTimeout(function(){}, delayMs + dur + 10);
+  _slotTimers.push(iv);
 }
 function slotPull(){
   if(!slot || slot.busy) return;
@@ -8341,13 +8370,22 @@ function slotPull(){
   if(res[0] !== res[1] && res[1] !== res[2] && res[0] !== res[2] && Math.random() < 0.08){ res[2] = res[0]; }
   var p = slot.players[slot.turn];
   p.pulls++;
-  setTimeout(function(){ slotStopReel(0, res[0]); }, 300);
-  setTimeout(function(){ slotStopReel(1, res[1]); }, 300);
-  setTimeout(function(){ slotStopReel(2, res[2]); }, 300);
+  slotSpinReel(0, res[0], 80);
+  slotSpinReel(1, res[1], 160);
+  slotSpinReel(2, res[2], 240);
 }
+function slotWindowSym(idx){
+  var el = $('slot-reel-' + idx);
+  var strip = el && el.firstChild;
+  var m = strip ? (strip.style.transform || '').match(/-?[\d.]+/) : null;
+  var y = m ? Math.abs(parseFloat(m[0])) : 0;
+  var i = Math.round((y + 2) / SLOT_CELL_H) % SLOT_SYMS.length;
+  return SLOT_SYMS[i];
+}
+window.slotWindowSym = slotWindowSym;
 function slotJudge(){
   if(!slot) return;
-  var syms = [$('slot-reel-0').textContent, $('slot-reel-1').textContent, $('slot-reel-2').textContent];
+  var syms = [slotWindowSym(0), slotWindowSym(1), slotWindowSym(2)];
   var p = slot.players[slot.turn];
   var other = slot.players[(slot.turn + 1) % slot.players.length];
   var c = slotCustomGet();
