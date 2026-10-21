@@ -196,21 +196,22 @@ def _outfit_key(style, pose):
     return style + '|' + pose
 
 def _outfit_manifest():
-    """扫描 img/of-* 文件，返回 { 'style|姿势名': '/img/文件名' }，前端优先生效。"""
+    """扫描 img/of-* 文件，返回 { 'style|姿势名': ['/img/文件名', ...] }。
+    同款式同姿势可上传多张，前端抽卡时随机取一张（内置插画仍参与随机）。"""
     names = set(_outfit_pose_names())
     out = {}
     try:
-        files = os.listdir(IMG_ROOT)
+        files = sorted(os.listdir(IMG_ROOT))
     except OSError:
         return out
     for fn in files:
-        m = re.match(r'^of-(yoga|tight|swim)-([0-9a-f]{10})\.(png|jpg|webp|gif)$', fn)
+        m = re.match(r'^of-(yoga|tight|swim)-([0-9a-f]{10})-[0-9a-z]{4}\.(png|jpg|webp|gif)$', fn)
         if not m:
             continue
         style, h, ext = m.groups()
         for pose in names:
             if hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10] == h:
-                out[_outfit_key(style, pose)] = '/img/' + fn
+                out.setdefault(_outfit_key(style, pose), []).append('/img/' + fn)
                 break
     return out
 codes_lock = threading.Lock()
@@ -648,39 +649,36 @@ class Handler(BaseHTTPRequestHandler):
         if len(raw) > UPLOAD_MAX_BYTES:
             return self._json(413, {'ok': False, 'error': '图片太大了（上限 8MB）'})
         _ensure_upload_dir()
-        fn = _outfit_fn(style, pose, ext)
+        h = hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10]
+        fn = 'of-%s-%s-%s.%s' % (style, h, os.urandom(2).hex(), ext)
         with upload_lock:
-            # 覆盖：删掉同款式同姿势的旧图（不同扩展名）
-            prefix = 'of-%s-%s.' % (style, hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10])
-            for old in os.listdir(IMG_ROOT):
-                if old.startswith(prefix) and old != fn:
-                    try:
-                        os.remove(os.path.join(IMG_ROOT, old))
-                    except OSError:
-                        pass
+            # 追加模式：不删除任何旧图，同款式同姿势可积累多张，抽卡时随机
             with open(os.path.join(IMG_ROOT, fn), 'wb') as f:
                 f.write(raw)
+        cnt = 0
+        prefix = 'of-%s-%s-' % (style, h)
+        try:
+            cnt = len([x for x in os.listdir(IMG_ROOT) if x.startswith(prefix)])
+        except OSError:
+            pass
         self._json(200, {'ok': True, 'url': '/img/' + fn, 'key': _outfit_key(style, pose),
-                         'style': OUTFIT_STYLE_LABELS[style], 'pose': pose})
+                         'count': cnt, 'style': OUTFIT_STYLE_LABELS[style], 'pose': pose})
 
     def _outfit_delete(self, body):
-        """POST /outfit-delete {pw, style, pose} —— 删除一张衣着图（回退内置 SVG）"""
+        """POST /outfit-delete {pw, name:'of-xxx.png'} —— 删除指定一张衣着图"""
         if not self._is_admin(body):
             return self._json(403, {'ok': False, 'error': '密码错误'})
-        style = str(body.get('style') or '')
-        pose = str(body.get('pose') or '')
-        if style not in OUTFIT_STYLES or pose not in _outfit_pose_names():
-            return self._json(400, {'ok': False, 'error': '参数不正确'})
-        prefix = 'of-%s-%s.' % (style, hashlib.md5((style + '|' + pose).encode('utf-8')).hexdigest()[:10])
-        removed = 0
-        for old in os.listdir(IMG_ROOT):
-            if old.startswith(prefix):
-                try:
-                    os.remove(os.path.join(IMG_ROOT, old))
-                    removed += 1
-                except OSError:
-                    pass
-        self._json(200, {'ok': True, 'removed': removed})
+        name = os.path.basename(str(body.get('name') or ''))
+        if not re.match(r'^of-(yoga|tight|swim)-[0-9a-f]{10}-[0-9a-z]{4}\.(png|jpg|webp|gif)$', name):
+            return self._json(400, {'ok': False, 'error': '文件名不正确'})
+        fp = os.path.join(IMG_ROOT, name)
+        if not os.path.isfile(fp):
+            return self._json(404, {'ok': False, 'error': '图片不存在'})
+        try:
+            os.remove(fp)
+        except OSError:
+            return self._json(500, {'ok': False, 'error': '删除失败'})
+        self._json(200, {'ok': True, 'removed': 1, 'name': name})
 
     # ---------- 用户图片上传 ----------
     def _upload(self, body):
@@ -1324,16 +1322,19 @@ function ofLoad(){
   fetch('/outfit-manifest').then(function(r){ return r.json(); }).then(function(d){
     var map = (d && d.map) || {};
     var box = document.getElementById('of-list');
-    var keys = Object.keys(map);
-    if(!keys.length){ box.innerHTML = '<div class="hint">还没有上传过衣着图，三套均用内置插画。</div>'; return; }
-    box.innerHTML = '<div class="hint" style="margin-bottom:6px">已上传 '+keys.length+' 张：</div>' + keys.map(function(k){
+    var rows = [];
+    Object.keys(map).forEach(function(k){
       var parts = k.split('|');
       var st = OFSTYLES[parts[0]] || parts[0];
-      return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
-        + '<img src="'+map[k]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px;background:#F6EEF2">'
-        + '<span style="flex:1;font-size:13px">'+st+' · '+parts[1]+'</span>'
-        + '<button class="ghost of-del" data-st="'+parts[0]+'" data-pose="'+parts[1]+'" style="padding:4px 10px;font-size:12px">删除</button></div>';
-    }).join('');
+      (map[k]||[]).forEach(function(u){
+        rows.push('<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
+          + '<img src="'+u+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px;background:#F6EEF2">'
+          + '<span style="flex:1;font-size:13px">'+st+' · '+parts[1]+'</span>'
+          + '<button class="ghost of-del" data-name="'+u.replace('/img/','')+'" style="padding:4px 10px;font-size:12px">删除</button></div>');
+      });
+    });
+    if(!rows.length){ box.innerHTML = '<div class="hint">还没有上传过衣着图，三套均用内置插画。</div>'; return; }
+    box.innerHTML = '<div class="hint" style="margin-bottom:6px">已上传 '+rows.length+' 张（抽卡时与内置插画一起随机）：</div>' + rows.join('');
   });
 }
 function ofMsg(txt, err){
@@ -1353,7 +1354,7 @@ function ofUpload(){
     ofMsg('上传中…');
     api('/outfit-upload', {style:style, pose:pose, dataUrl:rd.result}).then(function(d){
       if(!d.ok){ ofMsg(d.error||'上传失败', true); return; }
-      ofMsg('已上传：'+d.style+' · '+d.pose);
+      ofMsg('已新增：'+d.style+' · '+d.pose+'（该姿势现有 '+d.count+' 张自定义图）');
       ofLoad();
     }).catch(function(){ ofMsg('网络错误', true); });
   };
@@ -1362,9 +1363,9 @@ function ofUpload(){
 document.addEventListener('click', function(ev){
   var t = ev.target.closest ? ev.target.closest('.of-del') : null;
   if(!t) return;
-  var style = t.getAttribute('data-st'), pose = t.getAttribute('data-pose');
-  if(!confirm('删除 '+(OFSTYLES[style]||style)+' · '+pose+' 的衣着图？')) return;
-  api('/outfit-delete', {style:style, pose:pose}).then(function(d){
+  var name = t.getAttribute('data-name');
+  if(!confirm('删除这张衣着图？')) return;
+  api('/outfit-delete', {name:name}).then(function(d){
     if(!d.ok){ alert(d.error||'删除失败'); return; }
     ofLoad();
   });
