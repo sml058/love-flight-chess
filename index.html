@@ -2013,39 +2013,67 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
   .input-row .icon{width:30px;height:30px}
   .gender-switch .g-btn{padding:0 6px;font-size:11.5px}
 }
-/* ---------- 甜蜜老虎机 ---------- */
-.slot-status{font-size:15px;color:var(--ink);font-weight:700;text-align:center;margin:10px 0 6px;min-height:22px}
+/* ---------- 甜蜜老虎机（暗色·仿桃色老虎机版） ---------- */
+#view-slot{background:radial-gradient(130% 80% at 50% 0%, #221130 0%, #0c0813 55%, #080510 100%)}
+#view-slot .rps-wrap{background:transparent;box-shadow:none}
+#view-slot .rps-head .rps-exit{color:rgba(255,255,255,.75);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+#view-slot .rps-head .rps-exit svg{stroke:rgba(255,255,255,.75)}
+#view-slot .rps-title .t-emoji{display:none}
+#view-slot .rps-title{display:block;text-align:center;width:100%;background:transparent;box-shadow:none;border:none;color:transparent;padding:0}
+#view-slot .rps-head{position:relative;display:block;background:transparent;border:none;box-shadow:none;padding:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+#view-slot .rps-head .rps-exit{position:absolute;right:0;top:0;transform:none}
+#view-slot .rps-title .t-tx{display:block;font-size:32px;font-weight:900;letter-spacing:2px;color:transparent;background:linear-gradient(180deg,#ffffff,#d8c6f5 55%,rgba(255,255,255,.55));-webkit-background-clip:text;background-clip:text;text-shadow:0 0 30px rgba(255,255,255,.15)}
+.slot-title-bar{width:96px;height:4px;border-radius:4px;margin:10px auto 0;background:linear-gradient(90deg,transparent,#f43f5e,transparent);opacity:.85}
+.slot-sub{margin-top:10px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.18em;color:rgba(255,255,255,.4)}
+.slot-status{font-size:13px;color:rgba(255,255,255,.55);font-weight:700;text-align:center;margin:12px 0 6px;min-height:20px;letter-spacing:.05em}
 .slot-stage{text-align:center}
-.slot-machine{position:relative;max-width:340px;margin:0 auto;background:linear-gradient(160deg,#FFE3EC,#FFC2D6);border-radius:22px;padding:18px 14px 14px;box-shadow:0 8px 22px rgba(255,110,156,.28)}
-.slot-machine::before{content:'🎰';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:30px;filter:drop-shadow(0 3px 4px rgba(255,110,156,.4))}
-.slot-reels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#fff;border-radius:14px;padding:12px 10px;box-shadow:inset 0 3px 8px rgba(255,110,156,.18)}
-.slot-reel{position:relative;overflow:hidden;height:64px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FFF7FA,#FFEAF1);border-radius:10px;box-shadow:inset 0 2px 6px rgba(255,110,156,.15)}
-.slot-reel::before,.slot-reel::after{content:'';position:absolute;left:0;right:0;height:14px;pointer-events:none;z-index:2}
-.slot-reel::before{top:0;background:linear-gradient(180deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
-.slot-reel::after{bottom:0;background:linear-gradient(0deg,rgba(255,234,241,.95),rgba(255,234,241,0))}
-.slot-strip{width:100%;will-change:transform}
+.slot-machine{position:relative;max-width:400px;margin:10px auto 0;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.09));border:1px solid rgba(255,255,255,.1);border-radius:32px;padding:14px 12px 16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.slot-machine::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.07;background-image:radial-gradient(rgba(255,255,255,.9) 1px,transparent 1px);background-size:22px 22px}
+.slot-capsule{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;width:max-content;margin:2px auto 12px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.4);border-radius:999px;padding:7px 20px;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.slot-capsule .cap-dot{width:9px;height:9px;border-radius:50%;background:#ec4899;box-shadow:0 0 8px #ec4899;animation:capPulse 1.6s ease-in-out infinite}
+@keyframes capPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.slot-capsule .cap-lab{font-size:10px;font-weight:800;letter-spacing:.2em;color:rgba(255,255,255,.4)}
+.slot-capsule .cap-name{font-size:20px;font-weight:800;color:#ec4899;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-reels{position:relative;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:none;padding:0;box-shadow:none;border-radius:0}
+.slot-reel{position:relative;overflow:hidden;height:208px;display:block;background:rgba(0,0,0,.4);border-radius:12px;border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 2px 12px rgba(0,0,0,.5)}
+.sr-head{position:absolute;top:0;left:0;right:0;z-index:30;text-align:center;font-size:9px;font-weight:800;letter-spacing:.2em;color:rgba(255,255,255,.32);background:rgba(0,0,0,.35);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.28);padding:3px 0}
+.sr-win{position:absolute;inset:0;overflow:hidden}
+.sr-pay{position:absolute;top:50%;left:0;right:0;z-index:10;height:2px;margin-top:-1px;background:rgba(234,179,8,.5);box-shadow:0 0 10px rgba(234,179,8,.8);pointer-events:none}
+.sr-fade{position:absolute;inset:0;z-index:20;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.88),rgba(0,0,0,0) 32%,rgba(0,0,0,0) 68%,rgba(0,0,0,.88))}
+.slot-strip{position:absolute;left:0;right:0;top:0;will-change:transform}
 .slot-strip.blur{filter:blur(3px)}
-.slot-reel.spinning .slot-cell{opacity:.92}
-.slot-cell{height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
-.slot-cell .sc-card{font-size:17px;font-weight:800;letter-spacing:.5px}
-.slot-cell .sc-card.red{color:#E0455E}
-.slot-cell .sc-card.blk{color:#454556}
-.slot-cell .sc-label{font-size:12px;color:#A8788C;margin-top:3px;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot-reel.spinning{box-shadow:inset 0 0 0 2px rgba(255,110,156,.35)}
-.slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1)}
-@keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+.slot-reel.spinning{border-color:rgba(234,179,8,.45)}
+.slot-cell{height:112px;display:flex;align-items:center;justify-content:center;padding:5px 4px}
+.sc-card{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);backdrop-filter:blur(4px);overflow:hidden;user-select:none}
+.sc-corner{position:absolute;top:3px;left:6px;display:flex;flex-direction:column;align-items:center;line-height:1.05}
+.sc-corner.br{top:auto;bottom:3px;left:auto;right:6px;transform:rotate(180deg)}
+.sc-corner b{font-size:12px;font-weight:900}
+.sc-corner i{font-size:10px;font-style:normal}
+.sc-card.s0{color:#c4b5fd}
+.sc-card.s1{color:#fda4af}
+.sc-card.s2{color:#a7f3d0}
+.sc-card.s3{color:#fecaca}
+.sc-label{position:relative;z-index:10;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);text-align:center;line-height:1.25;max-width:96%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sc-mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:46px;opacity:.1;pointer-events:none;user-select:none}
+.slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1);border-color:#ec4899}
+@keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
 .slot-lights{display:flex;justify-content:center;gap:8px;margin-top:12px}
-.slot-lights i{width:9px;height:9px;border-radius:50%;background:#fff;opacity:.55}
-.slot-lights i.on{background:#FF6E9C;opacity:1;box-shadow:0 0 8px #FF6E9C}
+.slot-lights i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.14);opacity:1}
+.slot-lights i.on{background:#ec4899;box-shadow:0 0 8px #ec4899}
 .slot-lights.party i{animation:slotBlink .5s ease-in-out infinite}
 .slot-lights.party i:nth-child(2n){animation-delay:.25s}
-@keyframes slotBlink{0%,100%{opacity:1;box-shadow:0 0 10px #FF6E9C}50%{opacity:.3;box-shadow:none}}
-.slot-result{min-height:56px;margin:12px auto 4px;max-width:360px;font-size:15px;font-weight:700;color:var(--ink);background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 2px 10px rgba(255,110,156,.12)}
-.slot-result .sr-big{font-size:17px;color:#FF5E8A}
+@keyframes slotBlink{0%,100%{opacity:1;box-shadow:0 0 10px #ec4899}50%{opacity:.3;box-shadow:none}}
+.slot-result{min-height:56px;margin:12px auto 4px;max-width:380px;font-size:14px;font-weight:700;color:rgba(255,255,255,.92);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 14px;backdrop-filter:blur(6px)}
+.slot-result .sr-big{font-size:16px;color:#ec4899}
+.slot-result b{color:#fff}
+#btn-slot-pull,#btn-slot-again{background:#fff;color:#141018;border-radius:999px;box-shadow:0 0 28px rgba(255,255,255,.16);font-weight:800}
+#btn-slot-custom-toggle{color:rgba(255,255,255,.5)}
+.slot-cfg-row label{color:rgba(255,255,255,.6)}
+.slot-cfg-row textarea{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.15);color:#fff}
+.slot-cfg-row textarea::placeholder{color:rgba(255,255,255,.25)}
+.slot-cfg-hint{color:rgba(255,255,255,.38)}
+#slot-score .ps-round{color:rgba(255,255,255,.4)}
 .slot-cfg-row{margin:10px 0;text-align:left}
-.slot-cfg-row label{display:block;font-size:13px;font-weight:700;color:#A8788C;margin-bottom:4px}
-.slot-cfg-row textarea{width:100%;box-sizing:border-box;border:1px solid #F3D2DE;border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;resize:vertical;background:#FFF9FB}
-.slot-cfg-hint{font-size:12px;color:#C09AA8;margin-top:6px}
 </style>
 <script>
 /* ============ 图片外置：按需加载（方案A） ============ */
@@ -2645,10 +2673,13 @@ function preloadImgs(list, cb){
         <div class="rps-title" id="slot-title"><span class="t-emoji">🎰</span><span class="t-tx">甜蜜老虎机</span></div>
         <button class="rps-exit" id="btn-slot-exit" type="button"><svg class="x-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>退出</button>
       </div>
+      <div class="slot-title-bar"></div>
+      <div class="slot-sub">一拉定情 · 地点、动作、时长随机组合 · 先集满爱心者胜</div>
       <div class="rps-score" id="slot-score"></div>
       <div class="slot-status" id="slot-status">轮流拉杆，看谁的手气最甜！</div>
       <div class="slot-stage">
         <div class="slot-machine">
+          <div class="slot-capsule"><span class="cap-dot"></span><div style="display:flex;flex-direction:column;align-items:center;line-height:1.1"><span class="cap-lab">结果：</span><span class="cap-name" id="slot-capsule-name">—</span></div></div>
           <div class="slot-reels">
             <div class="slot-reel" id="slot-reel-0"></div>
             <div class="slot-reel" id="slot-reel-1"></div>
@@ -2657,7 +2688,7 @@ function preloadImgs(list, cb){
           <div class="slot-lights" id="slot-lights"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="slot-result" id="slot-result"></div>
-        <button class="btn-primary btn-rps-roll" id="btn-slot-pull" type="button">🎰 拉一把！</button>
+        <button class="btn-primary btn-rps-roll" id="btn-slot-pull" type="button">开始旋转</button>
         <button class="btn-primary btn-rps-roll" id="btn-slot-again" type="button" style="display:none">🔁 再来一局</button>
         <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义词库内容</button>
         <div class="rps-custom-panel" id="slot-custom-panel" style="display:none">
@@ -8295,8 +8326,12 @@ function updateSlotStatus(){
   if(!slot) return;
   var p = slot.players[slot.turn];
   $('slot-status').textContent = '第 ' + slot.round + ' 轮 · 轮到 ' + p.name + ' 拉杆';
+  var cap = $('slot-capsule-name');
+  if(cap) cap.textContent = p.name;
 }
-var SLOT_CELL_H = 64;
+var SLOT_CELL_H = 112, SLOT_WIN_H = 208;
+var SLOT_KOFF = (SLOT_WIN_H - SLOT_CELL_H) / 2;   // 48：让停中的卡片正对金色中奖线
+var SLOT_REEL_TITLES = ['地点', '动作', '时长'];
 function buildStrip(idx){
   var el = $('slot-reel-' + idx);
   if(!el) return null;
@@ -8305,12 +8340,17 @@ function buildStrip(idx){
   for(var g = 0; g < 15; g++){
     for(var i = 0; i < items.length; i++){
       var card = slotCard(idx, i);
-      var red = (card.suit === '♥' || card.suit === '♦');
-      html += '<div class="slot-cell"><div class="sc-card ' + (red ? 'red' : 'blk') + '">' + card.rank + card.suit + '</div><div class="sc-label">' + items[i] + '</div></div>';
+      html += '<div class="slot-cell"><div class="sc-card s' + (i % 4) + '">'
+        + '<span class="sc-corner tl"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
+        + '<span class="sc-corner br"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
+        + '<span class="sc-label">' + items[i] + '</span>'
+        + '<span class="sc-mark">' + card.suit + '</span>'
+        + '</div></div>';
     }
   }
-  el.innerHTML = '<div class="slot-strip">' + html + '</div>';
-  return el.firstChild;
+  el.innerHTML = '<div class="sr-head">' + SLOT_REEL_TITLES[idx] + '</div>'
+    + '<div class="sr-win"><div class="sr-pay"></div><div class="sr-fade"></div><div class="slot-strip">' + html + '</div></div>';
+  return el.querySelector('.slot-strip');
 }
 function resetSlotReels(){
   for(var i = 0; i < 3; i++){
@@ -8318,7 +8358,7 @@ function resetSlotReels(){
     if(el){
       el.classList.remove('spinning','win');
       var strip = buildStrip(i);
-      if(strip){ strip.style.transition = 'none'; strip.style.transform = 'translateY(0px)'; }
+      if(strip){ strip.style.transition = 'none'; strip.style.transform = 'translateY(' + SLOT_KOFF + 'px)'; }
     }
   }
   var lg = $('slot-lights');
@@ -8338,9 +8378,8 @@ function slotSpinReel(idx, itemIdx, delayMs){
     var n = slotReelItems(idx).length;
     var symIdx = itemIdx % n; if(symIdx < 0) symIdx = 0;
     var loops = 9 + idx * 2 + Math.floor(Math.random() * 2);  // 9~13 圈，列越靠后转越多
-    var target = -((loops * n + symIdx) * SLOT_CELL_H);
-    var pull = 32;                     // 起步前向上抬起（蓄力）
-    var total = target + pull;
+    var y0 = SLOT_KOFF + 32;                                   // 起步前向下蓄力（先抬一下）
+    var yEnd = SLOT_KOFF - (loops * n + symIdx) * SLOT_CELL_H; // 停点：卡片正对金线
     var OVER = 14 + idx * 4;           // 停止时冲过头再回弹的距离
     var t0 = null, lastCell = -1;
     function frame(ts){
@@ -8350,30 +8389,30 @@ function slotSpinReel(idx, itemIdx, delayMs){
       if(p < spinDur){
         var q = p / spinDur;
         var e = 1 - Math.pow(1 - q, 3);        // easeOutCubic：起步飞快，逐渐减速
-        y = -pull + (total + OVER) * e;
+        y = y0 - (y0 - yEnd + OVER) * e;
         blurring = q < 0.62;
         if(q > 0.5){                            // 减速段才出哒哒声
-          var cell = Math.floor(-y / SLOT_CELL_H);
+          var cell = Math.floor((SLOT_KOFF - y) / SLOT_CELL_H);
           if(cell !== lastCell){ lastCell = cell; slotTickSound(); }
         }
       } else {
         var q2 = Math.min((p - spinDur) / (dur - spinDur), 1);
         var e2 = 1 - Math.pow(1 - q2, 2);      // 回弹：从过冲点缓慢收回
-        y = (target - OVER) + OVER * e2;
-        var cell2 = Math.floor(-y / SLOT_CELL_H);
+        y = (yEnd - OVER) + OVER * e2;
+        var cell2 = Math.floor((SLOT_KOFF - y) / SLOT_CELL_H);
         if(cell2 !== lastCell){ lastCell = cell2; slotTickSound(); }
       }
       strip.style.transform = 'translateY(' + y.toFixed(2) + 'px)';
       if(blurring !== strip._blur){ strip._blur = blurring; if(blurring){ strip.classList.add('blur'); } else { strip.classList.remove('blur'); } }
       if(p < dur){ requestAnimationFrame(frame); }
       else {
-        strip.style.transform = 'translateY(' + target + 'px)';
+        strip.style.transform = 'translateY(' + yEnd + 'px)';
         if(el) el.classList.remove('spinning');
         SFX.click();
         if(idx === 2) setTimeout(slotJudge, 180);
       }
     }
-    strip.style.transform = 'translateY(' + (-pull) + 'px)';
+    strip.style.transform = 'translateY(' + y0 + 'px)';
     requestAnimationFrame(frame);
   }, delayMs);
 }
@@ -8410,11 +8449,13 @@ function slotPull(){
 }
 function slotWindowItem(idx){
   var el = $('slot-reel-' + idx);
-  var strip = el && el.firstChild;
+  var strip = el ? el.querySelector('.slot-strip') : null;
   var m = strip ? (strip.style.transform || '').match(/-?[\d.]+/) : null;
-  var y = m ? Math.abs(parseFloat(m[0])) : 0;
+  var y = m ? parseFloat(m[0]) : SLOT_KOFF;
   var items = slotReelItems(idx);
-  var i = Math.round((y + 2) / SLOT_CELL_H) % items.length;
+  var n = items.length;
+  var k = Math.round((SLOT_KOFF - y) / SLOT_CELL_H);
+  var i = ((k % n) + n) % n;
   var card = slotCard(idx, i);
   return { label: items[i], suit: card.suit, rank: card.rank };
 }
