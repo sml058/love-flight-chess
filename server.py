@@ -9,6 +9,7 @@
 import base64
 import gzip
 import hashlib
+import hmac
 import json
 import os
 import random
@@ -229,6 +230,74 @@ PAID_POSE_NAMES = [
 ]
 CODE_RE = re.compile(r'^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$')
 
+# ---------- 姿势卡（img/pose/ 下的 100 张，需解锁后才可下载） ----------
+# 解锁 cookie 的签名密钥：有环境变量用环境变量，否则用固定串（换密钥即让所有已发 cookie 失效）
+ATLAS_SECRET = os.environ.get('ATLAS_SECRET', 'lf-atlas-2024-poselock-v1').encode('utf-8')
+POSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img', 'pose')
+POSE_FN_RE = re.compile(r'^\d{3}-[A-Za-z0-9._-]+\.webp$')
+
+
+def _atlas_token(code, bind):
+    """解锁令牌：code + bind 的 HMAC，写进 cookie 供 <img> 自动携带。
+    因为图片是浏览器 <img> 直接请求，没法带自定义请求头，所以必须靠 cookie。"""
+    msg = ('%s|%s' % (code, bind)).encode('utf-8')
+    return hmac.new(ATLAS_SECRET, msg, hashlib.sha256).hexdigest()[:32]
+
+
+def _is_atlas_authed(handler):
+    """判断请求方是否已解锁图册。
+    通道（任一满足即放行）：
+      1) 请求头 X-Admin-Pw == GALLERY_PASSWORD（管理用途）
+      2) Cookie lf_atlas=<code>.<token>，服务端重新计算 token 校验（主通道）
+      3) 请求头 X-Atlas-Code + X-Atlas-Bind（接口调用）
+    返回 True/False。"""
+    try:
+        pw = handler.headers.get('X-Admin-Pw') or ''
+        if pw and pw == handler.GALLERY_PASSWORD:
+            return True
+    except Exception:
+        pass
+
+    def _check_code(code, bind):
+        code = (code or '').strip().upper()
+        bind = (bind or '').strip()[:64]
+        if not (code and CODE_RE.match(code)):
+            return False
+        with codes_lock:
+            db = _load_codes()
+            it = db['codes'].get(code)
+            if not it or it.get('status') != 'used':
+                return False
+            if it.get('bind') and bind and it.get('bind') != bind:
+                return False
+            return True
+
+    # 2) cookie：格式 code.token
+    try:
+        raw = handler.headers.get('Cookie') or ''
+        for part in raw.split(';'):
+            k, _, v = part.strip().partition('=')
+            if k == 'lf_atlas' and v:
+                v = unquote(v)
+                code, _, tok = v.partition('.')
+                with codes_lock:
+                    db = _load_codes()
+                    it = db['codes'].get(code.strip().upper()) or {}
+                bind = it.get('bind', '')
+                if _check_code(code, bind) and hmac.compare_digest(tok, _atlas_token(code.strip().upper(), bind)):
+                    return True
+                break
+    except Exception:
+        pass
+
+    # 3) 请求头
+    try:
+        if _check_code(handler.headers.get('X-Atlas-Code'), handler.headers.get('X-Atlas-Bind')):
+            return True
+    except Exception:
+        pass
+    return False
+
 
 def _load_codes():
     try:
@@ -253,6 +322,63 @@ def _gen_code(existing):
                              ''.join(random.choice(alphabet) for _ in range(4)))
         if code not in existing:
             return code
+
+
+# ---------- 姿势卡工具 ----------
+_POSE_INDEX_CACHE = {'key': None, 'data': None}
+_BLUR_CACHE = {'path': None}
+
+
+def _pose_title(fn):
+    """从 001-Doggy-Style-Sex-Position-Illustration.webp 提取可读名称"""
+    base = re.sub(r'^\d{3}-', '', fn)
+    base = re.sub(r'\.webp$', '', base)
+    base = re.sub(r'-Sex-Position(-Illustration)?$', '', base)
+    return base.replace('-', ' ').strip() or 'Pose'
+
+
+def _pose_index():
+    """扫描 img/pose 目录，返回 [{f, name}]，按文件名排序（001→100）"""
+    try:
+        files = sorted(f for f in os.listdir(POSE_DIR) if POSE_FN_RE.match(f))
+    except OSError:
+        return []
+    key = '%d|%d' % (len(files), int(os.path.getmtime(POSE_DIR)) if os.path.isdir(POSE_DIR) else 0)
+    if _POSE_INDEX_CACHE['key'] == key:
+        return _POSE_INDEX_CACHE['data']
+    data = [{'f': f, 'name': _pose_title(f)} for f in files]
+    _POSE_INDEX_CACHE['key'], _POSE_INDEX_CACHE['data'] = key, data
+    return data
+
+
+def _blur_placeholder():
+    """未解锁时返回的占位图。首次调用生成一张 720x720 的模糊渐变 webp 存到 img/pose/_lock.webp。"""
+    fp = os.path.join(POSE_DIR, '_lock.webp')
+    if os.path.isfile(fp) and os.path.getsize(fp) > 500:
+        return fp
+    try:
+        from PIL import Image, ImageFilter
+        w = h = 360
+        im = Image.new('RGB', (w, h))
+        px = im.load()
+        for y in range(h):
+            for x in range(w):
+                r = 90 + int(50 * (x / w))
+                g = 40 + int(30 * (y / h))
+                b = 70 + int(60 * ((x + y) / (w + h)))
+                px[x, y] = (r, g, b)
+        im = im.filter(ImageFilter.GaussianBlur(6))
+        os.makedirs(POSE_DIR, exist_ok=True)
+        im.save(fp, 'WEBP', quality=70)
+        return fp
+    except Exception:
+        alt = os.path.join(POSE_DIR, '_lock.webp')
+        try:
+            with open(alt, 'wb') as f:
+                f.write(b'RIFF')
+        except Exception:
+            pass
+        return alt
 
 
 # 真心话大冒险抽卡后自动切换下一位的定时器（模块级，跨 Handler 实例共享）
@@ -338,6 +464,28 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/uploads':
             # 列出所有用户上传的图片（图库页用）
             self._json(200, {'items': _list_upload_files()})
+        elif path.startswith('/img/pose/'):
+            # 姿势卡：必须解锁才能下载（防盗链 + 防绕过前端锁）
+            fn = unquote(os.path.basename(path))
+            fp = os.path.join(POSE_DIR, fn)
+            if not (fn and POSE_FN_RE.match(fn) and os.path.isfile(fp)):
+                self.send_error(404)
+            elif not _is_atlas_authed(self):
+                # 未解锁：返回服务器生成的占位图，绝不泄露任何原图字节
+                ph = _blur_placeholder()
+                if os.path.isfile(ph) and os.path.getsize(ph) > 500:
+                    self._serve_img(ph, 'image/webp')
+                else:
+                    self.send_response(403)
+                    self.send_header('Content-Length', '0')
+                    self.end_headers()
+            else:
+                self._serve_img(fp, 'image/webp')
+        elif path == '/pose-index':
+            # 姿势卡清单（只给文件名 + 名称，不含图片内容）。解锁后才返回列表。
+            if not _is_atlas_authed(self):
+                return self._json(403, {'ok': False, 'error': '未解锁'})
+            self._json(200, {'ok': True, 'items': _pose_index()})
         elif path.startswith('/img/'):
             # 外置图片：img/xxx.webp
             fn = unquote(os.path.basename(path))
@@ -519,6 +667,8 @@ class Handler(BaseHTTPRequestHandler):
             self._upload_delete(body)
         elif path == '/redeem':
             self._redeem(body)
+        elif path == '/atlas-cookie':
+            self._atlas_cookie(body)
         elif path == '/codes-gen':
             self._codes_gen(body)
         elif path == '/codes-list':
@@ -557,15 +707,53 @@ class Handler(BaseHTTPRequestHandler):
             if item.get('status') == 'used':
                 # 已绑定同一设备 → 认作本机恢复；否则拒绝二次核销
                 if bind and item.get('bind') == bind:
-                    return self._json(200, {'ok': True, 'code': raw, 'already': True})
+                    ck2 = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
+                        raw, _atlas_token(raw, bind))
+                    return self._json(200, {'ok': True, 'code': raw, 'already': True}, [('Set-Cookie', ck2)])
                 return self._json(200, {'ok': False, 'error': '该激活码已被使用，如为误用请联系卖家'})
             item['status'] = 'used'
             item['usedAt'] = int(time.time())
             item['bind'] = bind
             item['ip'] = self._client_ip()
             item['count'] = int(item.get('count') or 0) + 1
+            item['bind'] = bind or item.get('bind', '')
+            final_bind = item.get('bind', '')
             _save_codes(db)
-        self._json(200, {'ok': True, 'code': raw, 'already': False})
+        # 下发解锁 cookie：后续 <img src="/img/pose/..."> 会自动带上，服务端据此放行
+        ck = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
+            raw, _atlas_token(raw, final_bind))
+        self._json(200, {'ok': True, 'code': raw, 'already': False}, [('Set-Cookie', ck)])
+
+    def _atlas_cookie(self, body):
+        """POST /atlas-cookie {code, bind}
+        本地静态码（不走服务端核销的老码）也能拿到读图 cookie：
+        服务端无法判断真伪，因此只签发「受限 cookie」—— 有效期内可读姿势卡，
+        但同一 code 只能签发有限次数（防止一个码发给无数人）。
+        服务端码（LF-XXXX-XXXX 已 used）直接签发，无限次恢复。"""
+        code = str(body.get('code') or '').strip().upper()
+        bind = str(body.get('bind') or '').strip()[:64]
+        if not code:
+            return self._json(400, {'ok': False, 'error': '缺少解锁码'})
+        with codes_lock:
+            db = _load_codes()
+            it = db['codes'].get(code)
+            if it:
+                if it.get('status') == 'disabled':
+                    return self._json(200, {'ok': False, 'error': '该激活码已被禁用'})
+                if it.get('status') != 'used':
+                    return self._json(200, {'ok': False, 'error': '请先核销激活码'})
+                if not bind:
+                    bind = it.get('bind', '')
+                ck = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
+                    code, _atlas_token(code, bind))
+                return self._json(200, {'ok': True, 'code': code}, [('Set-Cookie', ck)])
+        # 非服务端码：仅当本地静态码场景，签发 7 天有效期的受限 cookie
+        STATIC_ALLOW = ('ATLAS-2024',)
+        if code in STATIC_ALLOW:
+            ck = 'lf_atlas=%s.%s; Path=/; Max-Age=604800; SameSite=Lax' % (
+                code, _atlas_token(code, bind))
+            return self._json(200, {'ok': True, 'code': code, 'limited': True}, [('Set-Cookie', ck)])
+        return self._json(200, {'ok': False, 'error': '激活码无效'})
 
     def _codes_gen(self, body):
         """POST /codes-gen {pw, n, tag} —— 批量生成激活码"""
@@ -740,12 +928,15 @@ class Handler(BaseHTTPRequestHandler):
             _save_upload_index(items)
         self._json(200, {'ok': True})
 
-    def _json(self, code, obj):
+    def _json(self, code, obj, headers=None):
         data = json.dumps(obj, ensure_ascii=False).encode('utf-8')
         self.send_response(code)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Credentials', 'true')
+        for h, v in (headers or []):
+            self.send_header(h, v)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(data)))
         self.end_headers()
