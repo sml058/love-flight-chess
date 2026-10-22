@@ -2068,7 +2068,29 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-cfg-row label{display:block;font-size:13px;font-weight:700;color:#A8788C;margin-bottom:4px}
 .slot-cfg-row textarea{width:100%;box-sizing:border-box;border:1px solid #F3D2DE;border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;resize:vertical;background:#FFF9FB;color:#5C4450}
 .slot-cfg-hint{font-size:12px;color:#C09AA8;margin-top:6px}
-/* --- 词库编辑抽屉 --- */
+/* ---------- 主页图册入口 ---------- */
+.atlas-entry{margin:10px 0 4px}
+.atlas-card{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:14px 16px;border:none;border-radius:18px;background:linear-gradient(135deg,#FFFFFF,#FFF1F6);border:1px solid rgba(255,255,255,.9);box-shadow:0 6px 18px rgba(255,110,156,.14);cursor:pointer;font-family:inherit;text-align:left;transition:transform .18s,box-shadow .18s}
+.atlas-card:active{transform:scale(.98)}
+.atlas-emoji{font-size:26px;flex:none}
+.atlas-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.atlas-name{font-size:16px;font-weight:800;color:#5C4450}
+.atlas-desc{font-size:12px;color:#B790A0}
+.atlas-arrow{flex:none;font-size:24px;color:#FF9FBE;font-weight:700}
+/* ---------- 图册视图 ---------- */
+.atlas-wrap{min-height:100vh;box-sizing:border-box;padding:14px 14px 40px}
+.atlas-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.atlas-back{display:inline-flex;align-items:center;gap:2px;border:none;background:rgba(255,255,255,.9);color:#B7798F;font-size:13px;font-weight:800;padding:8px 12px;border-radius:12px;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(255,110,156,.12)}
+.atlas-back svg{width:16px;height:16px;fill:none;stroke:#B7798F;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.atlas-title{font-size:17px;font-weight:900;color:#5C4450}
+.atlas-spacer{width:64px}
+.atlas-tabs{display:flex;gap:6px;background:#FFE9F1;border-radius:14px;padding:4px;margin-bottom:14px}
+.atlas-tab{flex:1;border:none;background:transparent;color:#B7798F;font-size:14px;font-weight:800;padding:10px 0;border-radius:11px;cursor:pointer;font-family:inherit;transition:all .18s}
+.atlas-tab.active{background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;box-shadow:0 3px 10px rgba(255,94,138,.35)}
+.atlas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.atlas-item{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#FFEDF3;border:1px solid #F6D6E2;cursor:pointer}
+.atlas-item img{width:100%;height:100%;object-fit:cover;display:block}
+.atlas-empty{display:none;text-align:center;color:#C9A5B4;font-size:14px;font-weight:700;padding:60px 0}
 .ss-mask{position:fixed;inset:0;z-index:900;background:rgba(120,45,80,.45);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
 .ss-sheet{width:100%;max-width:430px;max-height:82vh;overflow-y:auto;background:#FFF7FA;border-radius:26px 26px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(255,94,138,.25);animation:ssUp .28s cubic-bezier(.2,.9,.3,1)}
 @keyframes ssUp{from{transform:translateY(60%);opacity:.4}to{transform:translateY(0);opacity:1}}
@@ -2217,6 +2239,16 @@ function preloadImgs(list, cb){
         </button>
       </div>
       <p class="menu-hint" data-page-node-id="0nDkH9vMU1LpJIWVd9oq5d">选好想玩的游戏，下一步配置玩家</p>
+      <div class="atlas-entry">
+        <button class="atlas-card" id="btn-atlas" type="button">
+          <span class="atlas-emoji">📚</span>
+          <span class="atlas-tx">
+            <span class="atlas-name">图册</span>
+            <span class="atlas-desc">妹子图 · 姿势卡，随时翻一翻</span>
+          </span>
+          <span class="atlas-arrow">›</span>
+        </button>
+      </div>
       <button class="pack-link" id="btn-pack-link" type="button" data-page-node-id="pk00000000000000000001">已购买？<b>输入激活码</b>解锁进阶卡包</button>
       <button class="btn-primary" id="btn-menu-next" type="button" data-page-node-id="EpOBX7gi8JDSI7g8aS9yGl">下一步：选择玩家 ▶</button>
     </div>
@@ -2711,6 +2743,23 @@ function preloadImgs(list, cb){
         <button class="btn-primary btn-rps-roll" id="btn-slot-again" type="button" style="display:none">🔁 再来一局</button>
         <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义词库内容</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ========== 视图：图册（妹子图 / 姿势卡） ========== -->
+  <section id="view-atlas" class="view">
+    <div class="atlas-wrap">
+      <div class="atlas-head">
+        <button class="atlas-back" id="btn-atlas-back" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>返回</button>
+        <div class="atlas-title">📚 图册</div>
+        <div class="atlas-spacer"></div>
+      </div>
+      <div class="atlas-tabs" id="atlas-tabs">
+        <button class="atlas-tab active" data-a="girl" type="button">👧 妹子图</button>
+        <button class="atlas-tab" data-a="pose" type="button">🧘 姿势卡</button>
+      </div>
+      <div class="atlas-grid" id="atlas-grid"></div>
+      <div class="atlas-empty" id="atlas-empty">内容准备中，稍后就来～</div>
     </div>
   </section>
 
@@ -5609,6 +5658,42 @@ function switchView(id){
   window.scrollTo(0,0);
 }
 
+
+/* ============ 图册（妹子图 / 姿势卡） ============ */
+var ATLAS = { girl: [], pose: [] };
+var atlasTab = 'girl';
+function atlasRender(){
+  var grid = $('atlas-grid'), empty = $('atlas-empty');
+  var list = ATLAS[atlasTab] || [];
+  if(grid){
+    grid.innerHTML = list.map(function(it){
+      return '<div class="atlas-item" data-src="' + (it.src || '') + '">' + (it.src ? '<img src="' + it.src + '" alt="' + (it.name || '') + '" loading="lazy">' : '') + '</div>';
+    }).join('');
+  }
+  if(empty) empty.style.display = list.length ? 'none' : 'block';
+  var tabs = document.querySelectorAll('.atlas-tab');
+  for(var i = 0; i < tabs.length; i++){ tabs[i].classList.toggle('active', tabs[i].getAttribute('data-a') === atlasTab); }
+}
+function openAtlas(){
+  if(typeof SFX !== 'undefined'){ SFX.init(); SFX.resume(); SFX.click(); }
+  atlasTab = 'girl';
+  atlasRender();
+  switchView('view-atlas');
+}
+(function(){
+  var b = $('btn-atlas');
+  if(b) b.addEventListener('click', openAtlas);
+  var back = $('btn-atlas-back');
+  if(back) back.addEventListener('click', function(){ if(typeof SFX !== 'undefined') SFX.click(); switchView('view-menu'); });
+  var tabs = $('atlas-tabs');
+  if(tabs) tabs.addEventListener('click', function(e){
+    var t = e.target.closest('.atlas-tab');
+    if(!t) return;
+    atlasTab = t.getAttribute('data-a');
+    if(typeof SFX !== 'undefined') SFX.click();
+    atlasRender();
+  });
+})();
 
 /* ============ 密钥激活 ============ */
 var ACTIVATION_KEYS = [
