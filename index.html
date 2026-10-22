@@ -2028,7 +2028,7 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 @keyframes capPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .slot-capsule .cap-lab{font-size:10px;font-weight:800;letter-spacing:.2em;color:#C48CA0}
 .slot-capsule .cap-name{font-size:20px;font-weight:800;color:#FF5E8A;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot-reels{position:relative;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:none;padding:0;box-shadow:none;border-radius:0}
+.slot-reels{position:relative;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:none;padding:0;box-shadow:none;border-radius:0}
 .slot-reel{position:relative;overflow:hidden;height:208px;display:block;background:linear-gradient(180deg,#FFF9FB,#FFEDF3);border-radius:12px;border:1px solid #F6C6D6;box-shadow:inset 0 2px 8px rgba(255,110,156,.15)}
 .sr-head{position:absolute;top:0;left:0;right:0;z-index:30;text-align:center;font-size:9px;font-weight:800;letter-spacing:.2em;color:#D489A3;background:rgba(255,255,255,.7);backdrop-filter:blur(6px);border-bottom:1px solid #F6C6D6;padding:3px 0}
 .sr-win{position:absolute;inset:0;overflow:hidden}
@@ -2061,6 +2061,9 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-result .sr-big{font-size:16px;color:#FF5E8A}
 .slot-result b{color:#FF5E8A}
 .slot-cfg-row{margin:10px 0;text-align:left}
+.slot-cfg-row label{display:block;font-size:13px;font-weight:700;color:#A8788C;margin-bottom:4px}
+.slot-cfg-row textarea{width:100%;box-sizing:border-box;border:1px solid #F3D2DE;border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;resize:vertical;background:#FFF9FB;color:#5C4450}
+.slot-cfg-hint{font-size:12px;color:#C09AA8;margin-top:6px}
 </style>
 <script>
 /* ============ 图片外置：按需加载（方案A） ============ */
@@ -2661,7 +2664,7 @@ function preloadImgs(list, cb){
         <button class="rps-exit" id="btn-slot-exit" type="button"><svg class="x-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>退出</button>
       </div>
       <div class="slot-title-bar"></div>
-      <div class="slot-sub">一拉定情 · 地点、动作、部位随机组合 · 先集满爱心者胜</div>
+      <div class="slot-sub">一拉定情 · 地点、动作、部位、时长随机组合 · 先集满爱心者胜</div>
       <div class="rps-score" id="slot-score"></div>
       <div class="slot-status" id="slot-status">轮流拉杆，看谁的手气最甜！</div>
       <div class="slot-stage">
@@ -2671,6 +2674,7 @@ function preloadImgs(list, cb){
             <div class="slot-reel" id="slot-reel-0"></div>
             <div class="slot-reel" id="slot-reel-1"></div>
             <div class="slot-reel" id="slot-reel-2"></div>
+            <div class="slot-reel" id="slot-reel-3"></div>
           </div>
           <div class="slot-lights" id="slot-lights"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
@@ -2683,7 +2687,8 @@ function preloadImgs(list, cb){
           <div class="slot-cfg-row"><label>📍 地点（每行一个）</label><textarea id="slot-cfg-place" rows="4" placeholder="如：沙发上、阳台、厨房…"></textarea></div>
           <div class="slot-cfg-row"><label>💞 动作（每行一个）</label><textarea id="slot-cfg-act" rows="4" placeholder="如：亲吻、拥抱、按摩肩膀…"></textarea></div>
           <div class="slot-cfg-row"><label>💋 部位（每行一个）</label><textarea id="slot-cfg-body" rows="4" placeholder="如：脖子、脸颊、耳朵…"></textarea></div>
-          <div class="slot-cfg-hint">每次拉杆组合出一个甜蜜任务（地点+动作+部位），完成即可 · 三列花色全同 = 终极心动（爱心 +3 + 彩带）· 两列同花色 = 爱心 +2 · 普通 = 爱心 +1</div>
+          <div class="slot-cfg-row"><label>⏱️ 时长（每行一个）</label><textarea id="slot-cfg-dur" rows="4" placeholder="如：30 秒、1 分钟…"></textarea></div>
+          <div class="slot-cfg-hint">每次拉杆组合出一个甜蜜任务（地点+动作+部位+时长），完成即可 · 花色全同 = 终极心动（爱心 +3 + 彩带）· 有同花色 = 爱心 +2 · 普通 = 爱心 +1</div>
         </div>
       </div>
     </div>
@@ -8253,19 +8258,20 @@ var SLOT_SUITS = ['♠','♥','♣','♦'];
 var SLOT_DEFAULTS = {
   place: ['沙发上', '阳台', '厨房', '卧室', '地毯上', '玄关', '飘窗', '餐桌旁'],
   act: ['亲吻', '拥抱', '轻咬', '吹气', '抚摸', '挠痒痒', '贴贴', '蹭蹭'],
-  body: ['脖子', '脸颊', '耳朵', '手心', '头发', '肩膀', '后背', '鼻尖']
+  body: ['脖子', '脸颊', '耳朵', '手心', '头发', '肩膀', '后背', '鼻尖'],
+  dur: ['10 秒', '30 秒', '1 分钟', '15 秒', '数到 20', '3 个深呼吸', '半分钟', '闭眼感受']
 };
 var SLOT_HEARTS = { base: 1, pair: 2, jackpot: 3 };
 function slotCustomGet(){
   try{
     var v = JSON.parse(localStorage.getItem('love-slot-custom2') || '{}');
     function arr(k, def){ return (v[k] && v[k].length) ? v[k] : def; }
-    return { place: arr('place', SLOT_DEFAULTS.place), act: arr('act', SLOT_DEFAULTS.act), body: arr('body', SLOT_DEFAULTS.body) };
-  }catch(e){ return { place: SLOT_DEFAULTS.place, act: SLOT_DEFAULTS.act, body: SLOT_DEFAULTS.body }; }
+    return { place: arr('place', SLOT_DEFAULTS.place), act: arr('act', SLOT_DEFAULTS.act), body: arr('body', SLOT_DEFAULTS.body), dur: arr('dur', SLOT_DEFAULTS.dur) };
+  }catch(e){ return { place: SLOT_DEFAULTS.place, act: SLOT_DEFAULTS.act, body: SLOT_DEFAULTS.body, dur: SLOT_DEFAULTS.dur }; }
 }
 function slotReelItems(idx){
   var c = slotCustomGet();
-  return [c.place, c.act, c.body][idx] || SLOT_DEFAULTS.place;
+  return [c.place, c.act, c.body, c.dur][idx] || SLOT_DEFAULTS.place;
 }
 function slotCard(idx, i){
   return { rank: SLOT_RANKS[(i + idx * 5) % SLOT_RANKS.length], suit: SLOT_SUITS[i % SLOT_SUITS.length] };
@@ -8297,10 +8303,11 @@ function openSlot(){
 }
 function slotCustomFill(){
   var c = slotCustomGet();
-  var t = $('slot-cfg-place'), p = $('slot-cfg-act'), n = $('slot-cfg-body');
+  var t = $('slot-cfg-place'), p = $('slot-cfg-act'), n = $('slot-cfg-body'), d = $('slot-cfg-dur');
   if(t && t.value === '') t.value = c.place.join('\n');
   if(p && p.value === '') p.value = c.act.join('\n');
   if(n && n.value === '') n.value = c.body.join('\n');
+  if(d && d.value === '') d.value = c.dur.join('\n');
 }
 function renderSlotScore(){
   var box = $('slot-score');
@@ -8318,13 +8325,13 @@ function updateSlotStatus(){
 }
 var SLOT_CELL_H = 112, SLOT_WIN_H = 208;
 var SLOT_KOFF = (SLOT_WIN_H - SLOT_CELL_H) / 2;   // 48：让停中的卡片正对金色中奖线
-var SLOT_REEL_TITLES = ['地点', '动作', '部位'];
+var SLOT_REEL_TITLES = ['地点', '动作', '部位', '时长'];
 function buildStrip(idx){
   var el = $('slot-reel-' + idx);
   if(!el) return null;
   var items = slotReelItems(idx);
   var html = '';
-  for(var g = 0; g < 15; g++){
+  for(var g = 0; g < 18; g++){
     for(var i = 0; i < items.length; i++){
       var card = slotCard(idx, i);
       html += '<div class="slot-cell"><div class="sc-card s' + (i % 4) + '">'
@@ -8340,7 +8347,7 @@ function buildStrip(idx){
   return el.querySelector('.slot-strip');
 }
 function resetSlotReels(){
-  for(var i = 0; i < 3; i++){
+  for(var i = 0; i < 4; i++){
     var el = $('slot-reel-' + i);
     if(el){
       el.classList.remove('spinning','win');
@@ -8396,7 +8403,7 @@ function slotSpinReel(idx, itemIdx, delayMs){
         strip.style.transform = 'translateY(' + yEnd + 'px)';
         if(el) el.classList.remove('spinning');
         SFX.click();
-        if(idx === 2) setTimeout(slotJudge, 180);
+        if(idx === 3) setTimeout(slotJudge, 180);
       }
     }
     strip.style.transform = 'translateY(' + y0 + 'px)';
@@ -8409,23 +8416,26 @@ function slotPull(){
   slot.busy = true;
   $('btn-slot-pull').disabled = true;
   var lg = $('slot-lights');
-  if(lg){ var is = lg.querySelectorAll('i'); for(var k = 0; k < is.length; k++) is[k].classList.add('on'); }
-  for(var i = 0; i < 3; i++){
+  if(lg){
+    lg.classList.remove('party');
+    var is = lg.querySelectorAll('i');
+    for(var k = 0; k < is.length; k++) is[k].classList.add('on');
+  }
+  for(var i = 0; i < 4; i++){
     (function(idx){
       var el = $('slot-reel-' + idx);
-      if(el) el.classList.add('spinning');
+      if(el){ el.classList.remove('win'); el.classList.add('spinning'); }
     })(i);
   }
   // 结果提前定，滚动只是演出：每列随机一个词条下标
   var res = [];
-  for(var r = 0; r < 3; r++){ res.push(Math.floor(Math.random() * slotReelItems(r).length)); }
-  // 小幅提升手感：8% 概率把第三列升成与前两列同花色
+  for(var r = 0; r < 4; r++){ res.push(Math.floor(Math.random() * slotReelItems(r).length)); }
+  // 小幅提升手感：8% 概率把最后一列升成与前面某列同花色
   if(Math.random() < 0.08){
-    var s0 = SLOT_SUITS[res[0] % 4], s1 = SLOT_SUITS[res[1] % 4];
-    var its2 = slotReelItems(2);
+    var sA = [SLOT_SUITS[res[0] % 4], SLOT_SUITS[res[1] % 4], SLOT_SUITS[res[2] % 4]];
+    var its2 = slotReelItems(3);
     for(var k = 0; k < its2.length; k++){
-      var sk = SLOT_SUITS[k % 4];
-      if(sk === s0 || sk === s1){ res[2] = k; break; }
+      if(sA.indexOf(SLOT_SUITS[k % 4]) >= 0){ res[3] = k; break; }
     }
   }
   var p = slot.players[slot.turn];
@@ -8433,6 +8443,7 @@ function slotPull(){
   slotSpinReel(0, res[0], 60);
   slotSpinReel(1, res[1], 240);
   slotSpinReel(2, res[2], 420);
+  slotSpinReel(3, res[3], 600);
 }
 function slotWindowItem(idx){
   var el = $('slot-reel-' + idx);
@@ -8449,20 +8460,21 @@ function slotWindowItem(idx){
 window.slotWindowSym = slotWindowItem;
 function slotJudge(){
   if(!slot) return;
-  var its = [slotWindowItem(0), slotWindowItem(1), slotWindowItem(2)];
+  var its = [slotWindowItem(0), slotWindowItem(1), slotWindowItem(2), slotWindowItem(3)];
   var p = slot.players[slot.turn];
-  var task = '在' + its[0].label + its[1].label + '对方的' + its[2].label;
-  var s = [its[0].suit, its[1].suit, its[2].suit];
+  var task = '在' + its[0].label + its[1].label + '对方的' + its[2].label + ' ' + its[3].label;
+  var s = [its[0].suit, its[1].suit, its[2].suit, its[3].suit];
   var html = '', gain = 0;
-  var allSame = s[0] === s[1] && s[1] === s[2];
+  var allSame = s[0] === s[1] && s[1] === s[2] && s[2] === s[3];
+  var anyPair = s[0] === s[1] || s[0] === s[2] || s[0] === s[3] || s[1] === s[2] || s[1] === s[3] || s[2] === s[3];
   var kind;
   if(allSame){
     kind = 'jackpot'; gain = SLOT_HEARTS.jackpot;
-    html = '<span class="sr-big">💫 终极心动！花色全同 ' + s[0] + s[0] + s[0] + ' · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b><br>额外奖励：对方要亲你三下！';
+    html = '<span class="sr-big">💫 终极心动！花色全同 ' + s[0] + s[0] + s[0] + s[0] + ' · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b><br>额外奖励：对方要亲你三下！';
     for(var i = 0; i < 3; i++){ (function(n){ setTimeout(function(){ SFX.reward(); }, n * 350); })(i); }
-  } else if(s[0] === s[1] || s[1] === s[2] || s[0] === s[2]){
+  } else if(anyPair){
     kind = 'pair'; gain = SLOT_HEARTS.pair;
-    html = '<span class="sr-big">💝 甜蜜组合！两列同花色 · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b>';
+    html = '<span class="sr-big">💝 甜蜜组合！有同花色 · 爱心 +' + gain + '</span><br>甜蜜任务：<b>' + task + '</b>';
     SFX.reward();
   } else {
     kind = 'base'; gain = SLOT_HEARTS.base;
@@ -8478,7 +8490,7 @@ function slotJudge(){
     else if(kind === 'pair'){ for(var k = 0; k < is.length; k++){ if(k < 3) is[k].classList.add('on'); } }
     else { if(is[0]) is[0].classList.add('on'); }
   }
-  var reels = [0,1,2].map(function(i){ return $('slot-reel-' + i); });
+  var reels = [0,1,2,3].map(function(i){ return $('slot-reel-' + i); });
   if(kind === 'jackpot' || kind === 'pair'){ reels.forEach(function(el){ if(el) el.classList.add('win'); }); }
   renderSlotScore();
   var iv = setTimeout(function(){
@@ -8487,7 +8499,7 @@ function slotJudge(){
     slot.turn = (slot.turn + 1) % slot.players.length;
     if(slot.turn === 0) slot.round++;
     updateSlotStatus();
-    resetSlotReels();
+    // 不复位：滚轮停在哪就留在哪，等下一位玩家直接转
     $('slot-result').innerHTML = '轮到 <b style="color:#FF5E8A">' + slot.players[slot.turn].name + '</b> 拉杆！';
   }, 2600);
   _slotTimers.push(iv);
@@ -8529,11 +8541,11 @@ $('btn-slot-custom-toggle').addEventListener('click', function(){
   function save(){
     try{
       function lines(id){ var v = ($(id) && $(id).value || '').split('\n').map(function(x){ return x.trim(); }).filter(Boolean); return v; }
-      var c = { place: lines('slot-cfg-place'), act: lines('slot-cfg-act'), body: lines('slot-cfg-body') };
+      var c = { place: lines('slot-cfg-place'), act: lines('slot-cfg-act'), body: lines('slot-cfg-body'), dur: lines('slot-cfg-dur') };
       localStorage.setItem('love-slot-custom2', JSON.stringify(c));
     }catch(e){}
   }
-  ['slot-cfg-place','slot-cfg-act','slot-cfg-body'].forEach(function(id){
+  ['slot-cfg-place','slot-cfg-act','slot-cfg-body','slot-cfg-dur'].forEach(function(id){
     var el = $(id);
     if(el) el.addEventListener('change', save);
   });
