@@ -447,7 +447,10 @@ class Handler(BaseHTTPRequestHandler):
             # 姿势卡：必须解锁才能下载（防盗链 + 防绕过前端锁）
             fn = unquote(os.path.basename(path))
             fp = os.path.join(POSE_DIR, fn)
-            if not (fn and POSE_FN_RE.match(fn) and os.path.isfile(fp)):
+            # _lock.webp 是公开占位图，任何人都可取（未解锁时的格子就靠它）
+            if fn == '_lock.webp' and os.path.isfile(fp):
+                self._serve_img(fp, 'image/webp')
+            elif not (fn and POSE_FN_RE.match(fn) and os.path.isfile(fp)):
                 self.send_error(404)
             elif not _is_atlas_authed(self):
                 # 未解锁：返回服务器生成的占位图，绝不泄露任何原图字节
