@@ -5814,6 +5814,13 @@ function atlasLoadPoses(cb){
     })
     .catch(function(){ ATLAS_POSE_LOADING = false; if(cb) cb(ATLAS_POSE); });
 }
+/* 姿势卡锁定态占位：未解锁时也像妹子图一样铺 100 张「锁图」格子（不泄露任何真图） */
+function atlasPosePlaceholder(){
+  var base = (typeof uploadBase === 'function') ? uploadBase() : '';
+  var arr = [];
+  for(var i = 0; i < 100; i++){ arr.push({ src: base + '/img/pose/_lock.webp' }); }
+  return arr;
+}
 function atlasRender(){
   var grid = $('atlas-grid'), empty = $('atlas-empty');
   // 姿势卡按需从服务端拉清单（未解锁时不拉，避免无谓 403）
@@ -5821,6 +5828,8 @@ function atlasRender(){
     atlasLoadPoses(function(){ atlasRender(); });
   }
   var list = ATLAS[atlasTab] || [];
+  // 未解锁的姿势卡 tab：渲染 100 张锁图占位（视觉与妹子图锁定态一致）
+  if(atlasTab === 'pose' && !atlasUnlocked()){ list = atlasPosePlaceholder(); }
   if(grid){
     grid.innerHTML = list.map(function(it, i){
       var src = (it.src || it.cover || '').replace(/"/g, '&quot;');
@@ -5828,7 +5837,8 @@ function atlasRender(){
       var clickable = (it.id || it.src);
       var lock = (!atlasUnlocked()) ? '<div class="atlas-lock"><span>🔒</span></div>' : '';
       // 姿势卡是同源图片，靠 cookie 鉴权；妹子图是外链，不能加 crossorigin（外链无 CORS 头会裂）
-      var imgAttr = (atlasTab === 'pose')
+      var isPoseReal = (atlasTab === 'pose') && atlasUnlocked();
+      var imgAttr = isPoseReal
         ? ' crossorigin="use-credentials"'
         : ' referrerpolicy="no-referrer"';
       return '<div class="atlas-item' + (lock ? ' locked' : '') + '" data-i="' + i + '"' + (clickable ? ' data-click="1"' : '') + '>'
@@ -6059,11 +6069,12 @@ function openAtlas(){
   if(grid) grid.addEventListener('click', function(e){
     var it = e.target.closest('.atlas-item');
     if(!it) return;
+    // 未解锁：统一弹解锁框；妹子图带上相册 id，解锁后能直接进相册
     var list = ATLAS[atlasTab] || [];
     var idx = parseInt(it.getAttribute('data-i'), 10);
     var o = list[idx];
+    if(!atlasUnlocked()){ openAtlasMask(o ? o.id : null); return; }
     if(!o) return;
-    if(!atlasUnlocked()){ openAtlasMask(o.id); return; }
     if(o.id){
       atlasOpenSet(o.id);
     }
