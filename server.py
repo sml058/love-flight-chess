@@ -343,6 +343,7 @@ def _pose_index():
         files = sorted(f for f in os.listdir(POSE_DIR) if POSE_FN_RE.match(f))
     except OSError:
         return []
+    # 注意：POSE_FN_RE 只匹配数字开头，_lock.webp 天然被排除
     key = '%d|%d' % (len(files), int(os.path.getmtime(POSE_DIR)) if os.path.isdir(POSE_DIR) else 0)
     if _POSE_INDEX_CACHE['key'] == key:
         return _POSE_INDEX_CACHE['data']
@@ -351,34 +352,12 @@ def _pose_index():
     return data
 
 
+_LOCK_FP = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img', 'pose', '_lock.webp')
+
+
 def _blur_placeholder():
-    """未解锁时返回的占位图。首次调用生成一张 720x720 的模糊渐变 webp 存到 img/pose/_lock.webp。"""
-    fp = os.path.join(POSE_DIR, '_lock.webp')
-    if os.path.isfile(fp) and os.path.getsize(fp) > 500:
-        return fp
-    try:
-        from PIL import Image, ImageFilter
-        w = h = 360
-        im = Image.new('RGB', (w, h))
-        px = im.load()
-        for y in range(h):
-            for x in range(w):
-                r = 90 + int(50 * (x / w))
-                g = 40 + int(30 * (y / h))
-                b = 70 + int(60 * ((x + y) / (w + h)))
-                px[x, y] = (r, g, b)
-        im = im.filter(ImageFilter.GaussianBlur(6))
-        os.makedirs(POSE_DIR, exist_ok=True)
-        im.save(fp, 'WEBP', quality=70)
-        return fp
-    except Exception:
-        alt = os.path.join(POSE_DIR, '_lock.webp')
-        try:
-            with open(alt, 'wb') as f:
-                f.write(b'RIFF')
-        except Exception:
-            pass
-        return alt
+    """未解锁时返回的占位图（预生成文件 img/pose/_lock.webp，零运行时依赖）。"""
+    return _LOCK_FP
 
 
 # 真心话大冒险抽卡后自动切换下一位的定时器（模块级，跨 Handler 实例共享）
