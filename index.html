@@ -2064,6 +2064,30 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .slot-cfg-row label{display:block;font-size:13px;font-weight:700;color:#A8788C;margin-bottom:4px}
 .slot-cfg-row textarea{width:100%;box-sizing:border-box;border:1px solid #F3D2DE;border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;resize:vertical;background:#FFF9FB;color:#5C4450}
 .slot-cfg-hint{font-size:12px;color:#C09AA8;margin-top:6px}
+/* --- 词库编辑抽屉 --- */
+.ss-mask{position:fixed;inset:0;z-index:900;background:rgba(120,45,80,.45);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.ss-sheet{width:100%;max-width:430px;max-height:82vh;overflow-y:auto;background:#FFF7FA;border-radius:26px 26px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(255,94,138,.25);animation:ssUp .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes ssUp{from{transform:translateY(60%);opacity:.4}to{transform:translateY(0);opacity:1}}
+.ss-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ss-title{font-size:19px;font-weight:900;color:#FF5E8A}
+.ss-x{width:32px;height:32px;border-radius:50%;border:none;background:#FFE4EE;color:#D4567F;font-size:15px;font-weight:800;cursor:pointer}
+.ss-tabs{display:flex;gap:6px;background:#FFE9F1;border-radius:12px;padding:4px;margin-bottom:12px}
+.ss-tab{flex:1;border:none;background:transparent;color:#B7798F;font-size:14px;font-weight:800;padding:9px 0;border-radius:9px;cursor:pointer;font-family:inherit}
+.ss-tab.active{background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;box-shadow:0 3px 10px rgba(255,94,138,.35)}
+.ss-group{background:#fff;border:1px solid #F6D6E2;border-radius:14px;padding:12px;margin-bottom:12px}
+.ss-group>label{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;color:#C48CA0;margin-bottom:8px}
+.ss-row{display:flex;gap:8px}
+.ss-row input{flex:1;min-width:0;border:1px solid #F3D2DE;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;background:#FFF9FB;color:#5C4450}
+.ss-row input:focus{outline:none;border-color:#FF8FB0}
+.ss-btn-ghost{flex:none;border:1px solid #F3B8CC;background:#fff;color:#D4567F;font-size:13px;font-weight:800;border-radius:10px;padding:0 16px;cursor:pointer;font-family:inherit}
+.ss-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.ss-item{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #F6D6E2;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:700;color:#5C4450}
+.ss-item .ss-del{border:none;background:transparent;color:#E8A0B8;font-size:16px;cursor:pointer;padding:4px 6px}
+.ss-item .ss-del:active{color:#FF5E8A}
+.ss-btn-add{flex:none;width:46px;border:none;background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;font-size:20px;font-weight:800;border-radius:10px;cursor:pointer;box-shadow:0 3px 10px rgba(255,94,138,.35)}
+.ss-foot{display:flex;gap:10px;margin-top:4px}
+.ss-foot .ss-btn-ghost{flex:1;padding:12px 0}
+.ss-btn-done{flex:1.4;border:none;background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;font-size:15px;font-weight:900;border-radius:12px;padding:12px 0;cursor:pointer;box-shadow:0 4px 14px rgba(255,94,138,.4);font-family:inherit}
 </style>
 <script>
 /* ============ 图片外置：按需加载（方案A） ============ */
@@ -2682,17 +2706,35 @@ function preloadImgs(list, cb){
         <button class="btn-primary btn-rps-roll" id="btn-slot-pull" type="button">开始旋转</button>
         <button class="btn-primary btn-rps-roll" id="btn-slot-again" type="button" style="display:none">🔁 再来一局</button>
         <button class="rps-custom-btn" id="btn-slot-custom-toggle" type="button">✏️ 自定义词库内容</button>
-        <div class="rps-custom-panel" id="slot-custom-panel" style="display:none">
-          <div class="wc-title">自定义老虎机词库 · 输入即存，下次打开还在</div>
-          <div class="slot-cfg-row"><label>📍 地点（每行一个）</label><textarea id="slot-cfg-place" rows="4" placeholder="如：沙发上、阳台、厨房…"></textarea></div>
-          <div class="slot-cfg-row"><label>💞 动作（每行一个）</label><textarea id="slot-cfg-act" rows="4" placeholder="如：亲吻、拥抱、按摩肩膀…"></textarea></div>
-          <div class="slot-cfg-row"><label>💋 部位（每行一个）</label><textarea id="slot-cfg-body" rows="4" placeholder="如：脖子、脸颊、耳朵…"></textarea></div>
-          <div class="slot-cfg-row"><label>⏱️ 时长（每行一个）</label><textarea id="slot-cfg-dur" rows="4" placeholder="如：30 秒、1 分钟…"></textarea></div>
-          <div class="slot-cfg-hint">每次拉杆组合出一个甜蜜任务（地点+动作+部位+时长），完成即可 · 花色全同 = 终极心动（爱心 +3 + 彩带）· 有同花色 = 爱心 +2 · 普通 = 爱心 +1</div>
-        </div>
       </div>
     </div>
   </section>
+
+  <!-- 老虎机词库编辑抽屉（仿参考站交互 · 粉色主题） -->
+  <div class="ss-mask" id="slot-sheet" style="display:none">
+    <div class="ss-sheet">
+      <div class="ss-head"><span class="ss-title">编辑老虎机内容</span><button class="ss-x" id="btn-ss-close" type="button">✕</button></div>
+      <div class="ss-tabs" id="ss-tabs">
+        <button class="ss-tab active" data-t="0" type="button">地点</button>
+        <button class="ss-tab" data-t="1" type="button">动作</button>
+        <button class="ss-tab" data-t="2" type="button">部位</button>
+        <button class="ss-tab" data-t="3" type="button">时长</button>
+      </div>
+      <div class="ss-group">
+        <label>编辑标签名称</label>
+        <div class="ss-row"><input id="ss-title-input" maxlength="6"><button class="ss-btn-ghost" id="btn-ss-title-reset" type="button">重置</button></div>
+      </div>
+      <div class="ss-list" id="ss-list"></div>
+      <div class="ss-group">
+        <label>添加新项</label>
+        <div class="ss-row"><input id="ss-new-input" placeholder="输入内容..."><button class="ss-btn-add" id="btn-ss-add" type="button">＋</button></div>
+      </div>
+      <div class="ss-foot">
+        <button class="ss-btn-ghost" id="btn-ss-reset" type="button">恢复默认内容</button>
+        <button class="ss-btn-done" id="btn-ss-done" type="button">完成</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ========== 视图：赛马游戏 ========== -->
   <section id="view-race" class="view" data-page-node-id="f6vnTLWCFMTkdsbvE9FKJG">
@@ -8266,8 +8308,16 @@ function slotCustomGet(){
   try{
     var v = JSON.parse(localStorage.getItem('love-slot-custom2') || '{}');
     function arr(k, def){ return (v[k] && v[k].length) ? v[k] : def; }
-    return { place: arr('place', SLOT_DEFAULTS.place), act: arr('act', SLOT_DEFAULTS.act), body: arr('body', SLOT_DEFAULTS.body), dur: arr('dur', SLOT_DEFAULTS.dur) };
-  }catch(e){ return { place: SLOT_DEFAULTS.place, act: SLOT_DEFAULTS.act, body: SLOT_DEFAULTS.body, dur: SLOT_DEFAULTS.dur }; }
+    return {
+      place: arr('place', SLOT_DEFAULTS.place),
+      act: arr('act', SLOT_DEFAULTS.act),
+      body: arr('body', SLOT_DEFAULTS.body),
+      dur: arr('dur', SLOT_DEFAULTS.dur),
+      titles: (v.titles && v.titles.length === 4) ? v.titles : SLOT_REEL_TITLES.slice()
+    };
+  }catch(e){
+    return { place: SLOT_DEFAULTS.place, act: SLOT_DEFAULTS.act, body: SLOT_DEFAULTS.body, dur: SLOT_DEFAULTS.dur, titles: SLOT_REEL_TITLES.slice() };
+  }
 }
 function slotReelItems(idx){
   var c = slotCustomGet();
@@ -8293,21 +8343,10 @@ function openSlot(){
   $('btn-slot-pull').style.display = '';
   var st = $('btn-slot-custom-toggle');
   if(st){ st.style.display = 'block'; }
-  var scp = $('slot-custom-panel');
-  if(scp){ scp.style.display = 'none'; }
-  slotCustomFill();
   renderSlotScore();
   updateSlotStatus();
   resetSlotReels();
   switchView('view-slot');
-}
-function slotCustomFill(){
-  var c = slotCustomGet();
-  var t = $('slot-cfg-place'), p = $('slot-cfg-act'), n = $('slot-cfg-body'), d = $('slot-cfg-dur');
-  if(t && t.value === '') t.value = c.place.join('\n');
-  if(p && p.value === '') p.value = c.act.join('\n');
-  if(n && n.value === '') n.value = c.body.join('\n');
-  if(d && d.value === '') d.value = c.dur.join('\n');
 }
 function renderSlotScore(){
   var box = $('slot-score');
@@ -8326,10 +8365,12 @@ function updateSlotStatus(){
 var SLOT_CELL_H = 112, SLOT_WIN_H = 208;
 var SLOT_KOFF = (SLOT_WIN_H - SLOT_CELL_H) / 2;   // 48：让停中的卡片正对金色中奖线
 var SLOT_REEL_TITLES = ['地点', '动作', '部位', '时长'];
+function ssEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function buildStrip(idx){
   var el = $('slot-reel-' + idx);
   if(!el) return null;
   var items = slotReelItems(idx);
+  var title = slotCustomGet().titles[idx];
   var html = '';
   for(var g = 0; g < 18; g++){
     for(var i = 0; i < items.length; i++){
@@ -8337,12 +8378,12 @@ function buildStrip(idx){
       html += '<div class="slot-cell"><div class="sc-card s' + (i % 4) + '">'
         + '<span class="sc-corner tl"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
         + '<span class="sc-corner br"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
-        + '<span class="sc-label">' + items[i] + '</span>'
+        + '<span class="sc-label">' + ssEsc(items[i]) + '</span>'
         + '<span class="sc-mark">' + card.suit + '</span>'
         + '</div></div>';
     }
   }
-  el.innerHTML = '<div class="sr-head">' + SLOT_REEL_TITLES[idx] + '</div>'
+  el.innerHTML = '<div class="sr-head">' + ssEsc(title) + '</div>'
     + '<div class="sr-win"><div class="sr-pay"></div><div class="sr-fade"></div><div class="slot-strip">' + html + '</div></div>';
   return el.querySelector('.slot-strip');
 }
@@ -8520,6 +8561,8 @@ $('btn-slot-pull').addEventListener('click', slotPull);
 $('btn-slot-exit').addEventListener('click', function(){
   SFX.click();
   slot = null;
+  var sheet = $('slot-sheet');
+  if(sheet) sheet.style.display = 'none';
   for(var i = 0; i < _slotTimers.length; i++) clearTimeout(_slotTimers[i]), clearInterval(_slotTimers[i]);
   _slotTimers = [];
   switchView('view-menu');
@@ -8528,28 +8571,119 @@ $('btn-slot-again').addEventListener('click', function(){
   SFX.click();
   slotResetAll();
 });
-$('btn-slot-custom-toggle').addEventListener('click', function(){
-  var p = $('slot-custom-panel');
-  if(!p) return;
-  var show = p.style.display === 'none';
-  p.style.display = show ? 'block' : 'none';
-  this.textContent = show ? '✏️ 收起自定义奖项 ▲' : '✏️ 自定义奖项内容';
-  if(show) slotCustomFill();
-  SFX.click();
-});
-(function(){
-  function save(){
-    try{
-      function lines(id){ var v = ($(id) && $(id).value || '').split('\n').map(function(x){ return x.trim(); }).filter(Boolean); return v; }
-      var c = { place: lines('slot-cfg-place'), act: lines('slot-cfg-act'), body: lines('slot-cfg-body'), dur: lines('slot-cfg-dur') };
-      localStorage.setItem('love-slot-custom2', JSON.stringify(c));
-    }catch(e){}
+/* ---------- 老虎机词库编辑抽屉（仿参考站交互） ---------- */
+var ssTab = 0;
+var SS_KEYS = ['place', 'act', 'body', 'dur'];
+function ssRaw(){
+  try{ return JSON.parse(localStorage.getItem('love-slot-custom2') || '{}') || {}; }catch(e){ return {}; }
+}
+function ssSave(c){
+  try{ localStorage.setItem('love-slot-custom2', JSON.stringify(c)); }catch(e){}
+}
+function ssCurList(){
+  var c = slotCustomGet();
+  return c[SS_KEYS[ssTab]].slice();
+}
+function ssRender(){
+  var tabs = document.querySelectorAll('.ss-tab');
+  for(var i = 0; i < tabs.length; i++){ tabs[i].classList.toggle('active', i === ssTab); }
+  var c = slotCustomGet();
+  var ti = $('ss-title-input');
+  if(ti) ti.value = c.titles[ssTab];
+  var list = ssCurList();
+  var box = $('ss-list');
+  if(box){
+    box.innerHTML = list.length
+      ? list.map(function(item, i){
+          return '<div class="ss-item"><span>' + ssEsc(item) + '</span><button class="ss-del" data-i="' + i + '" type="button" aria-label="删除">🗑</button></div>';
+        }).join('')
+      : '<div style="text-align:center;color:#C9A5B4;font-size:13px;padding:14px 0">暂无内容，在下方添加吧</div>';
   }
-  ['slot-cfg-place','slot-cfg-act','slot-cfg-body','slot-cfg-dur'].forEach(function(id){
-    var el = $(id);
-    if(el) el.addEventListener('change', save);
+}
+function ssApply(fn){
+  var raw = ssRaw();
+  var key = SS_KEYS[ssTab];
+  var list = (raw[key] && raw[key].length) ? raw[key].slice() : SLOT_DEFAULTS[key].slice();
+  list = fn(list);
+  raw[key] = list;
+  ssSave(raw);
+  ssRender();
+}
+function ssRefreshReels(){
+  for(var i = 0; i < 4; i++){
+    var el = $('slot-reel-' + i);
+    if(el && el.firstChild){ buildStrip(i); }
+  }
+  if(slot && !slot.busy){ resetSlotReels(); }
+}
+function ssOpen(){
+  ssRender();
+  $('slot-sheet').style.display = 'flex';
+  SFX.click();
+}
+function ssClose(){
+  $('slot-sheet').style.display = 'none';
+  ssRefreshReels();
+  SFX.click();
+}
+$('btn-slot-custom-toggle').addEventListener('click', ssOpen);
+$('btn-ss-close').addEventListener('click', ssClose);
+$('btn-ss-done').addEventListener('click', ssClose);
+$('slot-sheet').addEventListener('click', function(e){ if(e.target === this){ ssClose(); } });
+(function(){
+  var tabs = $('ss-tabs');
+  if(tabs) tabs.addEventListener('click', function(e){
+    var b = e.target.closest('.ss-tab');
+    if(!b) return;
+    ssTab = parseInt(b.getAttribute('data-t'), 10) || 0;
+    SFX.click();
+    ssRender();
   });
 })();
+$('btn-ss-title-reset').addEventListener('click', function(){
+  var raw = ssRaw();
+  if(!raw.titles) raw.titles = SLOT_REEL_TITLES.slice();
+  raw.titles[ssTab] = SLOT_REEL_TITLES[ssTab];
+  ssSave(raw);
+  ssRender();
+  SFX.click();
+});
+$('ss-title-input').addEventListener('change', function(){
+  var v = this.value.trim();
+  if(!v) v = SLOT_REEL_TITLES[ssTab];
+  var raw = ssRaw();
+  if(!raw.titles) raw.titles = SLOT_REEL_TITLES.slice();
+  raw.titles[ssTab] = v.slice(0, 6);
+  ssSave(raw);
+  this.value = raw.titles[ssTab];
+});
+$('ss-list').addEventListener('click', function(e){
+  var b = e.target.closest('.ss-del');
+  if(!b) return;
+  var i = parseInt(b.getAttribute('data-i'), 10);
+  ssApply(function(list){ list.splice(i, 1); return list; });
+  SFX.penalty();
+});
+$('btn-ss-add').addEventListener('click', function(){
+  var inp = $('ss-new-input');
+  var v = (inp.value || '').trim();
+  if(!v){ inp.focus(); return; }
+  ssApply(function(list){ list.push(v.slice(0, 20)); return list; });
+  inp.value = '';
+  inp.focus();
+  SFX.reward();
+});
+$('ss-new-input').addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); $('btn-ss-add').click(); }
+});
+$('btn-ss-reset').addEventListener('click', function(){
+  var raw = ssRaw();
+  delete raw[SS_KEYS[ssTab]];
+  if(raw.titles){ raw.titles[ssTab] = SLOT_REEL_TITLES[ssTab]; }
+  ssSave(raw);
+  ssRender();
+  SFX.click();
+});
 
 function openMystery(){
   SFX.init(); SFX.resume(); SFX.click();
