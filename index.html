@@ -2099,6 +2099,9 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .atlas-item .atlas-num{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.42);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px;backdrop-filter:blur(4px)}
 .atlas-item .atlas-cnt{position:absolute;right:6px;bottom:6px;background:rgba(255,94,138,.9);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:9px}
 .atlas-loading{text-align:center;color:#C9A5B4;font-size:13px;font-weight:700;padding:40px 0}
+.atlas-item.locked img{filter:blur(3px) saturate(.9);transform:scale(1.04)}
+.atlas-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(70,25,45,.18),rgba(70,25,45,.5))}
+.atlas-lock span{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 3px 12px rgba(120,40,75,.35)}
 .ss-mask{position:fixed;inset:0;z-index:900;background:rgba(120,45,80,.45);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
 .ss-sheet{width:100%;max-width:430px;max-height:82vh;overflow-y:auto;background:#FFF7FA;border-radius:26px 26px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(255,94,138,.25);animation:ssUp .28s cubic-bezier(.2,.9,.3,1)}
 @keyframes ssUp{from{transform:translateY(60%);opacity:.4}to{transform:translateY(0);opacity:1}}
@@ -2276,6 +2279,22 @@ function preloadImgs(list, cb){
         <button class="pack-btn go" id="pack-ok" type="button" data-page-node-id="pk0000000000000000000b">解锁</button>
       </div>
       <div class="pack-hint" data-page-node-id="pk0000000000000000000c">一个激活码绑定首次使用的设备，换手机可凭同一个码重新激活</div>
+    </div>
+  </div>
+
+  <!-- 图册 · 解锁相册 -->
+  <div class="pack-mask" id="aset-mask">
+    <div class="pack-box">
+      <div class="pack-ico">🔒</div>
+      <div class="pack-title">解锁全部相册</div>
+      <div class="pack-sub" id="aset-sub">妹子图共 125 个相册、5900+ 张照片<br>输入解锁码即可看全部内容，永久有效</div>
+      <input class="pack-input" id="aset-input" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="输入解锁码">
+      <div class="pack-msg" id="aset-msg"></div>
+      <div class="pack-btns">
+        <button class="pack-btn ghost" id="aset-cancel" type="button">取消</button>
+        <button class="pack-btn go" id="aset-ok" type="button">解锁</button>
+      </div>
+      <div class="pack-hint">解锁码一次输入，此设备永久有效</div>
     </div>
   </div>
 
@@ -3192,9 +3211,8 @@ try{ setYogaOutfitBtn(); }catch(e){}
 window.openFullView=function(src,alt){ if(!src)return; var o=document.getElementById('fullview-overlay'); if(!o){ o=document.createElement('div'); o.id='fullview-overlay'; o.innerHTML='<div class="fullview-box"><button class="fullview-close" onclick="closeFullView(event)">✕</button><img id="fullview-img" src="" alt=""><div class="fullview-name" id="fullview-name"></div></div>'; o.addEventListener('click',function(e){ if(e.target===o) closeFullView(); }); document.body.appendChild(o);} document.getElementById('fullview-img').src=src; var n=document.getElementById('fullview-name'); if(n)n.textContent=alt||''; o.style.display='flex'; };
 window.closeFullView=function(ev){ if(ev)ev.stopPropagation(); var o=document.getElementById('fullview-overlay'); if(o)o.style.display='none'; };
 
-/* ============================================================
-   恋爱飞行棋 · 游戏逻辑
-   ============================================================ */
+
+/* 恋爱飞行棋 · 游戏逻辑 */
 (function(){
 "use strict";
 window.onerror=function(m,s,l){ try{ var t=document.getElementById('jsdbg'); if(!t){ t=document.createElement('div'); t.id='jsdbg'; t.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#300;color:#ff0;font-size:13px;padding:6px;white-space:pre-wrap'; document.body.appendChild(t); } t.textContent=m+' @'+(l||''); }catch(e){} };
@@ -5689,6 +5707,8 @@ var ATLAS_GIRL = [{"id":"000fc30ac0fa2f36b052bbe8a19f704b","cover":"https://phot
 var ATLAS = { girl: ATLAS_GIRL, pose: [] };
 var atlasTab = 'girl';
 var ATLAS_SET_CACHE = null;
+var ATLAS_UNLOCKED = false;
+try{ ATLAS_UNLOCKED = localStorage.getItem('love-atlas-unlocked') === '1'; }catch(e){}
 function atlasRender(){
   var grid = $('atlas-grid'), empty = $('atlas-empty');
   var list = ATLAS[atlasTab] || [];
@@ -5697,14 +5717,15 @@ function atlasRender(){
       var src = (it.src || it.cover || '').replace(/"/g, '&quot;');
       var cnt = it.n ? ('<span class="atlas-cnt">' + it.n + 'P</span>') : '';
       var clickable = (it.id || it.src);
-      return '<div class="atlas-item" data-i="' + i + '"' + (clickable ? ' data-click="1"' : '') + '>'
+      var lock = (atlasTab === 'girl' && it.id && !atlasUnlocked()) ? '<div class="atlas-lock"><span>🔒</span></div>' : '';
+      return '<div class="atlas-item' + (lock ? ' locked' : '') + '" data-i="' + i + '"' + (clickable ? ' data-click="1"' : '') + '>'
         + (src ? '<img src="' + src + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add(&quot;err&quot;)">' : '')
-        + cnt + '</div>';
+        + lock + cnt + '</div>';
     }).join('');
   }
   if(empty) empty.style.display = list.length ? 'none' : 'block';
   var foot = $('atlas-foot');
-  if(foot) foot.textContent = (atlasTab === 'girl' && list.length) ? ('共 ' + list.length + ' 个相册 · 点开看全部照片') : '';
+  if(foot) foot.textContent = (atlasTab === 'girl' && list.length) ? ('共 ' + list.length + ' 个相册 · ' + (atlasUnlocked() ? '点开看全部照片' : '🔒 解锁后可看全部照片')) : '';
   var tabs = document.querySelectorAll('.atlas-tab');
   for(var i = 0; i < tabs.length; i++){ tabs[i].classList.toggle('active', tabs[i].getAttribute('data-a') === atlasTab); }
 }
@@ -5724,6 +5745,40 @@ function atlasLoadSets(cb){
     cb(map);
   }).catch(function(){ cb({}); });
 }
+function atlasUnlocked(){ return !!ATLAS_UNLOCKED; }
+function atlasUnlockKey(){
+  var v = ($('aset-input') && $('aset-input').value || '').trim().toUpperCase();
+  if(!v){ setAtlasMsg('请输入解锁码', false); return; }
+  var ok = false;
+  var KEYS = (typeof ACTIVATION_KEYS !== 'undefined') ? ACTIVATION_KEYS : [];
+  for(var i = 0; i < KEYS.length; i++){ if(String(KEYS[i]).toUpperCase() === v){ ok = true; break; } }
+  if(!ok && v === 'ATLAS-2024') ok = true;
+  if(!ok){ setAtlasMsg('解锁码无效，请检查后重试', false); return; }
+  ATLAS_UNLOCKED = true;
+  try{ localStorage.setItem('love-atlas-unlocked', '1'); }catch(e){}
+  setAtlasMsg('解锁成功，正在进入…', true);
+  if(typeof SFX !== 'undefined'){ SFX.init(); SFX.resume(); SFX.reward(); }
+  setTimeout(function(){
+    closeAtlasMask();
+    var pending = window._atlasPending;
+    window._atlasPending = null;
+    try{ atlasRender(); }catch(e){}
+    if(pending) atlasOpenSet(pending);
+  }, 450);
+}
+function setAtlasMsg(t, ok){
+  var m = $('aset-msg'); if(!m) return;
+  m.textContent = t; m.className = 'pack-msg' + (ok ? ' ok' : '');
+}
+function openAtlasMask(id){
+  window._atlasPending = id || null;
+  var m = $('aset-mask'); if(!m) return;
+  setAtlasMsg('', true);
+  var inp = $('aset-input'); if(inp) inp.value = '';
+  m.classList.add('show');
+  if(typeof SFX !== 'undefined') SFX.click();
+}
+function closeAtlasMask(){ var m = $('aset-mask'); if(m) m.classList.remove('show'); }
 function atlasOpenSet(id){
   var grid = $('aset-grid'), meta = $('aset-meta'), title = $('aset-title');
   if(meta) meta.textContent = '加载中…';
@@ -5753,7 +5808,7 @@ function openAtlas(){
   var back = $('btn-atlas-back');
   if(back) back.addEventListener('click', function(){ if(typeof SFX !== 'undefined') SFX.click(); switchView('view-menu'); });
   var sback = $('btn-aset-back');
-  if(sback) sback.addEventListener('click', function(){ if(typeof SFX !== 'undefined') SFX.click(); switchView('view-atlas'); });
+  if(sback) sback.addEventListener('click', function(){ if(typeof SFX !== 'undefined') SFX.click(); switchView('view-atlas'); atlasRender(); });
   var tabs = $('atlas-tabs');
   if(tabs) tabs.addEventListener('click', function(e){
     var t = e.target.closest('.atlas-tab');
@@ -5769,7 +5824,10 @@ function openAtlas(){
     var list = ATLAS[atlasTab] || [];
     var o = list[parseInt(it.getAttribute('data-i'), 10)];
     if(!o) return;
-    if(o.id){ atlasOpenSet(o.id); }
+    if(o.id){
+      if(atlasUnlocked()){ atlasOpenSet(o.id); }
+      else { openAtlasMask(o.id); }
+    }
     else if(o.src){ atlasZoom(o.src); }
   });
   var sgrid = $('aset-grid');
@@ -5779,6 +5837,14 @@ function openAtlas(){
     var src = it.getAttribute('data-src');
     if(src) atlasZoom(src);
   });
+  var ak = $('aset-ok');
+  if(ak) ak.addEventListener('click', atlasUnlockKey);
+  var ac = $('aset-cancel');
+  if(ac) ac.addEventListener('click', function(){ closeAtlasMask(); if(typeof SFX!=='undefined') SFX.click(); });
+  var am = $('aset-mask');
+  if(am) am.addEventListener('click', function(e){ if(e.target === this) closeAtlasMask(); });
+  var ai = $('aset-input');
+  if(ai) ai.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); atlasUnlockKey(); } });
   var zoom = $('atlas-zoom');
   if(zoom) zoom.addEventListener('click', function(){ this.style.display = 'none'; });
 })();
