@@ -1983,6 +1983,12 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .pack-btn.go{background:linear-gradient(135deg,#FF8FB0,#FF5E8A);color:#fff;box-shadow:0 6px 16px rgba(255,94,138,.3)}
 .pack-btn.ghost{background:#FFF3F7;color:#E0648E}
 .pack-hint{font-size:11px;color:#C0AECB;margin-top:12px;line-height:1.6}
+.pack-pay-toggle{margin-top:12px;text-align:center;font-size:12.5px;font-weight:800;color:#FF5E8A;cursor:pointer;padding:8px 0;border-top:1px dashed #F3CFDC}
+.pack-pay-toggle:active{opacity:.7}
+.pack-pay{margin-top:10px;background:#FFF3F7;border:1px solid #F6D6E2;border-radius:14px;padding:12px;text-align:center}
+.pack-qr{width:190px;max-width:70%;border-radius:10px;box-shadow:0 4px 14px rgba(255,94,138,.18);display:block;margin:0 auto 8px}
+.pack-pay-tip{font-size:12px;color:#C0AECB;padding:10px 0}
+.pack-pay-steps{font-size:11px;color:#B0909F;line-height:1.8;text-align:left}
 .pack-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
   min-height:260px;color:#B08FB0;font-size:13px;text-align:center;padding:24px 12px}
 .pack-lock .pl-ico{font-size:40px;filter:grayscale(.15)}
@@ -2295,6 +2301,12 @@ function preloadImgs(list, cb){
         <button class="pack-btn go" id="aset-ok" type="button">解锁</button>
       </div>
       <div class="pack-hint">解锁码一次输入，此设备永久有效</div>
+      <div class="pack-pay-toggle" id="aset-pay-link">💳 没有解锁码？在线付款购买 ›</div>
+      <div class="pack-pay" id="aset-pay" style="display:none">
+        <img class="pack-qr" src="./img/pay-qr.png" alt="付款二维码" onerror="this.style.display=&quot;none&quot;;var t=document.getElementById(&quot;aset-pay-tip&quot;);if(t)t.style.display=&quot;block&quot;;">
+        <div class="pack-pay-tip" id="aset-pay-tip" style="display:none">付款二维码未配置（img/pay-qr.png）</div>
+        <div class="pack-pay-steps">① 扫码付款 · ② 把付款记录发给站长领取解锁码 · ③ 在上方输入解锁码即可解锁</div>
+      </div>
     </div>
   </div>
 
@@ -5747,17 +5759,11 @@ function atlasLoadSets(cb){
   }).catch(function(){ cb({}); });
 }
 function atlasUnlocked(){ return !!ATLAS_UNLOCKED; }
-function atlasUnlockKey(){
-  var v = ($('aset-input') && $('aset-input').value || '').trim().toUpperCase();
-  if(!v){ setAtlasMsg('请输入解锁码', false); return; }
-  var ok = false;
-  var KEYS = (typeof ACTIVATION_KEYS !== 'undefined') ? ACTIVATION_KEYS : [];
-  for(var i = 0; i < KEYS.length; i++){ if(String(KEYS[i]).toUpperCase() === v){ ok = true; break; } }
-  if(!ok && v === 'ATLAS-2024') ok = true;
-  if(!ok){ setAtlasMsg('解锁码无效，请检查后重试', false); return; }
+function atlasDoUnlock(msg){
   ATLAS_UNLOCKED = true;
   try{ localStorage.setItem('love-atlas-unlocked', '1'); }catch(e){}
-  setAtlasMsg('解锁成功，正在进入…', true);
+  try{ localStorage.setItem('love-atlas-code', arguments[1] || ''); }catch(e){}
+  setAtlasMsg(msg || '解锁成功，正在进入…', true);
   if(typeof SFX !== 'undefined'){ SFX.init(); SFX.resume(); SFX.reward(); }
   setTimeout(function(){
     closeAtlasMask();
@@ -5766,6 +5772,34 @@ function atlasUnlockKey(){
     try{ atlasRender(); }catch(e){}
     if(pending) atlasOpenSet(pending);
   }, 450);
+}
+function atlasUnlockKey(){
+  var v = ($('aset-input') && $('aset-input').value || '').trim().toUpperCase().replace(/\s+/g, '');
+  if(!v){ setAtlasMsg('请输入解锁码', false); return; }
+  var btn = $('aset-ok');
+  var finish = function(){ if(btn){ btn.disabled = false; btn.textContent = '解锁'; } };
+  if(btn){ btn.disabled = true; btn.textContent = '验证中…'; }
+  var tryLocal = function(){
+    var ok = false;
+    var KEYS = (typeof ACTIVATION_KEYS !== 'undefined') ? ACTIVATION_KEYS : [];
+    for(var i = 0; i < KEYS.length; i++){ if(String(KEYS[i]).toUpperCase() === v){ ok = true; break; } }
+    if(!ok && v === 'ATLAS-2024') ok = true;
+    finish();
+    if(!ok){ setAtlasMsg('解锁码无效，请检查后重试', false); return; }
+    atlasDoUnlock('解锁成功，正在进入…', v);
+  };
+  // LF-XXXX-XXXX 格式 → 优先走服务端一次性核销（防伪造、防重复使用）
+  if(/^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(v) && typeof uploadBase === 'function'){
+    fetch(uploadBase() + '/redeem', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code: v, bind: (typeof deviceBind === 'function') ? deviceBind() : ''})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d && d.ok){ finish(); atlasDoUnlock(d.already ? '已在本机恢复，欢迎回来 🎉' : '付款核销成功，解锁啦 🎉', v); }
+      else { finish(); setAtlasMsg((d && d.error) || '解锁码无效，请检查后重试', false); }
+    }).catch(tryLocal);
+  } else {
+    tryLocal();
+  }
 }
 function setAtlasMsg(t, ok){
   var m = $('aset-msg'); if(!m) return;
@@ -5825,9 +5859,9 @@ function openAtlas(){
     var list = ATLAS[atlasTab] || [];
     var o = list[parseInt(it.getAttribute('data-i'), 10)];
     if(!o) return;
+    if(!atlasUnlocked()){ openAtlasMask(o.id); return; }
     if(o.id){
-      if(atlasUnlocked()){ atlasOpenSet(o.id); }
-      else { openAtlasMask(o.id); }
+      atlasOpenSet(o.id);
     }
     else if(o.src){ atlasZoom(o.src); }
   });
@@ -5840,6 +5874,15 @@ function openAtlas(){
   });
   var ak = $('aset-ok');
   if(ak) ak.addEventListener('click', atlasUnlockKey);
+  var pl = $('aset-pay-link');
+  if(pl) pl.addEventListener('click', function(){
+    var p = $('aset-pay');
+    if(!p) return;
+    var show = p.style.display === 'none';
+    p.style.display = show ? 'block' : 'none';
+    pl.textContent = show ? '▴ 收起付款信息' : '💳 没有解锁码？在线付款购买 ›';
+    if(typeof SFX !== 'undefined') SFX.click();
+  });
   var ac = $('aset-cancel');
   if(ac) ac.addEventListener('click', function(){ closeAtlasMask(); if(typeof SFX!=='undefined') SFX.click(); });
   var am = $('aset-mask');
