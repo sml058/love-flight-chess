@@ -1120,6 +1120,7 @@ class Handler(BaseHTTPRequestHandler):
             if fn.startswith('yp-'): return '瑜伽服'
             if fn.startswith('yoga-tight-'): return '超短款'
             if fn.startswith('yoga-swim-'): return '泳衣款'
+            if fn.startswith('slot-'): return '🎰 老虎机卡面'
             if fn.startswith('couple-'): return '夫妻姿势'
             if fn.startswith('shoot-'): return '射击靶'
             return '其他'
