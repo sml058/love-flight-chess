@@ -2049,6 +2049,10 @@ button,.player-input,.online-input,.activate-input{transition:transform .15s eas
 .sc-card.s3{color:#E0455E}
 .sc-label{position:relative;z-index:10;font-size:13px;font-weight:700;color:#5C4450;text-align:center;line-height:1.25;max-width:96%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sc-mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:46px;opacity:.12;pointer-events:none;user-select:none}
+.sc-card.has-img .sc-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.sc-card.has-img .sc-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(70,25,45,.28),rgba(70,25,45,.16) 40%,rgba(70,25,45,.16) 60%,rgba(70,25,45,.5))}
+.sc-card.has-img .sc-label{color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.75)}
+.sc-card.has-img .sc-corner{text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .slot-reel.win{animation:slotPop .5s cubic-bezier(.3,1.6,.5,1);border-color:#FF5E8A}
 @keyframes slotPop{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
 .slot-lights{display:flex;justify-content:center;gap:8px;margin-top:12px}
@@ -8326,6 +8330,11 @@ function slotReelItems(idx){
 function slotCard(idx, i){
   return { rank: SLOT_RANKS[(i + idx * 5) % SLOT_RANKS.length], suit: SLOT_SUITS[i % SLOT_SUITS.length] };
 }
+var SLOT_DUR_IMG = { '10 秒': '短', '30 秒': '短', '15 秒': '短', '数到 20': '短', '3 个深呼吸': '中', '半分钟': '中', '1 分钟': '长', '闭眼感受': '长' };
+function slotWordImg(idx, w){
+  if(idx === 3){ var k = SLOT_DUR_IMG[w]; return k ? './img/slot-dur-' + k + '.webp' : null; }
+  return './img/slot-' + ['place', 'act', 'body'][idx] + '-' + w + '.webp';
+}
 var slot = null;
 var _slotTimers = [];
 function openSlot(){
@@ -8375,11 +8384,13 @@ function buildStrip(idx){
   for(var g = 0; g < 18; g++){
     for(var i = 0; i < items.length; i++){
       var card = slotCard(idx, i);
-      html += '<div class="slot-cell"><div class="sc-card s' + (i % 4) + '">'
+      var wimg = slotWordImg(idx, items[i]);
+      html += '<div class="slot-cell"><div class="sc-card s' + (i % 4) + (wimg ? ' has-img' : '') + '">'
+        + (wimg ? '<div class="sc-bg" style="background-image:url(\'' + wimg + '\')"></div><div class="sc-shade"></div>' : '')
         + '<span class="sc-corner tl"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
         + '<span class="sc-corner br"><b>' + card.rank + '</b><i>' + card.suit + '</i></span>'
         + '<span class="sc-label">' + ssEsc(items[i]) + '</span>'
-        + '<span class="sc-mark">' + card.suit + '</span>'
+        + (wimg ? '' : '<span class="sc-mark">' + card.suit + '</span>')
         + '</div></div>';
     }
   }
