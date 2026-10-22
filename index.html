@@ -5191,21 +5191,20 @@ function resolveCell(p){
 
 /* ---------- 幸运转盘 ---------- */
 var WHEEL_COLORS = ['#FF6E9C','#FFB347','#9B7BFF','#7FB8FF','#FF8FA3','#4FC9A7','#FFD98A','#E8A0C0','#FF9E6E','#B89EFF','#6EC9FF','#FFB8D1','#FF6E9C','#FFB347','#9B7BFF','#7FB8FF','#FF8FA3','#4FC9A7','#FFD98A','#E8A0C0','#FF9E6E','#B89EFF','#6EC9FF','#FFB8D1'];
-var WHEEL_DEFAULT = ['爱心+3','前进2格','奖励卡','护盾','后退2格','甜蜜任务','再掷一次','停一轮','爱心+5','前进5格','后退5格','幸运星','爱心+1','前进1格','惩罚卡','爱心+2','后退1格','甜蜜任务','再掷一次','停一轮','爱心+4','前进3格','后退3格','幸运星'];
+var WHEEL_DEFAULT = ['爱心+3','甜蜜任务','护盾','爱心+2','奖励卡','亲吻10秒','再掷一次','爱心+5','惩罚卡','拥抱20秒','停一轮','爱心+1','真心话','幸运星','爱心+4','夸奖对方','惩罚卡','爱心+2','甜蜜任务','再掷一次','护盾','爱心+3','模仿对方','停一轮'];
 var WHEEL_RESULTS = WHEEL_DEFAULT.slice();
 // 加载自定义转盘内容（旧 12 份数据自动翻倍升级为 24 份）
+// 注意：v2 起转盘不再有「前进/后退」，旧自定义内容若含这类词条则视为过期，回落到新默认
+var WHEEL_CUSTOM_VER = 'v2';
 try{
   var savedWheel = localStorage.getItem('love-flight-wheel-custom');
-  if(savedWheel){
+  var savedVer = localStorage.getItem('love-flight-wheel-custom-ver') || '';
+  if(savedWheel && savedVer === WHEEL_CUSTOM_VER){
     var parsed = JSON.parse(savedWheel);
-    if(Array.isArray(parsed) && parsed.length){
-      if(parsed.length === 24){ WHEEL_RESULTS = parsed; }
-      else if(parsed.length === 12){
-        var doubled = [];
-        for(var _w = 0; _w < 12; _w++){ doubled.push(parsed[_w], parsed[_w]); }
-        WHEEL_RESULTS = doubled;
-      }
-    }
+    if(Array.isArray(parsed) && parsed.length === 24){ WHEEL_RESULTS = parsed; }
+  } else if(savedWheel){
+    // 旧版本自定义内容 → 丢弃（避免用户仍看到前进/后退）
+    try{ localStorage.removeItem('love-flight-wheel-custom'); }catch(e2){}
   }
 }catch(e){}
 var _wheelPlayer = null;
@@ -5410,24 +5409,82 @@ function spinWheel(){
     }
   }, 2000);
 }
+/* 转盘互动动作池：不改变棋子位置，只产生「两个人之间」的真实互动 */
+var WHEEL_ACTIONS = {
+  '亲吻10秒': { kind: 'action', t: '和对方深情亲吻 10 秒', h: 3 },
+  '拥抱20秒': { kind: 'action', t: '拥抱对方 20 秒，谁先松手谁输', h: 2 },
+  '真心话':   { kind: 'truth',  t: '回答对方一个问题，必须说实话', h: 2 },
+  '夸奖对方': { kind: 'praise', t: '当面夸对方三个优点，不能重复', h: 2 },
+  '模仿对方': { kind: 'mimic',  t: '模仿对方一个习惯动作，让对方打分', h: 1 }
+};
 function applyWheelGameEffect(p, result){
-  if(result.indexOf('爱心+5') >= 0){ p.hearts += 5; render(); }
+  var foe = getFoe(p);
+  // 先按精确动作匹配
+  var act = WHEEL_ACTIONS[result];
+  if(act){
+    if(typeof openWheelAction === 'function'){ openWheelAction(p, result, act); return; }
+    p.hearts += act.h; render(); showToast(p.name + ' ' + act.t); return;
+  }
+  if(result.indexOf('爱心-') >= 0){
+    var neg = parseInt(String(result).replace(/[^0-9]/g, ''), 10) || 2;
+    p.hearts = Math.max(0, p.hearts - neg); render();
+    showToast(p.name + ' 被扣 ' + neg + ' 爱心');
+  }
+  else if(result.indexOf('爱心+5') >= 0){ p.hearts += 5; render(); }
   else if(result.indexOf('爱心+3') >= 0){ p.hearts += 3; render(); }
   else if(result.indexOf('爱心') >= 0){ p.hearts += 2; render(); }
-  else if(result.indexOf('前进5') >= 0){ moveBy(p, 5); render(); ripple(p.pos); }
-  else if(result.indexOf('前进2') >= 0){ moveBy(p, 2); render(); ripple(p.pos); }
-  else if(result.indexOf('前进') >= 0){ moveBy(p, 3); render(); ripple(p.pos); }
-  else if(result.indexOf('后退5') >= 0){ moveBy(p, -5); render(); ripple(p.pos); }
-  else if(result.indexOf('后退2') >= 0){ moveBy(p, -2); render(); ripple(p.pos); }
-  else if(result.indexOf('后退') >= 0){ moveBy(p, -3); render(); ripple(p.pos); }
-  else if(result.indexOf('护盾') >= 0){ p.shield = true; render(); }
+  else if(result.indexOf('护盾') >= 0 || result.indexOf('幸运星') >= 0){ p.shield = true; render(); }
   else if(result.indexOf('停一轮') >= 0){ p.skip = true; }
   else if(result.indexOf('再掷') >= 0){ state.phase = 'idle'; setRollEnabled(true); }
-  else if(result.indexOf('甜蜜') >= 0){ p.hearts += 2; render(); }
+  else if(result.indexOf('甜蜜') >= 0){ openTask(p); }
+  else if(result.indexOf('惩罚') >= 0){
+    if(typeof openCard === 'function'){ openCard(p, PENALTY_POOLS, '惩罚卡'); }
+  }
   else if(result.indexOf('奖励') >= 0){
     var pool = (REWARD_POOLS[p.gender]&&REWARD_POOLS[p.gender].length)?REWARD_POOLS[p.gender]:REWARD_POOLS.male;
-    var card = pick(pool); card.act(p, getFoe(p)); showToast(p.name+' 获得：'+card.t);
+    var card = pool.length ? pick(pool) : null;
+    if(card){ card.act(p, foe); showToast(p.name+' 获得：'+card.t); }
+    else { p.hearts += 2; render(); showToast(p.name + ' 获得 +2 爱心'); }
   }
+  else {
+    // 用户自定义的其它文案：只展示，不改位置
+    showToast(p.name + ' 抽到：' + result);
+  }
+}
+
+/* ---------- 转盘互动弹窗（亲亲 / 抱抱 / 真心话 / 夸夸 / 模仿） ---------- */
+function openWheelAction(p, label, act){
+  state.phase = 'event';
+  var foe = getFoe(p);
+  var foeName = foe ? foe.name : '对方';
+  var heads = { action: '互动时刻', truth: '真心话', praise: '夸夸时间', mimic: '模仿挑战' };
+  var notes = {
+    action: '两人一起完成，完成后 ' + p.name + ' 获得 +' + act.h + ' 爱心',
+    truth: '回答要诚实哦，完成后 ' + p.name + ' 获得 +' + act.h + ' 爱心',
+    praise: '对方认可才算通过，' + p.name + ' 获得 +' + act.h + ' 爱心',
+    mimic: '对方打分 ≥ 7 分通过，' + p.name + ' 获得 +' + act.h + ' 爱心'
+  };
+  $('modal-icon').innerHTML = svgIcon(act.kind === 'truth' ? 'heartFill' : 'star', '');
+  $('modal-icon').style.color = 'var(--boost)';
+  $('modal-kicker').textContent = heads[act.kind] || '互动时刻';
+  $('modal-title').textContent = p.name + ' 抽到「' + label + '」';
+  $('modal-body').textContent = act.t;
+  $('modal-note').textContent = notes[act.kind] || '';
+  $('modal-action').textContent = '完成啦，领取爱心';
+  $('modal-action').className = 'btn-modal';
+  $('modal-secondary').textContent = '';
+  $('modal-secondary').style.display = 'none';
+  modal.classList.add('show');
+  SFX.reward();
+  sparkles(modal.querySelector('.modal-card'));
+  $('modal-action').onclick = function(){
+    modal.classList.remove('show');
+    p.hearts += act.h;
+    render();
+    var _msg = '<b>' + p.name + '</b> 和 <b>' + foeName + '</b> 完成「' + label + '」 <span class="ok">爱心 +' + act.h + '</span>';
+    if(onlineMode){ postLog(_msg); } else { addLog(_msg); }
+    setTimeout(nextTurn, 650);
+  };
 }
 
 /* ---------- 甜蜜任务弹窗 ---------- */
@@ -6774,7 +6831,10 @@ $('wheel-custom-save').addEventListener('click', function(){
     newResults.push(inputs[i].value.trim() || ('格'+(i+1)));
   }
   WHEEL_RESULTS = newResults;
-  try{ localStorage.setItem('love-flight-wheel-custom', JSON.stringify(newResults)); }catch(e){}
+  try{
+    localStorage.setItem('love-flight-wheel-custom', JSON.stringify(newResults));
+    localStorage.setItem('love-flight-wheel-custom-ver', WHEEL_CUSTOM_VER);
+  }catch(e){}
   renderWheel();
   $('wheel-custom-panel').style.display = 'none';
   SFX.click();
@@ -6783,7 +6843,10 @@ $('wheel-custom-save').addEventListener('click', function(){
 // 恢复默认转盘内容
 $('wheel-custom-reset').addEventListener('click', function(){
   WHEEL_RESULTS = WHEEL_DEFAULT.slice();
-  try{ localStorage.removeItem('love-flight-wheel-custom'); }catch(e){}
+  try{
+    localStorage.removeItem('love-flight-wheel-custom');
+    localStorage.removeItem('love-flight-wheel-custom-ver');
+  }catch(e){}
   renderWheelCustomList();
   renderWheel();
   SFX.click();
