@@ -330,6 +330,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._serve_img(fp, mimes[ext])
             else:
                 self.send_error(404)
+        elif path == '/atlas-girl.json':
+            # 图册数据（125 个相册 / 约 5900 张外链地址），带 gzip + 长缓存
+            self._serve_file('atlas-girl.json', 'application/json; charset=utf-8', cache=86400)
         elif path == '/outfit-manifest':
             self._json(200, {'map': _outfit_manifest()})
         elif path == '/uploads':
@@ -351,14 +354,14 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.send_error(404)
 
-    def _serve_file(self, fname, ctype):
+    def _serve_file(self, fname, ctype, cache=None):
         try:
             with open(fname, 'rb') as f:
                 data = f.read()
             # 静态大文件（index.html 内嵌图片约 6MB）用 gzip 压缩后再发，体积约降 28%
             body = data
             encoding = None
-            if len(data) > 8192 and 'text/' in ctype:
+            if len(data) > 8192 and ('text/' in ctype or 'json' in ctype):
                 accept = (self.headers.get('Accept-Encoding') or '').lower()
                 if 'gzip' in accept:
                     if not hasattr(self, '_gzip_cache') or self._gzip_cache[0] != fname \
@@ -377,7 +380,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Encoding', encoding)
             self.send_header('Vary', 'Accept-Encoding')
             self.send_header('Content-Length', str(len(body)))
-            self.send_header('Cache-Control', 'no-cache')
+            self.send_header('Cache-Control', ('max-age=%d' % cache) if cache else 'no-cache')
             self.end_headers()
             self.wfile.write(body)
         except FileNotFoundError:
