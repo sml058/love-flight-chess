@@ -1,0 +1,113 @@
+{
+ "codes": {
+  "LF-ZQT9-6GUP": {
+   "status": "used",
+   "ts": 1794446752,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794446752,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-B6A8-EVJF": {
+   "status": "used",
+   "ts": 1794447352,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794447352,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-L5MV-K59V": {
+   "status": "used",
+   "ts": 1794447952,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794447952,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-AL98-5VZP": {
+   "status": "used",
+   "ts": 1794448552,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794448552,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-33ZH-83H9": {
+   "status": "used",
+   "ts": 1794449152,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794449152,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-C9EJ-JP8D": {
+   "status": "used",
+   "ts": 1794449752,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794449752,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-78Z4-ZKWN": {
+   "status": "used",
+   "ts": 1794450352,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794450352,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-5DFB-44ZW": {
+   "status": "used",
+   "ts": 1794450952,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794450952,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-D3TP-VBHT": {
+   "status": "used",
+   "ts": 1794451552,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794451552,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-4WCU-8WKV": {
+   "status": "used",
+   "ts": 1794452152,
+   "tag": "atlas",
+   "bind": "",
+   "usedAt": 1794452152,
+   "ip": "",
+   "count": 1,
+   "note": "历史售出码（原 codes.json 丢失后重建，买家首次输码会自动绑定本机）"
+  },
+  "LF-J7X3-7EZ6": {
+   "status": "unused",
+   "ts": 1794702352,
+   "tag": "",
+   "bind": "",
+   "usedAt": 0,
+   "ip": "",
+   "count": 0
+  }
+ }
+}
