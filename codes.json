@@ -110,7 +110,7 @@
    "count": 0
   },
   "LF-Y4SB-ALS9": {
-   "status": "used",
+   "status": "disabled",
    "ts": 1794710348,
    "tag": "regress",
    "bind": "dev-A",
