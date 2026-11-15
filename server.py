@@ -180,6 +180,124 @@ def _list_upload_files():
 # ---------- 激活码（解锁进阶卡包） ----------
 CODES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'codes.json')
 
+# ---- 码记录持久化（关键）----
+# Render 免费版的容器文件系统是临时的：闲置休眠 / 重新部署后，运行期间写下的
+# codes.json 会连同容器一起被丢弃，表现为「买家昨天还能看，今天就提示码无效」。
+# 配好下面两个环境变量后，码记录会双向同步到 GitHub 仓库，重启自动拉回。
+#   GH_TOKEN  有 repo 写权限的 token（务必用新的、只给这一个仓库的细粒度 token）
+#   GH_REPO   形如 sml058/love-flight-chess
+#   GH_BRANCH 默认 main
+GH_TOKEN = os.environ.get('GH_TOKEN', '').strip()
+GH_REPO = os.environ.get('GH_REPO', '').strip()
+GH_BRANCH = (os.environ.get('GH_BRANCH', '') or 'main').strip()
+GH_CODES_PATH = (os.environ.get('GH_CODES_PATH', '') or 'codes.json').strip()
+_gh_lock = threading.Lock()
+_gh_state = {'pushed': 0, 'pulled': 0, 'lastErr': ''}
+
+
+def _gh_enabled():
+    return bool(GH_TOKEN and GH_REPO)
+
+
+def _gh_api(method, path, payload=None, timeout=8):
+    """调 GitHub Contents API。成功返回 (dict, None)，失败返回 (None, 错误串)。"""
+    import urllib.request
+    url = 'https://api.github.com' + path
+    data = None
+    if payload is not None:
+        data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method=method)
+    req.add_header('Authorization', 'Bearer ' + GH_TOKEN)
+    req.add_header('Accept', 'application/vnd.github+json')
+    req.add_header('User-Agent', 'lf-codes-sync')
+    if data is not None:
+        req.add_header('Content-Type', 'application/json')
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            body = r.read().decode('utf-8')
+            return (json.loads(body) if body.strip() else {}, None)
+    except Exception as e:
+        return (None, str(e)[:200])
+
+
+def _gh_fetch_codes():
+    """从仓库拉 codes.json。成功返回 db dict，失败/未配置返回 None。"""
+    if not _gh_enabled():
+        return None
+    obj, err = _gh_api('GET', '/repos/%s/contents/%s?ref=%s' % (GH_REPO, GH_CODES_PATH, GH_BRANCH))
+    if not obj or 'content' not in obj:
+        _gh_state['lastErr'] = 'pull: ' + (err or 'no content')
+        return None
+    try:
+        raw = base64.b64decode(obj['content'].replace('\n', '')).decode('utf-8')
+        db = json.loads(raw)
+        if not isinstance(db, dict) or not isinstance(db.get('codes'), dict):
+            return None
+        _gh_state['pulled'] += 1
+        _gh_state['remoteSha'] = obj.get('sha', '')
+        return db
+    except Exception as e:
+        _gh_state['lastErr'] = 'pull parse: ' + str(e)[:120]
+        return None
+
+
+def _gh_push_codes(db):
+    """把 db 推到仓库。成功返回 True。"""
+    if not _gh_enabled():
+        return False
+    with _gh_lock:
+        cur, err = _gh_api('GET', '/repos/%s/contents/%s?ref=%s' % (GH_REPO, GH_CODES_PATH, GH_BRANCH))
+        sha = (cur or {}).get('sha')
+        payload = {
+            'message': 'chore(codes): sync %d codes' % len(db.get('codes') or {}),
+            'content': base64.b64encode(
+                json.dumps(db, ensure_ascii=False, indent=1).encode('utf-8')).decode('ascii'),
+            'branch': GH_BRANCH,
+        }
+        if sha:
+            payload['sha'] = sha
+        res, err2 = _gh_api('PUT', '/repos/%s/contents/%s' % (GH_REPO, GH_CODES_PATH), payload, timeout=12)
+        if res is None:
+            _gh_state['lastErr'] = 'push: ' + str(err2 or err)
+            return False
+        _gh_state['pushed'] += 1
+        _gh_state['remoteSha'] = (res.get('content') or {}).get('sha', '')
+        return True
+
+
+def _boot_codes_sync():
+    """启动时把仓库里的码记录拉回本地（容器重启后靠它恢复）。"""
+    if not _gh_enabled():
+        return
+    db = _gh_fetch_codes()
+    if not db:
+        return
+    try:
+        local = {}
+        if os.path.isfile(CODES_PATH):
+            with open(CODES_PATH, 'r', encoding='utf-8') as f:
+                local = json.load(f)
+    except Exception:
+        local = {}
+    # 仓库版本为准，但把本地独有（刚卖掉还没来得及推上去的）码并回来
+    merged = db
+    try:
+        for k, v in ((local or {}).get('codes') or {}).items():
+            if k not in merged['codes']:
+                merged['codes'][k] = v
+            elif v.get('status') == 'used' and merged['codes'][k].get('status') != 'used':
+                merged['codes'][k] = v
+    except Exception:
+        pass
+    try:
+        tmp = CODES_PATH + '.boot'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(merged, f, ensure_ascii=False, indent=1)
+        os.replace(tmp, CODES_PATH)
+        print('  激活码已从仓库同步：%d 条' % len(merged.get('codes') or {}))
+    except Exception:
+        pass
+
 # ---------- 瑜伽衣着图后台（管理页上传，覆盖内置 SVG） ----------
 OUTFIT_STYLES = ('yoga', 'tight', 'swim')
 OUTFIT_STYLE_LABELS = {'yoga': '常规款', 'tight': '超短款', 'swim': '泳衣款'}
@@ -303,9 +421,19 @@ def _load_codes():
     try:
         with open(CODES_PATH, 'r', encoding='utf-8') as f:
             v = json.load(f)
-            return v if isinstance(v, dict) else {'codes': {}}
+            if isinstance(v, dict) and isinstance(v.get('codes'), dict):
+                return v
     except Exception:
-        return {'codes': {}}
+        pass
+    # 本地没有（容器刚重建 / 首次部署）→ 从仓库拉一次，避免「码全丢」
+    db = _gh_fetch_codes()
+    if db:
+        try:
+            _save_codes(db)
+        except Exception:
+            pass
+        return db
+    return {'codes': {}}
 
 
 def _save_codes(db):
@@ -313,6 +441,13 @@ def _save_codes(db):
     with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(db, f, ensure_ascii=False, indent=1)
     os.replace(tmp, CODES_PATH)
+    # 落盘后再异步推仓库（不阻塞核销响应）
+    if _gh_enabled():
+        try:
+            snapshot = json.loads(json.dumps(db))
+            threading.Thread(target=_gh_push_codes, args=(snapshot,), daemon=True).start()
+        except Exception:
+            pass
 
 
 def _gen_code(existing):
@@ -657,6 +792,10 @@ class Handler(BaseHTTPRequestHandler):
             self._codes_list(body)
         elif path == '/codes-toggle':
             self._codes_toggle(body)
+        elif path == '/codes-sync':
+            self._codes_sync(body)
+        elif path == '/codes-import':
+            self._codes_import(body)
         elif path == '/outfit-upload':
             self._outfit_upload(body)
         elif path == '/outfit-delete':
@@ -692,6 +831,16 @@ class Handler(BaseHTTPRequestHandler):
                     ck2 = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
                         raw, _atlas_token(raw, bind))
                     return self._json(200, {'ok': True, 'code': raw, 'already': True}, [('Set-Cookie', ck2)])
+                # bind 为空 = 历史记录丢失后重建的老码 → 允许买家首次认领绑定
+                if not item.get('bind'):
+                    item['bind'] = bind
+                    item['usedAt'] = item.get('usedAt') or int(time.time())
+                    item['count'] = int(item.get('count') or 0) + 1
+                    _save_codes(db)
+                    ck3 = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
+                        raw, _atlas_token(raw, bind))
+                    return self._json(200, {'ok': True, 'code': raw, 'already': True, 'reclaimed': True},
+                                      [('Set-Cookie', ck3)])
                 return self._json(200, {'ok': False, 'error': '该激活码已被使用，如为误用请联系卖家'})
             item['status'] = 'used'
             item['usedAt'] = int(time.time())
@@ -724,10 +873,18 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(200, {'ok': False, 'error': '该激活码已被禁用'})
                 if it.get('status') != 'used':
                     return self._json(200, {'ok': False, 'error': '请先核销激活码'})
-                if not bind:
-                    bind = it.get('bind', '')
+                db_bind = it.get('bind', '')
+                # 已绑定其它设备 → 拒绝（一码一机）
+                if db_bind and bind and db_bind != bind:
+                    return self._json(200, {'ok': False, 'error': '该激活码已绑定其他设备，如需换机请联系卖家'})
+                # 重建的老码没有 bind：把它绑到当前设备
+                if not db_bind and bind:
+                    it['bind'] = bind
+                    _save_codes(db)
+                    db_bind = bind
+                use_bind = db_bind or bind
                 ck = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
-                    code, _atlas_token(code, bind))
+                    code, _atlas_token(code, use_bind))
                 return self._json(200, {'ok': True, 'code': code}, [('Set-Cookie', ck)])
         # 非服务端码：仅当本地静态码场景，签发 7 天有效期的受限 cookie
         STATIC_ALLOW = ('ATLAS-2024',)
@@ -756,6 +913,96 @@ class Handler(BaseHTTPRequestHandler):
                 made.append(code)
             _save_codes(db)
         self._json(200, {'ok': True, 'codes': made})
+
+    def _codes_sync(self, body):
+        """POST /codes-sync {pw, action:'status'|'pull'|'push'}
+        码记录与 GitHub 仓库的双向同步。Render 免费版容器重启会丢文件，
+        靠这个把已售出的码从仓库拉回来。"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '需要管理密码'})
+        action = str(body.get('action') or 'status')
+        info = {
+            'enabled': _gh_enabled(),
+            'repo': GH_REPO, 'branch': GH_BRANCH, 'path': GH_CODES_PATH,
+            'pushed': _gh_state.get('pushed', 0),
+            'pulled': _gh_state.get('pulled', 0),
+            'lastErr': _gh_state.get('lastErr', ''),
+        }
+        if action == 'status':
+            local = _load_codes()
+            info['localTotal'] = len(local.get('codes') or {})
+            return self._json(200, dict(info, ok=True))
+        if not _gh_enabled():
+            return self._json(200, dict(info, ok=False,
+                                        error='未配置 GH_TOKEN / GH_REPO，无法同步'))
+        if action == 'pull':
+            remote = _gh_fetch_codes()
+            if not remote:
+                return self._json(200, dict(info, ok=False, error='拉取失败：' + _gh_state.get('lastErr', '')))
+            local = _load_codes()
+            merged = remote
+            for k, v in (local.get('codes') or {}).items():
+                if k not in merged['codes']:
+                    merged['codes'][k] = v
+                elif v.get('status') == 'used' and merged['codes'][k].get('status') != 'used':
+                    merged['codes'][k] = v
+            try:
+                tmp = CODES_PATH + '.tmp'
+                with open(tmp, 'w', encoding='utf-8') as f:
+                    json.dump(merged, f, ensure_ascii=False, indent=1)
+                os.replace(tmp, CODES_PATH)
+            except Exception as e:
+                return self._json(200, dict(info, ok=False, error='写本地失败：' + str(e)[:120]))
+            return self._json(200, dict(info, ok=True, action='pull',
+                                       total=len(merged['codes']),
+                                       remoteTotal=len(remote['codes']),
+                                       localTotal=len(local.get('codes') or {})))
+        if action == 'push':
+            db = _load_codes()
+            okp = _gh_push_codes(db)
+            return self._json(200, dict(info, ok=okp, action='push',
+                                        total=len(db['codes']),
+                                        error='' if okp else _gh_state.get('lastErr', '')))
+        return self._json(400, {'ok': False, 'error': '未知 action'})
+
+    def _codes_import(self, body):
+        """POST /codes-import {pw, codes:[{code,status,bind,tag,ts,usedAt}]}
+        把指定码写进当前实例（恢复历史售出码用）。已存在的码不会被覆盖成 unused。"""
+        if not self._is_admin(body):
+            return self._json(403, {'ok': False, 'error': '需要管理密码'})
+        arr = body.get('codes')
+        if not isinstance(arr, list) or not arr:
+            return self._json(400, {'ok': False, 'error': 'codes 必须是非空数组'})
+        added, kept, bad = 0, 0, []
+        with codes_lock:
+            db = _load_codes()
+            for it in arr:
+                if not isinstance(it, dict):
+                    bad.append(str(it)[:20]); continue
+                code = str(it.get('code') or '').strip().upper().replace(' ', '')
+                if not CODE_RE.match(code):
+                    bad.append(code or '(空)'); continue
+                cur = db['codes'].get(code)
+                if cur:
+                    # 只补 bind 为空的历史码，不降级已有状态
+                    if not cur.get('bind') and it.get('bind'):
+                        cur['bind'] = str(it.get('bind'))[:64]
+                        kept += 1
+                    continue
+                db['codes'][code] = {
+                    'status': it.get('status') if it.get('status') in ('used', 'unused', 'disabled') else 'unused',
+                    'ts': int(it.get('ts') or time.time()),
+                    'tag': str(it.get('tag') or 'import')[:32],
+                    'bind': str(it.get('bind') or '')[:64],
+                    'usedAt': int(it.get('usedAt') or 0),
+                    'ip': '',
+                    'count': int(it.get('count') or 0),
+                }
+                added += 1
+            if added or kept:
+                _save_codes(db)
+        return self._json(200, {'ok': True, 'added': added, 'patched': kept,
+                                'bad': bad[:10], 'total': len(_load_codes()['codes'])})
 
     def _codes_list(self, body):
         """POST /codes-list {pw} —— 列出全部码 + 统计"""
@@ -2162,6 +2409,11 @@ def get_lan_ip():
 
 if __name__ == '__main__':
     server = ThreadingHTTPServer(('0.0.0.0', PORT), Handler)
+    # 容器重启后先把已售出的码从仓库拉回来，避免买家被锁
+    try:
+        _boot_codes_sync()
+    except Exception as _e:
+        print('  激活码同步失败（不影响启动）：', _e)
     print('=' * 50)
     print('  恋爱飞行棋 · 联机服务器已启动')
     print('=' * 50)
