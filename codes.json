@@ -108,33 +108,6 @@
    "usedAt": 0,
    "ip": "",
    "count": 0
-  },
-  "LF-Y4SB-ALS9": {
-   "status": "disabled",
-   "ts": 1794710348,
-   "tag": "regress",
-   "bind": "dev-A",
-   "usedAt": 1794710351,
-   "ip": "43.143.103.245",
-   "count": 1
-  },
-  "LF-S6K3-L2MY": {
-   "status": "disabled",
-   "ts": 1794710427,
-   "tag": "regress2",
-   "bind": "dev-C",
-   "usedAt": 1794710427,
-   "ip": "111.229.174.181",
-   "count": 1
-  },
-  "LF-6UH7-CSDN": {
-   "status": "used",
-   "ts": 1794710830,
-   "tag": "skiptest",
-   "bind": "dev-skip",
-   "usedAt": 1794710831,
-   "ip": "111.229.174.181",
-   "count": 1
   }
  }
 }
