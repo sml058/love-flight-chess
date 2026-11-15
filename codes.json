@@ -126,6 +126,15 @@
    "usedAt": 1794710427,
    "ip": "111.229.174.181",
    "count": 1
+  },
+  "LF-6UH7-CSDN": {
+   "status": "used",
+   "ts": 1794710830,
+   "tag": "skiptest",
+   "bind": "dev-skip",
+   "usedAt": 1794710831,
+   "ip": "111.229.174.181",
+   "count": 1
   }
  }
 }
