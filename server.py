@@ -192,6 +192,8 @@ GH_REPO = os.environ.get('GH_REPO', '').strip()
 GH_BRANCH = (os.environ.get('GH_BRANCH', '') or 'main').strip()
 GH_CODES_PATH = (os.environ.get('GH_CODES_PATH', '') or 'codes.json').strip()
 _gh_lock = threading.Lock()
+_push_timer = {'t': None}
+_push_timer_lock = threading.Lock()
 _gh_state = {'pushed': 0, 'pulled': 0, 'lastErr': ''}
 
 
@@ -249,7 +251,8 @@ def _gh_push_codes(db):
         cur, err = _gh_api('GET', '/repos/%s/contents/%s?ref=%s' % (GH_REPO, GH_CODES_PATH, GH_BRANCH))
         sha = (cur or {}).get('sha')
         payload = {
-            'message': 'chore(codes): sync %d codes' % len(db.get('codes') or {}),
+            # [skip render] —— 让 Render 忽略这条提交，避免「卖出一码就重新部署一次」
+            'message': 'chore(codes): sync %d codes [skip render]' % len(db.get('codes') or {}),
             'content': base64.b64encode(
                 json.dumps(db, ensure_ascii=False, indent=1).encode('utf-8')).decode('ascii'),
             'branch': GH_BRANCH,
@@ -480,6 +483,25 @@ def _load_codes():
     return {'codes': {}}
 
 
+def _schedule_gh_push(db):
+    """把 3 秒内的连续写合并成一次推送：少刷 git 记录，也少打 GitHub 接口。"""
+    try:
+        snapshot = json.loads(json.dumps(db))
+    except Exception:
+        return
+    with _push_timer_lock:
+        old = _push_timer.get('t')
+        if old is not None:
+            try:
+                old.cancel()
+            except Exception:
+                pass
+        t = threading.Timer(3.0, _gh_push_codes, args=(snapshot,))
+        t.daemon = True
+        _push_timer['t'] = t
+        t.start()
+
+
 def _save_codes(db):
     tmp = CODES_PATH + '.tmp'
     with open(tmp, 'w', encoding='utf-8') as f:
@@ -487,11 +509,7 @@ def _save_codes(db):
     os.replace(tmp, CODES_PATH)
     # 落盘后再异步推仓库（不阻塞核销响应）
     if _gh_enabled():
-        try:
-            snapshot = json.loads(json.dumps(db))
-            threading.Thread(target=_gh_push_codes, args=(snapshot,), daemon=True).start()
-        except Exception:
-            pass
+        _schedule_gh_push(db)
 
 
 def _gen_code(existing):
