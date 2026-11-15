@@ -117,6 +117,15 @@
    "usedAt": 1794710351,
    "ip": "43.143.103.245",
    "count": 1
+  },
+  "LF-S6K3-L2MY": {
+   "status": "unused",
+   "ts": 1794710427,
+   "tag": "regress2",
+   "bind": "",
+   "usedAt": 0,
+   "ip": "",
+   "count": 0
   }
  }
 }
