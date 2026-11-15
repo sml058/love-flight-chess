@@ -5929,23 +5929,34 @@ function atlasZoomClose(){
 }
 function atlasLoadSets(cb){
   if(ATLAS_SET_CACHE){ cb(ATLAS_SET_CACHE); return; }
-  fetch('./atlas-girl.json').then(function(r){ return r.json(); }).then(function(d){
-    var map = {};
-    (d.folders || []).forEach(function(f){ map[f.id] = f.imgs || []; });
-    ATLAS_SET_CACHE = map;
-    cb(map);
-  }).catch(function(){ cb({}); });
+  var tries = 0;
+  var run = function(){
+    fetch('./atlas-girl.json', { credentials: 'include' }).then(function(r){
+      if(!r.ok) throw new Error('locked');
+      return r.json();
+    }).then(function(d){
+      if(!d || !d.folders) throw new Error('empty');
+      var map = {};
+      (d.folders || []).forEach(function(f){ map[f.id] = f.imgs || []; });
+      ATLAS_SET_CACHE = map;
+      cb(map);
+    }).catch(function(){
+      // 可能是 Cookie 刚下发还没生效，稍后重试（最多 2 次）
+      if(tries++ < 2 && atlasUnlocked()){ setTimeout(run, 700); return; }
+      cb({});
+    });
+  };
+  run();
 }
 function atlasUnlocked(){ return !!ATLAS_UNLOCKED; }
 function atlasDoUnlock(msg, code){
   ATLAS_UNLOCKED = true;
+  ATLAS_SET_CACHE = null;   // 解锁前可能拉到过 403 空结果，清掉强制重拉
   try{ localStorage.setItem('love-atlas-unlocked', '1'); }catch(e){}
   try{ localStorage.setItem('love-atlas-code', code || ''); }catch(e){}
-  // 向服务端申请「读图 cookie」：姿势卡图片由 <img> 直接请求，必须靠 cookie 鉴权
-  atlasEnsureCookie(code);
   setAtlasMsg(msg || '解锁成功，正在进入…', true);
   if(typeof SFX !== 'undefined'){ SFX.init(); SFX.resume(); SFX.reward(); }
-  setTimeout(function(){
+  var go = function(){
     closeAtlasMask();
     var pending = window._atlasPending;
     window._atlasPending = null;
@@ -5953,7 +5964,12 @@ function atlasDoUnlock(msg, code){
     if(pending) atlasOpenSet(pending);
     // 解锁后立刻拉一次姿势卡清单，切到「姿势卡」tab 时不用等
     if(typeof atlasLoadPoses === 'function'){ try{ atlasLoadPoses(); }catch(e){} }
-  }, 450);
+  };
+  // 先拿到读图 cookie 再进相册：atlas-girl.json 现在也要求鉴权，
+  // Cookie 未落地就去拉会拿到 403（相册显示 0 张）
+  atlasEnsureCookie(code).then(function(r){
+    setTimeout(go, r && r.ok ? 100 : 450);
+  });
 }
 /* 确保服务端已下发读图 cookie（姿势卡图片鉴权靠它） */
 var ATLAS_COOKIE_TRIED = false;
@@ -5977,14 +5993,12 @@ function atlasUnlockKey(){
   var btn = $('aset-ok');
   var finish = function(){ if(btn){ btn.disabled = false; btn.textContent = '解锁'; } };
   if(btn){ btn.disabled = true; btn.textContent = '验证中…'; }
-  var tryLocal = function(){
-    var ok = false;
-    var KEYS = (typeof ACTIVATION_KEYS !== 'undefined') ? ACTIVATION_KEYS : [];
-    for(var i = 0; i < KEYS.length; i++){ if(String(KEYS[i]).toUpperCase() === v){ ok = true; break; } }
-    if(!ok && v === 'ATLAS-2024') ok = true;
+  // 图册只认服务端核销的 LF-XXXX-XXXX 码。
+  // 本地静态码（ACTIVATION_KEYS / ATLAS-2024）明文写在页面里，谁都能看到，
+  // 不能再作为图册解锁凭证——那些码只用于「进阶卡包」等弱保护场景。
+  var localDenied = function(){
     finish();
-    if(!ok){ setAtlasMsg('解锁码无效，请检查后重试', false); return; }
-    atlasDoUnlock('解锁成功，正在进入…', v);
+    setAtlasMsg('解锁码无效，请检查后重试', false);
   };
   // LF-XXXX-XXXX 格式 → 优先走服务端一次性核销（防伪造、防重复使用）
   if(/^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(v) && typeof uploadBase === 'function'){
@@ -6002,9 +6016,9 @@ function atlasUnlockKey(){
           else { setAtlasMsg(r2.error || err || '解锁码无效，请检查后重试', false); }
         });
       } else { finish(); setAtlasMsg(err || '解锁码无效，请检查后重试', false); }
-    }).catch(tryLocal);
+    }).catch(function(){ finish(); setAtlasMsg('网络不太好，请检查网络后重试', false); });
   } else {
-    tryLocal();
+    localDenied();
   }
 }
 function setAtlasMsg(t, ok){
@@ -6084,6 +6098,7 @@ function atlasAutoRestore(){
   atlasEnsureCookie(c).then(function(r){
     if(!r.ok) return;
     ATLAS_UNLOCKED = true;
+    ATLAS_SET_CACHE = null;
     try{
       localStorage.setItem('love-atlas-unlocked', '1');
       localStorage.setItem('love-atlas-code', c);
