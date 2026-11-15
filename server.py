@@ -334,6 +334,50 @@ def _outfit_manifest():
                 break
     return out
 codes_lock = threading.Lock()
+
+# ---------- 轻量限流 / 防爆破（纯内存，够用） ----------
+_rate_lock = threading.Lock()
+_rate_bucket = {}
+_admin_lock = threading.Lock()
+_admin_fail = {}
+ADMIN_FAIL_MAX = 6          # 连续错 6 次
+ADMIN_FAIL_WINDOW = 900     # 锁 15 分钟
+
+
+def _rate_hit(key, limit, window=60):
+    """滑动窗口限流：key 在 window 秒内超过 limit 次返回 False。"""
+    now = time.time()
+    with _rate_lock:
+        if len(_rate_bucket) > 6000:
+            for k in [k for k, v in _rate_bucket.items() if not v or now - v[-1] > 300]:
+                _rate_bucket.pop(k, None)
+        arr = [t for t in (_rate_bucket.get(key) or []) if now - t < window]
+        if len(arr) >= limit:
+            _rate_bucket[key] = arr
+            return False
+        arr.append(now)
+        _rate_bucket[key] = arr
+    return True
+
+
+def _admin_locked(ip):
+    with _admin_lock:
+        it = _admin_fail.get(ip) or {}
+        return float(it.get('until') or 0) > time.time()
+
+
+def _admin_fail_add(ip):
+    with _admin_lock:
+        it = _admin_fail.setdefault(ip, {'n': 0, 'until': 0})
+        it['n'] = int(it.get('n') or 0) + 1
+        if it['n'] >= ADMIN_FAIL_MAX:
+            it['until'] = time.time() + ADMIN_FAIL_WINDOW
+            it['n'] = 0
+
+
+def _admin_fail_clear(ip):
+    with _admin_lock:
+        _admin_fail.pop(ip, None)
 # 免费池上限：索引 >= FREE_COUNT 的姿势归入「进阶卡包」，需激活码解锁
 FREE_COUNT = 8
 FREE_POSE_NAMES = [
@@ -529,6 +573,21 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass  # 静默日志
 
+    def end_headers(self):
+        """所有响应统一加安全头。"""
+        try:
+            self.send_header('X-Content-Type-Options', 'nosniff')
+            self.send_header('X-Frame-Options', 'SAMEORIGIN')
+            self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
+            self.send_header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+            # 别人站外链引用本站图片会被浏览器拦掉（防盗链）
+            self.send_header('Cross-Origin-Resource-Policy', 'same-origin')
+            if (self.headers.get('X-Forwarded-Proto') or '').lower() == 'https':
+                self.send_header('Strict-Transport-Security', 'max-age=31536000')
+        except Exception:
+            pass
+        super().end_headers()
+
     # ---- GET ----
     def do_OPTIONS(self):
         self.send_response(200)
@@ -572,6 +631,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_error(404)
         elif path == '/atlas-girl.json':
             # 图册数据（125 个相册 / 约 5900 张外链地址），带 gzip + 长缓存
+            # 未解锁不下发：否则任何人都能拉走全部图片地址，前端锁形同虚设
+            if not _is_atlas_authed(self):
+                return self._json(403, {'ok': False, 'error': '图册需解锁后查看'})
             self._serve_file('atlas-girl.json', 'application/json; charset=utf-8', cache=86400)
         elif path == '/outfit-manifest':
             self._json(200, {'map': _outfit_manifest()})
@@ -713,6 +775,18 @@ class Handler(BaseHTTPRequestHandler):
     # ---- POST ----
     def do_POST(self):
         path = urlparse(self.path).path
+        # ---- 限流：管理接口最严，核销/读图凭证适中 ----
+        _rip = self._client_ip()
+        if path in ('/codes-gen', '/codes-import', '/codes-list', '/codes-sync', '/codes-toggle'):
+            _ok = _rate_hit('adm|' + _rip, 10, 60) and _rate_hit('adm|*', 60, 60)
+        elif path == '/redeem':
+            _ok = _rate_hit('rdm|' + _rip, 15, 60)
+        elif path == '/atlas-cookie':
+            _ok = _rate_hit('ck|' + _rip, 60, 60)
+        else:
+            _ok = _rate_hit('misc|' + _rip, 180, 60)
+        if not _ok:
+            return self._json(429, {'ok': False, 'error': '操作太频繁，请稍后再试'})
         length = int(self.headers.get('Content-Length', 0))
         raw = self.rfile.read(length).decode('utf-8') if length else '{}'
         try:
@@ -804,9 +878,25 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
 
     # ---------- 激活码 ----------
+    def _atlas_ck(self, code, bind, max_age=31536000):
+        """统一构造读图 cookie。HTTPS 下自动带 Secure（本地 http 测试不受影响）。"""
+        sec = '; Secure' if (self.headers.get('X-Forwarded-Proto') or '').lower() == 'https' else ''
+        return 'lf_atlas=%s.%s; Path=/; Max-Age=%d; SameSite=Lax%s' % (
+            code, _atlas_token(code, bind), max_age, sec)
+
     def _is_admin(self, body):
-        return self._client_ip() in self._gallery_authed or \
-            str(body.get('pw') or '') == self.GALLERY_PASSWORD
+        ip = self._client_ip()
+        if ip in self._gallery_authed:
+            return True
+        if _admin_locked(ip):
+            return False
+        pw = str(body.get('pw') or '')
+        if pw and hmac.compare_digest(pw, self.GALLERY_PASSWORD):
+            _admin_fail_clear(ip)
+            return True
+        if pw:
+            _admin_fail_add(ip)   # 连续错 6 次锁 15 分钟，防弱密码暴力破解
+        return False
 
     def _redeem(self, body):
         """POST /redeem {code:'LF-XXXX-XXXX', bind:'设备指纹'}
@@ -828,8 +918,7 @@ class Handler(BaseHTTPRequestHandler):
             if item.get('status') == 'used':
                 # 已绑定同一设备 → 认作本机恢复；否则拒绝二次核销
                 if bind and item.get('bind') == bind:
-                    ck2 = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
-                        raw, _atlas_token(raw, bind))
+                    ck2 = self._atlas_ck(raw, bind)
                     return self._json(200, {'ok': True, 'code': raw, 'already': True}, [('Set-Cookie', ck2)])
                 # bind 为空 = 历史记录丢失后重建的老码 → 允许买家首次认领绑定
                 if not item.get('bind'):
@@ -837,8 +926,7 @@ class Handler(BaseHTTPRequestHandler):
                     item['usedAt'] = item.get('usedAt') or int(time.time())
                     item['count'] = int(item.get('count') or 0) + 1
                     _save_codes(db)
-                    ck3 = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
-                        raw, _atlas_token(raw, bind))
+                    ck3 = self._atlas_ck(raw, bind)
                     return self._json(200, {'ok': True, 'code': raw, 'already': True, 'reclaimed': True},
                                       [('Set-Cookie', ck3)])
                 return self._json(200, {'ok': False, 'error': '该激活码已被使用，如为误用请联系卖家'})
@@ -851,8 +939,7 @@ class Handler(BaseHTTPRequestHandler):
             final_bind = item.get('bind', '')
             _save_codes(db)
         # 下发解锁 cookie：后续 <img src="/img/pose/..."> 会自动带上，服务端据此放行
-        ck = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
-            raw, _atlas_token(raw, final_bind))
+        ck = self._atlas_ck(raw, final_bind)
         self._json(200, {'ok': True, 'code': raw, 'already': False}, [('Set-Cookie', ck)])
 
     def _atlas_cookie(self, body):
@@ -883,15 +970,9 @@ class Handler(BaseHTTPRequestHandler):
                     _save_codes(db)
                     db_bind = bind
                 use_bind = db_bind or bind
-                ck = 'lf_atlas=%s.%s; Path=/; Max-Age=31536000; SameSite=Lax' % (
-                    code, _atlas_token(code, use_bind))
+                ck = self._atlas_ck(code, use_bind)
                 return self._json(200, {'ok': True, 'code': code}, [('Set-Cookie', ck)])
-        # 非服务端码：仅当本地静态码场景，签发 7 天有效期的受限 cookie
-        STATIC_ALLOW = ('ATLAS-2024',)
-        if code in STATIC_ALLOW:
-            ck = 'lf_atlas=%s.%s; Path=/; Max-Age=604800; SameSite=Lax' % (
-                code, _atlas_token(code, bind))
-            return self._json(200, {'ok': True, 'code': code, 'limited': True}, [('Set-Cookie', ck)])
+        # 非服务端码一律拒绝：静态码写在页面源码里，等于公开密码
         return self._json(200, {'ok': False, 'error': '激活码无效'})
 
     def _codes_gen(self, body):
@@ -2414,6 +2495,11 @@ if __name__ == '__main__':
         _boot_codes_sync()
     except Exception as _e:
         print('  激活码同步失败（不影响启动）：', _e)
+    # 安全自检提示
+    if not os.environ.get('GALLERY_PASSWORD'):
+        print('  [安全提醒] 管理密码仍是代码里的默认值，请配置环境变量 GALLERY_PASSWORD=<强密码>')
+    if not _gh_enabled():
+        print('  [安全提醒] 未配置 GH_TOKEN / GH_REPO：容器重启后新售出的码会丢失')
     print('=' * 50)
     print('  恋爱飞行棋 · 联机服务器已启动')
     print('=' * 50)
