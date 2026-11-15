@@ -119,7 +119,7 @@
    "count": 1
   },
   "LF-S6K3-L2MY": {
-   "status": "used",
+   "status": "disabled",
    "ts": 1794710427,
    "tag": "regress2",
    "bind": "dev-C",
