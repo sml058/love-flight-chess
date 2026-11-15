@@ -5961,15 +5961,15 @@ function atlasEnsureCookie(code){
   var base = (typeof uploadBase === 'function') ? uploadBase() : '';
   var c = code || '';
   if(!c){ try{ c = localStorage.getItem('love-atlas-code') || ''; }catch(e){} }
-  if(!c || !base) return Promise.resolve(false);
+  if(!c || !base) return Promise.resolve({ ok: false, error: 'no-code' });
   return fetch(base + '/atlas-cookie', {
     method: 'POST',
     credentials: 'include',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ code: c, bind: (typeof deviceBind === 'function') ? deviceBind() : '' })
   }).then(function(r){ return r.json(); }).then(function(d){
-    return !!(d && d.ok);
-  }).catch(function(){ return false; });
+    return { ok: !!(d && d.ok), error: (d && d.error) || '' };
+  }).catch(function(){ return { ok: false, error: 'network', net: true }; });
 }
 function atlasUnlockKey(){
   var v = ($('aset-input') && $('aset-input').value || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -5992,8 +5992,16 @@ function atlasUnlockKey(){
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({code: v, bind: (typeof deviceBind === 'function') ? deviceBind() : ''})
     }).then(function(r){ return r.json(); }).then(function(d){
-      if(d && d.ok){ finish(); atlasDoUnlock(d.already ? '已在本机恢复，欢迎回来 🎉' : '付款核销成功，解锁啦 🎉', v); }
-      else { finish(); setAtlasMsg((d && d.error) || '解锁码无效，请检查后重试', false); }
+      if(d && d.ok){ finish(); atlasDoUnlock(d.already ? '已在本机恢复，欢迎回来 🎉' : '付款核销成功，解锁啦 🎉', v); return; }
+      var err = (d && d.error) || '';
+      // 服务端说「不存在 / 已被使用 / 已绑定」→ 可能是记录重建或换机，再试一次读图凭证
+      if(/不存在|已被使用|已绑定/.test(err)){
+        atlasEnsureCookie(v).then(function(r2){
+          finish();
+          if(r2.ok){ atlasDoUnlock('解锁成功，正在进入…', v); }
+          else { setAtlasMsg(r2.error || err || '解锁码无效，请检查后重试', false); }
+        });
+      } else { finish(); setAtlasMsg(err || '解锁码无效，请检查后重试', false); }
     }).catch(tryLocal);
   } else {
     tryLocal();
@@ -6033,23 +6041,57 @@ function openAtlas(){
   if(typeof SFX !== 'undefined'){ SFX.init(); SFX.resume(); SFX.click(); }
   atlasTab = 'girl';
   atlasRender();
-  // 已解锁但 cookie 可能丢了（清缓存/换浏览器）→ 静默补签一次
+  // 已解锁但读图 cookie 可能丢了（清缓存/换浏览器/服务端重启）→ 静默补签，失败自动重试
   if(atlasUnlocked() && !ATLAS_COOKIE_TRIED){
     ATLAS_COOKIE_TRIED = true;
-    atlasEnsureCookie().then(function(ok){
-      // 补签失败说明码已失效（被禁用/换设备）→ 收回本地解锁态，避免照片全裂
-      if(!ok){
-        var c = ''; try{ c = localStorage.getItem('love-atlas-code') || ''; }catch(e){}
-        if(c && /^LF-/.test(c)){
-          ATLAS_UNLOCKED = false;
-          try{ localStorage.removeItem('love-atlas-unlocked'); }catch(e){}
-          try{ atlasRender(); }catch(e){}
-        }
-      }
-    });
+    atlasSignWithRetry(0);
   }
   switchView('view-atlas');
 }
+/* 补签 cookie：失败只在「码被明确禁用」时收回解锁态。
+   网络抖动 / 服务端重启 / 记录暂时查不到 都保持解锁，避免买家莫名其妙被锁回去。 */
+function atlasSignWithRetry(attempt){
+  atlasEnsureCookie().then(function(r){
+    if(r.ok) return;
+    if(/禁用/.test(r.error || '')){
+      ATLAS_UNLOCKED = false;
+      try{ localStorage.removeItem('love-atlas-unlocked'); }catch(e){}
+      try{ atlasRender(); }catch(e){}
+      return;
+    }
+    // 未绑定设备（换了手机 / 清了 cookie）→ 提示，但不锁
+    if(attempt < 2){
+      setTimeout(function(){ atlasSignWithRetry(attempt + 1); }, attempt === 0 ? 2200 : 5000);
+    } else {
+      var foot = $('atlas-foot');
+      if(foot && atlasUnlocked() && !/重新打开/.test(foot.textContent || '')){
+        foot.textContent = '图片加载失败 · 请稍等几秒重新打开图册';
+      }
+    }
+  });
+}
+/* 自愈：本地解锁标记被浏览器清掉（iOS 7 天清理 / 清缓存）时，
+   用仍存活的 cookie 或本地码自动恢复，不用买家重新输码 */
+function atlasAutoRestore(){
+  if(atlasUnlocked()){ return; }
+  var c = '';
+  try{ c = localStorage.getItem('love-atlas-code') || ''; }catch(e){}
+  if(!c){
+    var m = ('; ' + (document.cookie || '')).match(/;\s*lf_atlas=([^;]+)/);
+    if(m){ try{ c = decodeURIComponent(m[1]).split('.')[0].toUpperCase(); }catch(e2){ c = ''; } }
+  }
+  if(!c || !/^LF-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(c)){ return; }
+  atlasEnsureCookie(c).then(function(r){
+    if(!r.ok) return;
+    ATLAS_UNLOCKED = true;
+    try{
+      localStorage.setItem('love-atlas-unlocked', '1');
+      localStorage.setItem('love-atlas-code', c);
+    }catch(e){}
+    try{ atlasRender(); }catch(e){}
+  });
+}
+setTimeout(function(){ try{ atlasAutoRestore(); }catch(e){} }, 800);
 (function(){
   var b = $('btn-atlas');
   if(b) b.addEventListener('click', openAtlas);
