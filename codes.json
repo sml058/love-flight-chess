@@ -110,13 +110,13 @@
    "count": 0
   },
   "LF-Y4SB-ALS9": {
-   "status": "unused",
+   "status": "used",
    "ts": 1794710348,
    "tag": "regress",
-   "bind": "",
-   "usedAt": 0,
-   "ip": "",
-   "count": 0
+   "bind": "dev-A",
+   "usedAt": 1794710351,
+   "ip": "43.143.103.245",
+   "count": 1
   }
  }
 }
