@@ -126,6 +126,15 @@
    "usedAt": 1794710427,
    "ip": "111.229.174.181",
    "count": 1
+  },
+  "LF-QR3H-PBE6": {
+   "status": "unused",
+   "ts": 1794838185,
+   "tag": "",
+   "bind": "",
+   "usedAt": 0,
+   "ip": "",
+   "count": 0
   }
  }
 }
