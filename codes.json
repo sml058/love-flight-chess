@@ -135,6 +135,15 @@
    "usedAt": 1794838805,
    "ip": "36.248.233.14",
    "count": 1
+  },
+  "LF-ZQNC-7K4B": {
+   "status": "unused",
+   "ts": 1794910856,
+   "tag": "",
+   "bind": "",
+   "usedAt": 0,
+   "ip": "",
+   "count": 0
   }
  }
 }
