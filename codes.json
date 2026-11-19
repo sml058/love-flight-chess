@@ -144,6 +144,15 @@
    "usedAt": 1794910966,
    "ip": "106.33.45.161",
    "count": 1
+  },
+  "LF-8M8J-PYLJ": {
+   "status": "unused",
+   "ts": 1795091357,
+   "tag": "",
+   "bind": "",
+   "usedAt": 0,
+   "ip": "",
+   "count": 0
   }
  }
 }
