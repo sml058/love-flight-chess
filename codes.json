@@ -155,13 +155,13 @@
    "count": 1
   },
   "LF-DEV5-68YD": {
-   "status": "unused",
+   "status": "used",
    "ts": 1795108687,
    "tag": "",
-   "bind": "",
-   "usedAt": 0,
-   "ip": "",
-   "count": 0
+   "bind": "d8sq8fzxqmwntdgor",
+   "usedAt": 1795108705,
+   "ip": "39.144.109.141",
+   "count": 1
   }
  }
 }
